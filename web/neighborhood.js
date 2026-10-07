@@ -21,12 +21,12 @@ export function validateNeighborhood(input){
  const homes=input.homes.map(home=>{
   if(!home||!validId(home.id)||ids.has(home.id))throw Error('Each home needs a unique identifier.');
   ids.add(home.id);
-  if(!['legacy','inhabited'].includes(home.edition))throw Error('Choose a supported house edition.');
+  if(!['legacy','inhabited','atelier'].includes(home.edition))throw Error('Choose a supported house edition.');
   if(typeof home.createdAt!=='string'||home.createdAt.length>40||!Number.isFinite(new Date(home.createdAt).valueOf()))throw Error('Every home needs a valid creation date.');
   return {id:home.id,title:title(home.title),createdAt:new Date(home.createdAt).toISOString(),edition:home.edition,house:snapshot(home.house)};
  });
  if(!ids.has(input.activeId))throw Error('Choose a home in this neighborhood.');
- if(homes.at(-1).edition!=='inhabited')throw Error('The newest home must be an inhabited edition.');
+ if(!['inhabited','atelier'].includes(homes.at(-1).edition))throw Error('The newest home must be an inhabited edition.');
  return {version:1,activeId:input.activeId,homes};
 }
 export function initialNeighborhood(oldHouse,options={}){
@@ -61,7 +61,8 @@ export function createEdition(input,house,options={}){
  let sequence=result.homes.length+1;
  while(ids.has(`home-${sequence}`))sequence++;
  const id=`home-${sequence}`;
- result.homes.push({id,title:title(options.title,`Home edition ${result.homes.length+1}`),createdAt:at(options),edition:'inhabited',house:snapshot(source)});
+ const edition=options.edition??((source.designObjects?.length||result.homes.at(-1).edition==='atelier')?'atelier':'inhabited');if(!['inhabited','atelier'].includes(edition))throw Error('Choose a supported new home edition.');
+ result.homes.push({id,title:title(options.title,`Home edition ${result.homes.length+1}`),createdAt:at(options),edition,house:snapshot(source)});
  result.activeId=id;
  return result;
 }
@@ -70,7 +71,7 @@ function appearance(house){
  const doors=house.doors.map(({a,b})=>[a,b].sort().join('|')).sort();
  const features=(house.resident?.roomFeatures||[]).map(({id,roomId,type})=>({id,roomId,type})).sort((a,b)=>a.id.localeCompare(b.id));
  const ideas=house.ideas.map(({id,roomId,cue,action})=>({id,roomId,cue,action:action??defaultIdeaAction(cue)})).sort((a,b)=>a.id.localeCompare(b.id));
- return JSON.stringify({rooms,doors,features,ideas});
+ return JSON.stringify({rooms,doors,features,ideas,designObjects:house.designObjects||[]});
 }
 export function saveEdition(input,house,options={}){
  const result=validateNeighborhood(input),latest=result.homes.at(-1);

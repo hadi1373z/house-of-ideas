@@ -4,6 +4,7 @@ import {
   proposeCritique, pendingProposals, decideProposal, setResidentPreferences,
   normalizeGptResult, receiveGptResult, residentContext, buildHandoff,
 } from '../web/resident.js';
+import {buildGptPrompt, selectedContext, requestGptReply, DEFAULT_MODEL} from '../server/gpt.mjs';
 const at = '2026-10-07T16:00:00.000Z';
 const later = '2026-10-07T17:00:00.000Z';
 const options = {now: at};
@@ -69,6 +70,9 @@ const board = pendingProposals(noNotes)[0];
 assert.equal(board.action.type, 'add_room_feature');
 assert.equal(board.action.feature, 'question_board');
 assert.match(board.reason, /no idea objects/);
+assert.equal(board.concept, 'clarify');
+assert.match(board.practice, /define its key word/);
+assert.match(board.successTest, /next visit/);
 assert.equal(noNotes.resident.roomFeatures.length, 0);
 assert.equal(noNotes.ideas.length, 0);
 const repeated = proposeCritique(noNotes, 'math', {now: later});
@@ -85,10 +89,63 @@ assert.equal(pendingProposals(proposeCritique(reflected, 'math', options))[0].ac
 reflected.doors.pop();
 assert.equal(pendingProposals(proposeCritique(reflected, 'math', options))[0].action.feature, 'discussion_circle');
 assert.equal(converse(base(), 'math', 'Improve this room.', options).resident.proposals[0].action.feature, 'question_board');
+assert.equal(converse(base(), 'math', 'As a philosopher, what ideas do you have to improve the houses?', options).resident.proposals[0].status, 'pending');
 assert.equal(converse(base(), 'math', 'Please add an experiment table.', options).resident.proposals[0].action.feature, 'experiment_table');
 const alreadyRequested = converse(filledFeatures(base()), 'math', 'Please add a reflection lamp.', options);
 assert.equal(alreadyRequested.resident.proposals.length, 0);
 assert.match(alreadyRequested.resident.messages.at(-1).text, /already has/);
+
+// A resident critiques the declared use of a place, with a practical next-visit
+// test. Counts and imported design labels never establish comfort or learning.
+function domestic(name, purpose) {
+  const house = base();
+  house.rooms[0].name = name;
+  house.rooms[0].purpose = purpose;
+  return house;
+}
+const restCritique = proposeCritique(domestic('Bedroom', 'Rest, dreams and personal thoughts.'), 'math', options);
+const restPlan = restCritique.resident.proposals[0];
+assert.equal(restPlan.action.feature, 'reflection_lamp');
+assert.equal(restPlan.concept, 'examined_life');
+assert.match(restPlan.reason, /0 idea objects/);
+assert.match(restPlan.reason, /without judging how rested you are/);
+assert.match(restPlan.practice, /pause without a task/);
+assert.match(restPlan.successTest, /alone is not evidence/);
+assert.equal(proposeCritique(domestic('Living room', 'Talk through different viewpoints.'), 'math', options).resident.proposals[0].action.feature, 'discussion_circle');
+assert.equal(proposeCritique(domestic('Kitchen', 'Recipes, practical projects and their results.'), 'math', options).resident.proposals[0].action.feature, 'experiment_table');
+const unclear = proposeCritique(domestic('New room', ''), 'math', options);
+assert.match(unclear.resident.proposals[0].reason, /no written purpose/);
+assert.match(unclear.resident.observations[0].evidence.join(' '), /Declared purpose: not written yet/);
+const afterRefusal = proposeCritique(decideProposal(noNotes, noNotes.resident.proposals[0].id, 'decline', {now: later}), 'math', {now: later});
+assert.notEqual(afterRefusal.resident.proposals.at(-1).action.feature, 'question_board');
+assert.match(afterRefusal.resident.proposals.at(-1).reason, /You declined my previous question board/);
+let noAdditions = base();
+for (let n = 0; n < FEATURES.length; n++) {
+  noAdditions = proposeCritique(noAdditions, 'math', options);
+  noAdditions = decideProposal(noAdditions, pendingProposals(noAdditions)[0].id, 'decline', {now: later});
+}
+assert.equal(new Set(noAdditions.resident.proposals.map(proposal => proposal.action.feature)).size, FEATURES.length);
+noAdditions = proposeCritique(noAdditions, 'math', options);
+assert.equal(pendingProposals(noAdditions).length, 0);
+assert.match(noAdditions.resident.messages.at(-1).text, /stop proposing them unless you ask/);
+assert.equal(noAdditions.resident.roomFeatures.length, 0);
+const explicitlyReconsidered = converse(noAdditions, 'math', 'Please add a question board after all.', options);
+assert.equal(pendingProposals(explicitlyReconsidered)[0].action.feature, 'question_board');
+const rememberedCare = converse(converse(domestic('Bedroom', 'A place to rest.'), 'math', 'I want to learn without neglecting sleep.', options), 'math', 'I feel tired. What would a useful pause do?', {now: later});
+assert.equal(rememberedCare.resident.messages.at(-1).concept, 'examined_life');
+assert.match(rememberedCare.resident.messages.at(-1).text, /previously told me/);
+assert.match(rememberedCare.resident.messages.at(-1).text, /without turning rest into another obligation/);
+const twoIdeas = noteHouse();
+twoIdeas.ideas.push({id: 'garden', roomId: 'math', title: 'Garden patterns', text: 'Compare repeating leaf shapes.', cue: 'book', action: 'experiment'});
+assert.match(converse(twoIdeas, 'math', 'Why do garden patterns repeat?', options).resident.messages.at(-1).text, /Your idea “Garden patterns”/);
+const imported = noteHouse();
+imported.designObjects = [{id: 'desk', title: 'Handmade discussion desk', assetId: 'asset-secret-hash', roomId: 'math', placement: 'room', kind: 'object', action: 'question', note: 'Try discussing one claim at this desk.', position: {x: 1, y: 0, z: 1}, sourceUrl: 'https://must-not-be-sent.invalid', bytes: 'private asset bytes'}];
+const designPlan = proposeCritique(imported, 'math', options).resident.proposals[0];
+assert.match(designPlan.reason, /Handmade discussion desk/);
+assert.match(designPlan.reason, /appearance alone cannot tell me/);
+assert.match(designPlan.evidence.join(' '), /assigned to question/);
+assert.equal(designPlan.action.type, 'add_room_feature');
+assert.equal(imported.resident, undefined);
 
 // Every visible installation follows an explicit approval and survives reload.
 const before = structuredClone(noNotes);
@@ -99,6 +156,13 @@ assert.equal(approved.resident.roomFeatures[0].type, 'question_board');
 assert.equal(approved.resident.proposals[0].status, 'applied');
 assert.equal(approved.resident.proposals[0].decision, 'approve');
 assert.deepEqual(validateResident(approved.resident, approved), approved.resident);
+assert.equal(validateResident(approved.resident, approved).proposals[0].successTest, noNotes.resident.proposals[0].successTest);
+const historicalProposal = structuredClone(noNotes.resident);
+for (const field of ['concept', 'practice', 'successTest']) delete historicalProposal.proposals[0][field];
+assert.doesNotThrow(() => validateResident(historicalProposal, noNotes));
+const invalidPractice = structuredClone(noNotes.resident);
+invalidPractice.proposals[0].successTest = 'x'.repeat(501);
+assert.throws(() => validateResident(invalidPractice, noNotes), /improvement test/);
 assert.deepEqual(decideProposal(approved, approved.resident.proposals[0].id, 'approve', {now: later}), approved);
 assert.throws(() => decideProposal(approved, approved.resident.proposals[0].id, 'decline', {now: later}), /final decision/);
 const declined = decideProposal(noNotes, noNotes.resident.proposals[0].id, 'decline', {now: later});
@@ -169,6 +233,8 @@ assert.equal(modelHouse.resident.messages[0].source, 'gpt');
 assert.equal(modelHouse.resident.messages[1].source, 'gpt');
 assert.equal(modelHouse.resident.proposals[0].source, 'gpt');
 assert.equal(modelHouse.resident.proposals[0].roomId, 'learning');
+assert.equal(modelHouse.resident.proposals[0].concept, 'perspective');
+assert.match(modelHouse.resident.proposals[0].successTest, /one conversation/);
 assert.equal(modelHouse.resident.roomFeatures.length, 0);
 assert.equal(modelHouse.ideas.length, 0);
 const modelInstalled = decideProposal(modelHouse, modelHouse.resident.proposals[0].id, 'approve', {now: later});
@@ -192,7 +258,9 @@ assert.equal(long.resident.memory.rooms[0].visits, 45);
 assert.doesNotThrow(() => validateResident(long.resident, long));
 let history = base();
 for (let n = 0; n < 55; n++) {
-  history = proposeCritique(history, 'math', options);
+  // A fresh explicit request may reconsider an earlier refusal. Autonomous
+  // critiques do not continually re-propose a feature the owner declined.
+  history = proposeCritique(history, 'math', {...options, feature: 'question_board'});
   history = decideProposal(history, pendingProposals(history)[0].id, 'decline', {now: later});
 }
 assert.equal(history.resident.proposals.length, 48);
@@ -230,4 +298,46 @@ assert.match(brief, /Mathematics/);
 assert.match(brief, /does not authorize source publication/);
 assert.deepEqual(handoffState, frozen);
 assert.equal(Object.keys(CONCEPTS).length, 6);
-console.log('Verified resident: contextual persistent dialogue, honest local mode, Socratic memory, observed evidence, all four physical features, pending-only proposals, explicit approval/rejection, reloads, stale/renamed rooms, capacities, GPT validation, bounded history and source handoff.');
+
+// Both online transports share bounded personal history, actual room functions,
+// and decisions. The outgoing request is inspected through a fake fetch only.
+let personalized = observeRoom(imported, 'math', options);
+personalized = converse(personalized, 'math', 'I value clear explanations. What counts as a good example?', options);
+personalized = proposeCritique(personalized, 'math', options);
+personalized = decideProposal(personalized, personalized.resident.proposals[0].id, 'decline', {now: later});
+personalized.learning = {days: [{date: '2026-10-07', reflections: [{roomId: 'math', answer: 'One example did not cover the boundary.'}]}]};
+const boundedContext = selectedContext(personalized, 'math');
+assert.match(boundedContext.ownerMemory.values[0], /clear explanations/);
+assert.match(boundedContext.ownerMemory.openQuestions[0], /good example/);
+assert.equal(boundedContext.residentVisits.count, 2);
+assert.equal(boundedContext.recentDecisions[0].decision, 'decline');
+assert.equal(boundedContext.recentReflections[0].date, '2026-10-07');
+assert.equal(boundedContext.room.ideaFunctions.reflect, 1);
+assert.deepEqual(boundedContext.designObjects, [{title: 'Handmade discussion desk', kind: 'object', action: 'question', note: 'Try discussing one claim at this desk.'}]);
+assert.doesNotMatch(JSON.stringify(boundedContext), /private asset bytes|must-not-be-sent|asset-secret-hash/);
+const prompt = buildGptPrompt(personalized, {message: 'Does the house help me think?', roomId: 'math'});
+assert.match(prompt[0].content, /counterexamples/);
+assert.match(prompt[0].content, /rest, care, conversation/);
+assert.match(prompt[0].content, /missing recorded evidence/);
+assert.match(prompt[0].content, /Never invent a historical quotation/);
+assert.match(prompt[0].content, /next visit/);
+assert.match(prompt[1].content, /recentDecisions/);
+assert.equal(prompt.at(-1).role, 'user');
+let outgoing;
+const reply = await requestGptReply({apiKey: 'sk-only-a-test-not-a-real-key', model: DEFAULT_MODEL, input: {message: 'What should we improve?', roomId: 'math'}, house: personalized, fetchImpl: async (url, request) => {
+  outgoing = JSON.parse(request.body);
+  return new Response(JSON.stringify({status: 'completed', output: [{type: 'message', content: [{type: 'output_text', text: JSON.stringify({reply: 'Which definition would make the desk discussion clearer?', concept: 'clarify', suggestion: null})}]}]}), {status: 200});
+}});
+assert.equal(reply.suggestion, null);
+assert.equal(outgoing.store, false);
+assert.deepEqual(outgoing.input, buildGptPrompt(personalized, {message: 'What should we improve?', roomId: 'math'}));
+const overlongDesigns = structuredClone(personalized);
+overlongDesigns.designObjects = Array.from({length: 30}, (_, n) => ({...imported.designObjects[0], title: `Design ${n}`, note: 'n'.repeat(1000)}));
+overlongDesigns.learning.days = Array.from({length: 10}, (_, n) => ({date: `2026-09-${String(n + 1).padStart(2, '0')}`, reflections: [{roomId: 'math', answer: 'r'.repeat(1200)}]}));
+const limitedContext = selectedContext(overlongDesigns, 'math');
+assert.equal(limitedContext.designObjects.length, 6);
+assert.equal(limitedContext.designObjects[0].note.length, 240);
+assert.equal(limitedContext.recentReflections.length, 4);
+assert.equal(limitedContext.recentReflections[0].answer.length, 400);
+assert.deepEqual(personalized.designObjects[0], imported.designObjects[0]);
+console.log('Verified resident: purposeful philosophical critiques, rest and conversation, object functions, explicit practical tests, remembered goals/refusals, contextual dialogue, approval-only changes, archival compatibility, bounded designer metadata and personalized GPT prompts with no live requests.');

@@ -1,0 +1,58 @@
+import assert from 'node:assert/strict';
+import {validateGlb,validateDesignObjects,DESIGN_LIMITS} from '../web/design-objects.js';
+import {starter,validateHouse,clone} from '../web/model.js';
+import {triangleGlb} from './verify-design-fixture.mjs';
+
+const glb=triangleGlb(),summary=validateGlb(glb);
+assert.equal(summary.vertices,3);assert.equal(summary.triangles,1);assert.equal(summary.meshes,1);assert.equal(summary.drawCalls,1);
+assert.deepEqual(validateGlb(new Uint8Array(glb)),summary);assert.deepEqual(validateGlb(glb.buffer.slice(glb.byteOffset,glb.byteOffset+glb.byteLength)),summary);
+const bad=(change,pattern)=>assert.throws(()=>validateGlb(triangleGlb(change)),pattern);
+bad(json=>json.buffers[0].uri='https://example.com/model.bin',/self-contained/);
+bad(json=>json.images=[{uri:'data:image/png;base64,AA=='}],/self-contained/);
+bad(json=>json.extras={scripts:['alert(1)']},/scripts/);
+bad(json=>json.extensionsUsed=['KHR_draco_mesh_compression'],/unsupported extensions/);
+bad(json=>json.meshes[0].primitives[0].extensions={KHR_draco_mesh_compression:{}},/unsupported extensions/);
+bad(json=>json.animations=[],/static GLB/);
+bad(json=>json.skins=[],/static GLB/);
+bad(json=>json.nodes[0].children=[0],/cyclic/);
+bad(json=>{json.nodes.push({children:[0]});json.nodes[0].children=[1];},/cyclic/);
+bad(json=>{json.nodes.push({mesh:0});json.nodes[0].children=[1];json.scenes[0].nodes=[0,1];},/also a child/);
+bad(json=>json.bufferViews[0].byteLength=1000,/buffer view length/);
+bad(json=>json.accessors[0].count=400000,/exceeds its buffer view/);
+bad(json=>json.accessors[0].sparse={},/sparse/);
+bad(json=>json.nodes[0].translation=[0,1e200,0],/transform/);
+bad(json=>json.nodes[0].rotation=[0,0,0,2],/normalized quaternions/);
+bad(json=>json.extensions={KHR_lights_punctual:{lights:Array.from({length:5},()=>({type:'point'}))}},/lights/);
+bad(json=>json.accessors[0].max=[Infinity,1,1],/bounds/);
+bad(json=>json.accessors[0].max=[100,1,0],/do not match/);
+bad(json=>delete json.accessors[0].min,/accurate minimum/);
+bad(json=>json.scenes[0].nodes=[],/visible mesh/);
+bad(json=>json.bufferViews[1].byteOffset=35,/alignment/);
+bad(json=>json.meshes[0].primitives[0].mode=1,/triangle geometry/);
+bad(json=>json.meshes[0].primitives[0].attributes.JOINTS_0=0,/skeletal data/);
+bad(json=>json.meshes[0].primitives[0].material=200,/material reference/);
+bad(json=>json.nodes=Array.from({length:DESIGN_LIMITS.nodes+1},()=>({mesh:0})),/nodes/);
+bad(json=>json.meshes[0].primitives=Array.from({length:DESIGN_LIMITS.primitives+1},()=>({attributes:{POSITION:0}})),/primitives/);
+assert.throws(()=>validateGlb(triangleGlb(()=>{},bytes=>bytes.writeUInt16LE(6,40))),/outside its vertex array/);
+assert.throws(()=>validateGlb(triangleGlb(()=>{},bytes=>bytes.writeFloatLE(Infinity,0))),/vertex values/);
+const broken=Buffer.from(glb);broken.writeUInt32LE(glb.length-1,8);assert.throws(()=>validateGlb(broken),/valid GLB/);
+assert.throws(()=>validateGlb(Buffer.alloc(DESIGN_LIMITS.bytes+1)),/12 MiB/);
+bad(json=>{json.bufferViews.push({buffer:0,byteLength:24});json.images=[{bufferView:2,mimeType:'image/png'}];},/PNG/);
+const withLargePng=triangleGlb(json=>{json.bufferViews.push({buffer:0,byteOffset:44,byteLength:24});json.images=[{bufferView:2,mimeType:'image/png'}];},bytes=>{bytes.writeUInt32BE(0x89504e47,44);bytes.writeUInt32BE(0x0d0a1a0a,48);bytes.writeUInt32BE(0x49484452,56);bytes.writeUInt32BE(100000,60);bytes.writeUInt32BE(100000,64);},24);
+assert.throws(()=>validateGlb(withLargePng),/16 million pixels/);
+// Instanced meshes count toward the render budget, not just their source data.
+const manyVertices=triangleGlb(json=>{json.meshes[0].primitives=Array.from({length:140},()=>({attributes:{POSITION:0},indices:1}));json.nodes=Array.from({length:500},()=>({mesh:0}));json.scenes[0].nodes=json.nodes.map((_,index)=>index);});
+assert.throws(()=>validateGlb(manyVertices),/200,000 vertices/);
+// Low polygon counts can still freeze a headset when primitives are heavily instanced.
+const repeatedPrimitives=count=>triangleGlb(json=>{json.meshes[0].primitives=[{attributes:{POSITION:0},indices:1},{attributes:{POSITION:0},indices:1}];json.nodes=Array.from({length:count},()=>({mesh:0}));json.scenes[0].nodes=json.nodes.map((_,index)=>index);});
+const atDrawLimit=validateGlb(repeatedPrimitives(256));assert.equal(atDrawLimit.drawCalls,512);assert.equal(atDrawLimit.vertices,1536);assert.equal(atDrawLimit.triangles,512);
+assert.throws(()=>validateGlb(repeatedPrimitives(258)),/512 instanced mesh primitives/,'Tiny triangles are still rejected when their instances exceed the draw-call budget.');
+
+const house=starter(),assetId='a'.repeat(64),design={id:'chair-a',title:' A reading chair ',assetId,placement:'room',kind:'object',roomId:'math',action:'read',note:'A designer’s quiet place.'};
+const validated=validateDesignObjects([design],house.rooms);assert.equal(validated[0].title,'A reading chair');assert.deepEqual(validated[0].position,[0,0,0]);assert.equal(validated[0].scale,1);
+house.designObjects=[design];assert.deepEqual(validateHouse(house).designObjects,validated);assert.equal(starter().designObjects,undefined,'Earlier homes keep their original shape.');
+const exhibit={...design,id:'garden-house',placement:'garden',kind:'house'};assert.equal(validateDesignObjects([exhibit],house.rooms)[0].roomId,undefined);
+for(const [patch,pattern] of [[{id:'../asset'},/unique identifier/],[{assetId:'https://example.com/a.glb'},/local GLB/],[{roomId:'missing'},/room/],[{kind:'house'},/garden/],[{scale:0},/scale/],[{rotation:10},/rotation/],[{position:[0,100,0]},/position/],[{position:[0,NaN,0]},/position/],[{action:'execute'},/reflection/],[{note:'a'.repeat(6001)},/6,000/]])assert.throws(()=>validateDesignObjects([{...design,...patch}],house.rooms),pattern);
+assert.throws(()=>validateDesignObjects([design,clone(design)],house.rooms),/unique identifier/);
+assert.throws(()=>validateDesignObjects(Array.from({length:25},(_,index)=>({...design,id:`item-${index}`})),house.rooms),/24/);
+console.log('Designer validation: embedded GLB structure, budgets, indices, finite geometry, remote/script rejection, transforms and legacy shape passed.');

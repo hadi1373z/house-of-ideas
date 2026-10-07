@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "goal": "A durable offline House of Ideas shared with a persistent Socrates resident, contextual dialogue, learning and owner-approved physical improvements.",
-  "current_milestone": "inhabited-neighborhood",
+  "current_milestone": "designer-neighborhood-and-vr",
   "active_item": null,
   "canonical_source": {
     "edition": "offline",
@@ -17,14 +17,14 @@
     "stop_launcher": "Stop House.vbs",
     "durable_file": "data/house.json",
     "packaged_distribution": "Separate Windows portable deliverable; no GitHub Release asset has been published.",
-    "resident": "Persistent local dialogue rules, room observations, conversation and preferences; not an LLM.",
+    "resident": "Persistent local philosopher using room purposes, actual activities, journal evidence and refusal memory; proposals include practice and next-visit tests. Offline dialogue is a rule-based guide.",
     "physical_approval": "Only an explicit owner approval installs a bounded additive furnishing or learning book. Declines preserve the room.",
     "daily_review": "The open local page checks at 21:00 Europe/Prague; missed recorded activity can be reviewed on return. Its book requires next-day confirmation. Nothing runs while stopped.",
     "optional_gpt": {
       "configured_default_model": "gpt-5.4-mini",
       "configured_key": false,
       "key_storage": "Local server memory only",
-      "network": "Explicit online send only; bounded current-room context and recent dialogue.",
+      "network": "Explicit online send only; bounded room context, goals, reflections, observations, decisions, designer metadata and recent dialogue.",
       "paid_live_request_verified": false,
       "verification": "Mocked Responses transport and strict structured-result validation passed in isolated tests."
     },
@@ -32,16 +32,25 @@
     "verification": {
       "resident_engine": "passed",
       "isolated_server_http_storage_restart_and_mocked_gpt": "passed",
-      "integrated_source_suite": "passed_all_eleven_suites_and_both_builds",
+      "integrated_source_suite": "passed_all_nineteen_suites_and_both_builds",
       "packaged_launch_and_saved_restart": "passed_actual_Windows_bundle_VBS_restart_complete_original_house_and_byte_exact_backup_preserved",
-      "browser_rendering": "passed_domestic_arrival_individual_book_selection_pages_saved_answer_and_physical_preserved_house_visit"
+      "browser_rendering": "passed_local_GLB_house_import_full_size_tour_saved_design_reflection_optional_connection_UI_and_no_headset_fallback"
+    },
+    "optional_chatgpt": {
+      "connection": "Separate, explicit Continue with ChatGPT OAuth for eligible plans; never reads Codex credentials.",
+      "model": "Selected from the connected account model catalog.",
+      "token_storage": "Server memory only; sign in again after stopping.",
+      "registration": "Non-secret host/account identifiers in data/chatgpt-registration.json.",
+      "live_signin_verified": false,
+      "live_inference_verified": false,
+      "verification": "Mocked PKCE, nonce, JWKS identity, renewal, cancellation, dynamic catalog and bounded streamed response tests passed. Optional registration damage preserves offline startup."
     }
   },
   "neighborhood": {
     "storage_version": 2,
     "migration_backup": "data/house-before-neighborhood.json preserves the original storage envelope byte for byte.",
     "editions": "Complete independent house documents. Spatial or object-function changes create another home; older homes remain read-only and visitable.",
-    "appearance": "Original house uses its retained legacy renderer. Current inhabited houses use the furnished domestic renderer; future redesigns must retain that renderer too.",
+    "appearance": "Legacy houses retain legacy-scene.js; inhabited houses retain inhabited-scene-v1.js; designer editions use the atelier tag.",
     "object_functions": "Selectable offline books have pages and reflection questions. Assigned idea objects support reading, questioning, experiments and reflection.",
     "verification": "Atomic migration, full-history isolation, selected-home restart, furniture-aware paths, dense object placement, usable book spines, activity save races and assistant edits preserving object functions passed. Exact publication results are recorded separately in the release notes."
   },
@@ -284,5 +293,30 @@
       "result": "Prepared the dependency-free local runtime, persistent resident, approval-only furnishings, optional session-key GPT adapter, Windows launcher packaging and offline-first documentation. GitHub becomes canonical for this edition; older private Sites v8 remains separate.",
       "verification": "All seven source suites and both builds passed. Real browser checks covered enclosed entrance, held WASD movement, embodied resident approach, offline conversation save, approved furnishing and reload, and return from floor plan. Actual Windows bundle Start/Stop VBS, server reuse and restart passed with saved bytes preserved. Four same-room furnishings fit separately even in 3 x 3 rooms with doors. No live API key or paid request; GPT transport is mocked. GitHub source/CI/Pages outcomes are recorded separately by the release task."
     }
-  ]
+  ],
+  "designer_contributions": {
+    "formats": [
+      "Static self-contained GLB",
+      "House of Ideas house JSON",
+      "Portable JSON design package with embedded GLBs"
+    ],
+    "assets": "Immutable SHA256 files in data/designs; no external resources or executable imports.",
+    "activities": [
+      "read",
+      "question",
+      "experiment",
+      "reflect"
+    ],
+    "homes": "GLB houses are garden exhibits with ground-level full-size tours; app house templates make independent neighbouring homes.",
+    "limits": "12 MiB per GLB, 24 designs per home, 512 instanced draws per GLB; combined geometry/texture/draw budgets enforced.",
+    "sharing": "A package includes one home and its personal memories; data-folder backup preserves the whole neighbourhood.",
+    "verification": "Actual HTTP uploads, exact bytes/restart, CAS, old-house isolation, placement and transform controls, activity drafts, portable package preflight and geometry/resource budgets passed."
+  },
+  "virtual_reality": {
+    "interface": "WebXR immersive-vr on a compatible headset/browser and secure origin.",
+    "controls": "Trigger selection/ground teleport, left-stick movement, right-stick snap turn, in-world reading/critique panel.",
+    "verification": "Rig/head world transforms, collision axes, stable pivot, ground-only teleport and session races tested with mocks.",
+    "hardware_verified": false,
+    "scope": "Single-player ground-level exploration; no CAD/BIM editor, shared world, marketplace or arbitrary device connection."
+  }
 }

@@ -14,8 +14,8 @@ export const CONCEPTS = {
 };
 const PERSONA = {
   name: 'Socrates', role: 'Resident philosopher and constructive critic',
-  goals: ['Help you explain ideas clearly.', 'Question assumptions with care.', 'Turn reflection into small, approved improvements to this house.'],
-  character: 'Curious, patient, candid, and willing to leave a question open.',
+  goals: ['Help you explain ideas clearly.', 'Question assumptions with care.', 'Ask whether a room serves the life you want to live.', 'Turn reflection into small, approved improvements to this house.'],
+  character: 'Curious, patient, candid, attentive to rest and conversation, and willing to revise an earlier judgment.',
 };
 const FEATURE_COPY = {
   question_board: {name: 'question board', title: 'Give this room a question board', practice: 'Put a claim, its meaning, and one open question on the board.'},
@@ -117,6 +117,13 @@ export function validateResident(input, house) {
       evidence: array(proposal.evidence, 8, 'Proposal evidence').map(item => text(item, 1, 400, 'A proposal fact')),
       action: normalizeAction(proposal.action, roomId),
     };
+    // Older proposals remain valid; newer critiques explain their method and test.
+    if (proposal.concept !== undefined) {
+      if (!Object.hasOwn(CONCEPTS, proposal.concept)) throw Error('A proposal needs a supported Socratic concept.');
+      normalized.concept = proposal.concept;
+    }
+    if (proposal.practice !== undefined) normalized.practice = text(proposal.practice, 1, 500, 'The proposed practice');
+    if (proposal.successTest !== undefined) normalized.successTest = text(proposal.successTest, 1, 500, 'The improvement test');
     if (proposal.status !== 'pending') {
       if (!['approve', 'decline'].includes(proposal.decision)) throw Error('A decided proposal needs its explicit user decision.');
       normalized.decision = proposal.decision;
@@ -210,16 +217,35 @@ function roomFacts(house, roomId) {
   const neighbors = house.rooms.filter(item => neighborIds.has(item.id));
   const reflections = (house.learning?.days || []).flatMap(day => day.reflections || []).filter(reflection => reflection.roomId === roomId);
   const features = (house.resident?.roomFeatures || []).filter(feature => feature.roomId === roomId).map(feature => feature.type);
+  const purpose = typeof room.purpose === 'string' ? truncate(room.purpose.trim(), 400) : '';
+  const actions = {read: 0, question: 0, experiment: 0, reflect: 0};
+  for (const note of notes) {
+    const action = note.action || {book: 'read', ring: 'question', sphere: 'experiment', crystal: 'reflect'}[note.cue];
+    if (Object.hasOwn(actions, action)) actions[action]++;
+  }
+  // Only authored metadata is known here. Geometry, comfort and reachability need
+  // a real visit and cannot be inferred from an imported asset's title.
+  const designObjects = (Array.isArray(house.designObjects) ? house.designObjects : [])
+    .filter(object => object?.roomId === roomId && object.placement !== 'garden')
+    .slice(0, 24).map(object => ({
+      title: truncate(typeof object.title === 'string' ? object.title : 'Untitled design', 100),
+      kind: object.kind === 'house' ? 'house' : 'object',
+      action: Object.hasOwn(actions, object.action) ? object.action : 'read',
+      note: truncate(typeof object.note === 'string' ? object.note : '', 400),
+    }));
+  const visits = house.resident?.memory?.rooms?.find(item => item.roomId === roomId)?.visits || 0;
   const evidence = [
     `${room.name}: ${notes.length} idea object${notes.length === 1 ? '' : 's'}; ${blank.length} without written notes.`,
     `Door connections: ${neighbors.length ? neighbors.map(item => item.name).join(', ') : 'none'}.`,
     `Saved learning reflections: ${reflections.length}.`,
     `Installed learning furniture: ${features.length ? features.map(type => FEATURE_COPY[type].name).join(', ') : 'none'}.`,
+    `Declared purpose: ${purpose || 'not written yet'}. Assigned idea functions: ${Object.entries(actions).map(([action, count]) => `${action} ${count}`).join(', ')}.`,
   ];
   if (notes[0]) evidence.push(`Idea: “${truncate(notes[0].title, 100)}”. Notes: ${truncate(notes[0].text || '(empty)', 220)}`);
   if (reflections.at(-1)) evidence.push(`Latest reflection: ${truncate(reflections.at(-1).answer, 260)}`);
+  if (designObjects.length) evidence.push(`Imported designs: ${designObjects.length}; “${designObjects[0].title}” is assigned to ${designObjects[0].action}. ${designObjects[0].note}`);
   const summary = `${room.name} has ${notes.length} idea${notes.length === 1 ? '' : 's'}, ${reflections.length} saved reflection${reflections.length === 1 ? '' : 's'}, and ${neighbors.length} connected room${neighbors.length === 1 ? '' : 's'}.`;
-  return {room, notes, blank, neighbors, reflections, features, evidence: evidence.map(item => truncate(item, 400)), summary};
+  return {room, purpose, notes, blank, neighbors, reflections, features, actions, designObjects, visits, evidence: evidence.map(item => truncate(item, 400)), summary};
 }
 
 export function observeRoom(house, roomId, options = {}) {
@@ -239,7 +265,7 @@ export function observeRoom(house, roomId, options = {}) {
 }
 
 function conceptFor(content, house) {
-  if (/\b(life|value|important|purpose|habit|meaningful|care about)\b/i.test(content)) return 'examined_life';
+  if (/\b(life|value|important|purpose|habit|meaningful|care about|rest|tired|sleep|comfort)\b/i.test(content)) return 'examined_life';
   if (/\b(assume|assumption|believe|always|never|everyone|certain)\b/i.test(content)) return 'assumptions';
   if (/\b(counterexample|wrong|false|contradict|disprove)\b/i.test(content)) return 'counterexample';
   if (/\b(evidence|proof|test|experiment|reason|why)\b/i.test(content)) return 'evidence';
@@ -252,14 +278,22 @@ function conceptFor(content, house) {
   return order[turns % order.length];
 }
 
+function chosenIdea(facts, content = '') {
+  const words = content.toLowerCase().match(/[a-z0-9]{4,}/g) || [];
+  const scored = facts.notes.map(idea => ({idea, score: words.filter(word => idea.title.toLowerCase().includes(word)).length}));
+  scored.sort((a, b) => b.score - a.score);
+  return scored[0]?.idea;
+}
+
 function questionFor(concept, facts, content) {
-  const idea = facts.notes[0]?.title || facts.room.name;
+  const idea = chosenIdea(facts, content)?.title || facts.designObjects[0]?.title || facts.room.name;
   if (concept === 'clarify') return `When you say “${truncate(content, 100)}”, which part needs a clearer meaning? Give one concrete example from ${facts.room.name}.`;
   if (concept === 'assumptions') return `Which assumption supports your view of “${truncate(idea, 100)}”? What changes if that assumption is false?`;
   if (concept === 'evidence') return `What observation in ${facts.room.name} supports your answer, and what evidence would make you revise it?`;
   if (concept === 'counterexample') return `Can you find one case where your explanation of “${truncate(idea, 100)}” fails? What boundary does that reveal?`;
   if (concept === 'perspective') return facts.neighbors.length ? `How would someone in ${facts.neighbors[0].name} explain this differently? What can you learn from that comparison?` : `What is the strongest alternative explanation, and what would distinguish it from yours?`;
-  return `What value does this idea serve in your life? Which small choice today would show that value in practice?`;
+  if (/\b(rest|tired|sleep|comfort)\b/i.test(content) || roomOrientation(facts) === 'care') return `What would a useful pause in ${facts.room.name} let you notice? When you return, which thought could you examine without turning rest into another obligation?`;
+  return `What value does this idea serve in your life? Does the way you use ${facts.room.name} support its declared purpose? Which small choice today would show that value in practice?`;
 }
 
 function safeProposalSlot(house) {
@@ -271,36 +305,94 @@ function safeProposalSlot(house) {
   }
 }
 
+function roomOrientation(facts) {
+  const description = `${facts.room.name} ${facts.purpose}`;
+  if (/\b(bedroom|rest|sleep|recovery)\b/i.test(description)) return 'care';
+  if (/\b(living room|talk|conversation|dialogue|viewpoints)\b/i.test(description)) return 'dialogue';
+  if (/\b(kitchen|making|recipes|practical|daily experiment)\b/i.test(description)) return 'practice';
+  return 'inquiry';
+}
+
+function exerciseFor(feature, facts) {
+  const subject = facts.notes[0]?.title || facts.designObjects[0]?.title || `one idea in ${facts.room.name}`;
+  const target = `“${truncate(subject, 100)}”`;
+  if (feature === 'question_board') return {
+    concept: 'clarify',
+    question: `What does ${target} mean, and what example would make it clear to someone else?`,
+    practice: `Write a claim about ${target}, define its key word, then give an example and a case it excludes.`,
+    successTest: 'On your next visit, explain the claim without reading the board. Record which definition still needs work.',
+  };
+  if (feature === 'discussion_circle') return {
+    concept: 'perspective',
+    question: `How would someone who disagrees with ${target} explain their reasons?`,
+    practice: `Use the two seats to state your account of ${target}, then the strongest alternative. Ask what each account overlooks.`,
+    successTest: 'After one conversation, save a question or revision that came from the alternative account. Decide whether the circle helped you listen.',
+  };
+  if (feature === 'experiment_table') return {
+    concept: 'evidence',
+    question: `What prediction can you test about ${target}, and what result would count against your belief?`,
+    practice: `For ${target}, write one prediction and one possible counterexample. Try a small example and record what actually happens.`,
+    successTest: 'Compare the result with the prediction on your next visit. Keep, narrow or revise the claim, explaining why.',
+  };
+  return {
+    concept: 'examined_life',
+    question: `Does the way you use ${facts.room.name} support its purpose and the life you want to live?`,
+    practice: roomOrientation(facts) === 'care' ? 'Take a short pause without a task. Return to an idea afterwards and write what you notice differently.' : `Pause after examining ${target}. Write what changed your mind, what remains uncertain and why this matters to you.`,
+    successTest: 'On your next visit, compare your before-and-after account. Say whether this quiet pause was useful; a new lamp alone is not evidence of learning.',
+  };
+}
+
 function critiquePlan(house, roomId) {
-  const facts = roomFacts(house, roomId);
-  let preferred, reason, question;
-  if (!facts.notes.length || facts.blank.length) {
+  const facts = roomFacts(house, roomId), orientation = roomOrientation(facts);
+  let preferred, reason;
+  if (orientation === 'care') {
+    preferred = 'reflection_lamp';
+    reason = `${facts.room.name} is described as a place for rest. ${facts.notes.length} idea objects and ${facts.reflections.length} saved reflections are recorded here. An examined life needs room for a pause as well as a task; we can test a quiet reflection corner without judging how rested you are.`;
+  } else if (orientation === 'dialogue') {
+    preferred = 'discussion_circle';
+    reason = `${facts.room.name} has a stated purpose of conversation, with ${facts.notes.length} idea objects and ${facts.reflections.length} saved reflections. A discussion circle can make taking another viewpoint an activity you actually try.`;
+  } else if (orientation === 'practice') {
+    preferred = 'experiment_table';
+    reason = `${facts.room.name} is described as a place for making and testing. It holds ${facts.notes.length} idea objects; ${facts.actions.experiment} are assigned to experiments. A table can support a small prediction-and-result exercise instead of leaving the purpose only in a description.`;
+  } else if (!facts.purpose) {
+    preferred = 'question_board';
+    reason = `${facts.room.name} has no written purpose. It contains ${facts.notes.length} idea objects. Let us first ask what you want to do here, then use a question board to connect one activity with that purpose.`;
+  } else if (!facts.notes.length || facts.blank.length) {
     preferred = 'question_board';
     reason = !facts.notes.length ? `${facts.room.name} has no idea objects yet. A visible question board gives this room an entry point for inquiry.` : `“${facts.blank[0].title}” has no explanation in its notes. A question board makes its claim and missing reasons visible.`;
-    question = 'What does your first claim mean, and which example would make it understandable?';
   } else if (!facts.reflections.length) {
     preferred = 'reflection_lamp';
-    reason = `${facts.room.name} has written ideas, but no saved learning reflection. A quiet lamp creates a place to examine what you learned and what remains uncertain.`;
-    question = 'After exploring these ideas, what changed your mind and what would you still question?';
+    reason = `${facts.room.name} has written ideas, but no saved learning reflection. This does not mean you have learned nothing; a quiet lamp can give you a place to record what you learned and what remains uncertain.`;
   } else if (facts.neighbors.length < 2) {
     preferred = 'discussion_circle';
-    reason = `${facts.room.name} connects to ${facts.neighbors.length} other room${facts.neighbors.length === 1 ? '' : 's'}. A discussion circle makes space to compare a claim with another perspective.`;
-    question = 'Which other room could challenge your explanation, and what might it help you see?';
+    reason = `${facts.room.name} connects to ${facts.neighbors.length} other room${facts.neighbors.length === 1 ? '' : 's'}. A discussion circle makes space to compare a claim with another perspective. Door counts alone do not tell us whether a conversation is good.`;
   } else {
     preferred = 'experiment_table';
-    reason = `${facts.room.name} has ideas and reflections. An experiment table turns those explanations into small tests with observable results.`;
-    question = 'What prediction can you test here, and what result would count against your belief?';
+    reason = `${facts.room.name} has ${facts.notes.length} ideas and ${facts.reflections.length} saved reflections. An experiment table turns an explanation into a small test with an observable result.`;
   }
-  const feature = [preferred, ...FEATURES.filter(item => item !== preferred)].find(item => !facts.features.includes(item));
+  if (facts.purpose) reason += ` Declared purpose: ${truncate(facts.purpose, 180)}`;
+  if (facts.designObjects.length) reason += ` The imported “${facts.designObjects[0].title}” is assigned to ${facts.designObjects[0].action}; its appearance alone cannot tell me whether it serves that function.`;
+  const candidates = [preferred, ...FEATURES.filter(item => item !== preferred)].filter(item => !facts.features.includes(item));
+  const decisions = house.resident.proposals.filter(item => item.roomId === roomId && item.status !== 'pending');
+  const latestByFeature = new Map(decisions.filter(item => item.action.feature).map(item => [item.action.feature, item.decision]));
+  const declined = new Set([...latestByFeature].filter(([, decision]) => decision === 'decline').map(([feature]) => feature));
+  const feature = candidates.find(item => !declined.has(item));
   if (feature) {
-    if (feature !== preferred) reason += ` The room already has a ${FEATURE_COPY[preferred].name}; the next useful addition is a ${FEATURE_COPY[feature].name}.`;
-    return {facts, feature, title: `${FEATURE_COPY[feature].title} in ${facts.room.name}`, reason, question};
+    if (feature !== preferred) {
+      reason += declined.has(preferred) ? ` You declined my previous ${FEATURE_COPY[preferred].name}; I am offering a different exercise for you to consider.` : ` The room already has a ${FEATURE_COPY[preferred].name}; let us test a ${FEATURE_COPY[feature].name} next.`;
+    }
+    const exercise = exerciseFor(feature, facts);
+    return {facts, feature, title: `${FEATURE_COPY[feature].title} in ${facts.room.name}`, reason, ...exercise};
   }
+  if (candidates.length) return {facts, unavailable: true, reason: `${facts.room.name} has ${facts.notes.length} idea objects. You have declined the remaining furniture suggestions, so I will stop proposing them unless you ask for a particular feature. We can examine an existing idea or decide on a useful activity together.`};
   if (facts.notes.length >= 12 || house.ideas.length >= 192) return {facts, unavailable: true};
+  if ([...decisions].reverse().find(item => item.action.type === 'add_learning_idea')?.decision === 'decline') return {facts, unavailable: true, reason: `You declined the exercise book for ${facts.room.name}. Let us try one of the existing objects before suggesting another addition. What question could we investigate with what is already here?`};
   return {
-    facts, book: true, title: `Add an examined-idea exercise in ${facts.room.name}`,
-    reason: `${facts.room.name} already has all four learning furnishings. A new exercise book can connect discussion, reflection and testing without changing the room structure.`,
+    facts, book: true, concept: 'counterexample', title: `Add an examined-idea exercise in ${facts.room.name}`,
+    reason: `${facts.room.name} already has all four learning furnishings. A new exercise book can connect discussion, reflection and testing without changing the room structure. ${facts.reflections.length} reflections are recorded; we should examine the result before assuming that more furniture improves learning.`,
     question: 'Which belief will you test, what would change your mind, and how will you record the result?',
+    practice: 'Choose one existing idea. State it in your own words, offer a counterexample, and decide what a fair test would show.',
+    successTest: 'Next visit, explain whether the test strengthened or changed the idea. Record an honest result, including uncertainty.',
   };
 }
 
@@ -323,6 +415,9 @@ function putProposal(house, roomId, specification, source, at) {
     roomId, roomName: facts.room.name,
     title: truncate(specification.title, 100), reason: truncate(specification.reason, 1200),
     question: truncate(specification.question, 500), evidence: facts.evidence, action,
+    ...(specification.concept ? {concept: specification.concept} : {}),
+    ...(specification.practice ? {practice: truncate(specification.practice, 500)} : {}),
+    ...(specification.successTest ? {successTest: truncate(specification.successTest, 500)} : {}),
   };
   house.resident.proposals.push(proposal);
   return proposal;
@@ -347,16 +442,17 @@ export function proposeCritique(house, roomId, options = {}) {
       facts: plan.facts, feature: options.feature,
       title: `${FEATURE_COPY[options.feature].title} in ${plan.facts.room.name}`,
       reason: `You asked for a ${FEATURE_COPY[options.feature].name}. ${plan.facts.summary} ${FEATURE_COPY[options.feature].practice}`,
-      question: questionFor('evidence', plan.facts, 'this addition'),
+      ...exerciseFor(options.feature, plan.facts),
     };
   }
   if (plan.unavailable) {
-    appendMessage(result, roomId, 'resident', `${plan.facts.summary} This room has all four furnishings and is full of idea objects. I will keep the structure and notes intact. Which existing idea should we examine together?`, 'local', 'examined_life', at);
+    appendMessage(result, roomId, 'resident', plan.reason || `${plan.facts.summary} This room has all four furnishings and is full of idea objects. I will keep the structure and notes intact. Which existing idea should we examine together?`, 'local', 'examined_life', at);
     return result;
   }
   const proposal = putProposal(result, roomId, plan, 'local', at);
-  appendMessage(result, roomId, 'resident', `${plan.reason}\n\n${describeProposal(proposal)}\n\n${plan.question}\n\nYou choose whether to install this improvement; it is still a suggestion.`, 'local', 'examined_life', at);
-  result.resident.memory.lastConcept = 'examined_life';
+  const concept = proposal.concept || plan.concept || 'examined_life';
+  appendMessage(result, roomId, 'resident', truncate(`${proposal.reason}\n\n${CONCEPTS[concept].title}: ${describeProposal(proposal)}\n\n${proposal.question}\n\nTry it: ${proposal.practice || FEATURE_COPY[proposal.action.feature]?.practice || 'Examine one claim.'}\nNext visit: ${proposal.successTest || 'Record whether the exercise helped.'}\n\nYou choose whether to build this improvement in the next house; it is still a suggestion.`, 2200), 'local', concept, at);
+  result.resident.memory.lastConcept = concept;
   return result;
 }
 
@@ -371,7 +467,7 @@ export function converse(house, roomId, content, options = {}) {
   result.resident.memory.lastRoomId = roomId;
   result.resident.memory.lastConcept = concept;
   const requestedFeature = /\b(add|place|install|put)\b/i.test(message) ? FEATURES.find(feature => message.toLowerCase().includes(feature.replaceAll('_', ' '))) : undefined;
-  const wantsHouseChange = /\b(furnish|decorate)\b|\b(improve|change|build|propose|suggest)\b.{0,80}\b(house|room|space|furniture|feature)\b|\b(house|room|physical)\s+(proposal|suggestion|improvement)\b|\bmake.{0,60}\b(house|room).{0,40}\bbetter\b|^improve[.!? ]*$/i.test(message);
+  const wantsHouseChange = /\b(furnish|decorate|critique)\b|\b(improve|change|build|propose|suggest)\b.{0,80}\b(houses?|homes?|rooms?|space|furniture|feature)\b|\b(houses?|homes?|rooms?|physical)\s+(proposal|suggestion|improvement)\b|\bmake.{0,60}\b(houses?|homes?|rooms?).{0,40}\bbetter\b|\bideas?.{0,40}\b(for|to improve).{0,30}\b(houses?|homes?|rooms?)\b|^improve[.!? ]*$/i.test(message);
   if (wantsHouseChange || requestedFeature) {
     result = proposeCritique(result, roomId, {now: at, ...(requestedFeature ? {feature: requestedFeature} : {})});
     return result;
@@ -383,8 +479,12 @@ export function converse(house, roomId, content, options = {}) {
     const opening = result.resident.preferences.pace === 'direct' ? 'Let us test that carefully.' : 'Let us stay with that question for a moment.';
     const continuity = prior ? ` Earlier in this room you said: “${truncate(prior.text, 180)}”. How does your present view connect with that?` : '';
     const uncertainty = /\b(uncertain|not sure|don't know|do not know)\b/i.test(message) ? ' Being unsure is a useful starting point: name the gap before rushing to close it.' : '';
-    const idea = facts.notes[0] ? ` Your idea “${truncate(facts.notes[0].title, 100)}” gives us something concrete to examine.` : ` This room's purpose is ${truncate(facts.room.purpose || 'still open for you to define', 180)}.`;
-    reply = `${opening}${continuity}${uncertainty}${idea}\n\n${questionFor(concept, facts, message)}\n\n${CONCEPTS[concept].description}`;
+    const selectedIdea = chosenIdea(facts, message);
+    const idea = selectedIdea ? ` Your idea “${truncate(selectedIdea.title, 100)}” gives us something concrete to examine.` : ` This room's purpose is ${truncate(facts.room.purpose || 'still open for you to define', 180)}.`;
+    const design = facts.designObjects[0] ? ` The imported “${facts.designObjects[0].title}” is assigned to ${facts.designObjects[0].action}. What would you do with it to make that function useful?` : '';
+    const rememberedValue = result.resident.memory.values.filter(value => value !== truncate(message, 240)).at(-1);
+    const memory = concept === 'examined_life' && rememberedValue ? ` You previously told me: “${truncate(rememberedValue, 160)}”. We can ask whether this room helps you live by that aim.` : '';
+    reply = `${opening}${continuity}${uncertainty}${idea}${design}${memory}\n\n${questionFor(concept, facts, message)}\n\n${CONCEPTS[concept].description}`;
   }
   appendMessage(result, roomId, 'resident', truncate(reply, 2200), 'local', concept, at);
   return result;
@@ -482,7 +582,10 @@ export function receiveGptResult(house, roomId, userText, input, options = {}) {
   appendMessage(result, roomId, 'resident', response.reply, 'gpt', response.concept, at);
   result.resident.memory.lastConcept = response.concept;
   result.resident.memory.lastRoomId = roomId;
-  if (response.suggestion) putProposal(result, response.suggestion.roomId, response.suggestion, 'gpt', at);
+  if (response.suggestion) {
+    const facts = roomFacts(result, response.suggestion.roomId);
+    putProposal(result, response.suggestion.roomId, {...exerciseFor(response.suggestion.feature, facts), ...response.suggestion, concept: response.concept}, 'gpt', at);
+  }
   return result;
 }
 
@@ -490,10 +593,11 @@ export function residentContext(house, roomId) {
   const resident = validateResident(house.resident, house), facts = roomFacts({...house, resident}, roomId);
   return {
     persona: resident.persona, preferences: resident.preferences,
-    room: {id: facts.room.id, name: facts.room.name, purpose: facts.room.purpose, facts: facts.evidence},
+    room: {id: facts.room.id, name: facts.room.name, purpose: facts.purpose, facts: facts.evidence, ideaFunctions: {...facts.actions}, designObjects: clone(facts.designObjects)},
     rooms: house.rooms.map(room => ({id: room.id, name: room.name})),
     recentMessages: resident.messages.slice(-12), memory: resident.memory,
     pendingSuggestions: resident.proposals.filter(proposal => proposal.status === 'pending').map(proposal => ({id: proposal.id, roomId: proposal.roomId, title: proposal.title})),
+    recentDecisions: resident.proposals.filter(proposal => proposal.roomId === roomId && proposal.status !== 'pending').slice(-6).map(proposal => ({title: proposal.title, status: proposal.status, decision: proposal.decision, reason: truncate(proposal.reason, 300), resolution: proposal.resolution || ''})),
     allowedFeatures: [...FEATURES], concepts: clone(CONCEPTS),
     rule: 'Ask questions and make constructive suggestions. Physical changes require explicit owner approval. Do not claim a change has already been made.',
   };
@@ -513,7 +617,7 @@ export function buildHandoff(house) {
     '', 'Recent observed evidence:',
     ...resident.observations.slice(-5).flatMap(observation => [`- ${observation.roomName}: ${observation.summary}`, ...observation.evidence.map(fact => `  ${fact}`)]),
     '', 'Recent approved and declined physical suggestions:',
-    ...resident.proposals.slice(-10).map(proposal => `- [${proposal.status}${proposal.decision ? `; owner ${proposal.decision}` : ''}] ${proposal.title}: ${proposal.reason}${proposal.resolution ? ` Resolution: ${proposal.resolution}` : ''}`),
+    ...resident.proposals.slice(-10).map(proposal => `- [${proposal.status}${proposal.decision ? `; owner ${proposal.decision}` : ''}] ${proposal.title}: ${proposal.reason}${proposal.concept ? ` Method: ${CONCEPTS[proposal.concept].title}.` : ''}${proposal.practice ? ` Practice: ${proposal.practice}` : ''}${proposal.successTest ? ` Next-visit test: ${proposal.successTest}` : ''}${proposal.resolution ? ` Resolution: ${proposal.resolution}` : ''}`),
     '', 'Recent conversation:',
     ...resident.messages.slice(-12).map(message => `${message.role === 'user' ? 'Owner' : 'Socrates'} (${message.source}; room ${message.roomId}): ${message.text}`),
     '', 'Requested next step: identify a concrete improvement supported by this evidence, implement it in an isolated checkout, validate it, and show the owner the resulting change for review.',

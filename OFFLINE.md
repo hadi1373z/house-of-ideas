@@ -21,9 +21,9 @@ Click the 3D view to focus it. WASD or arrow keys move; drag to look; the joysti
 
 Socrates lives in the house and walks through its connected rooms. Go near him and press **E**, or choose **Talk to Socrates**. Use **Call Socrates** when he is elsewhere. Sending a message becomes available when he is close enough. **Gentle / Direct** changes the conversational pace he remembers.
 
-Try “What assumption does this idea depend on?”, “What would change my mind?” or “Please add an experiment table.” The offline guide uses local rules and your actual saved material. Its answers may help you investigate, but it is not a language model.
+Try “What assumption does this idea depend on?”, “What would change my mind?” or “Please add an experiment table.” The offline guide uses local rules and your actual saved material. It draws on a room's purpose, objects and assigned functions, reflections, previous observations, your expressed aims and recorded refusals. It can compare a design's purpose with how you actually use it. Its answers may help you investigate, but it is not a language model or a collection of historical quotations.
 
-**Critique this room** prepares a concrete proposal with its reason and question. Read it before choosing **Build next edition** or **Decline**. Approved additions become physical learning furnishings or a book in a new house next door; pending proposals do not change the room. Decisions and conversation survive a restart.
+**Critique this room** prepares a concrete proposal with its reason, philosophical concept, practice and next-visit success test. For example, a discussion circle asks you to make the strongest alternative case, then record what changed your mind. Read it before choosing **Build next edition** or **Decline**. Approved additions become physical learning furnishings or a book in a new house next door; pending proposals do not change the room. Socrates remembers refusals and avoids offering the same declined furnishing again unless you explicitly request it. Decisions and conversation survive a restart.
 
 ## Daily learning and physical changes
 
@@ -39,25 +39,67 @@ Books on the shelves are individually selectable. Choose a title, turn pages, an
 
 Your assigned idea objects have a function you choose when saving: **read a note**, **examine a question**, **plan an experiment**, or **reflect on an idea**. Inspecting an object opens its actual saved note and activity; **Edit this object** changes the note or function. Answers are saved as reflections.
 
+## Bring objects and houses from design tools
+
+Open **Design workshop**, choose a static GLB, and give it a name, purpose/note and function. Choose **Inside the selected room** or **In the garden gallery** for an object or piece of furniture. **Complete house exhibit** places a house model in the garden gallery. **Place design in a new edition** preserves the earlier house before saving the contribution.
+
+Export from your design tool as a self-contained GLB version 2 with embedded geometry and PNG, JPEG or WebP textures. Each file can be up to 12 MiB, and each home can hold up to 24 contributions. Animated models, external files and unsupported compressed extensions are rejected. A room object must fit without blocking its furnishings and passages.
+
+Select an imported object nearby or choose it in the workshop. Its saved note and selected reading/question/experiment/reflection activity appear there, and you can save an answer to that activity in the room's learning journal. **Save design changes** updates its purpose, function, scale, rotation and position; the offsets are relative to its room centre or assigned garden location. **Remove from this home** preserves the earlier edition. Socrates can consider this title, note and assigned function in his critique, but cannot infer an object's usefulness from its geometry alone.
+
+**Tour this design** opens the imported geometry at full size for a ground-level tour. Use the usual walking controls or **Enter VR**, then **Return home** when finished. A complete GLB house remains an imported exhibit/tour: its mesh does not automatically become semantic rooms, functioning household furniture or opening doors. Tours currently stay at ground level. The workshop is a local exploration tool, with no native BIM/CAD editing, multiplayer or asset marketplace.
+
+## Import and share a neighbouring home
+
+**Import a house or package → Build this design next door** accepts the app's own house JSON or an exported portable design package. It creates an independent new home; the existing neighbourhood stays intact.
+
+**Export portable design package** downloads `house-of-ideas-design-package.json` with the selected house and embedded local GLBs, up to 32 MiB of models. **It also includes this home's notes, learning journal, conversations and memories.** Review that content before giving a package to another person. Imported packages can be up to 48 MiB including JSON encoding.
+
+**Export house JSON** downloads `house-of-ideas-house.json`. It includes the same selected home's saved document but references GLBs rather than embedding them. Keep its original GLB files separately and import them on the receiving computer before importing that JSON. A portable design package is the simpler transfer when a home uses models. Both exports contain one home; copy the full `data` folder for a backup of every neighbouring edition.
+
+Imported files in the browser preview last for that visit. Export a package before closing the preview if you want to keep them. The desktop edition keeps its GLBs under `data/designs`.
+
+## Use a VR headset
+
+Connect a headset supported by your browser's WebXR implementation and open the house on a secure origin. The same computer's `http://127.0.0.1` page can be trusted; remote pages need HTTPS. The loopback address refers to the device opening it, so it does not connect a standalone headset browser to a server on a different PC. This launcher does not expose the server to the network. See [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts) and [WebXR permissions](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Permissions_and_security).
+
+When the page detects compatible immersive VR, the button becomes **Enter VR**. Approve the browser's headset permission when you choose to enter. **VR unavailable** means the current browser/device connection cannot start that mode; you can continue walking on the monitor.
+
+Point a controller and press its trigger to select a nearby object or teleport onto a clear floor. The left stick moves forward/back in your looking direction; the right stick turns in 30-degree steps. Opened book text or the latest Socrates reply appears on an in-world panel with **Close**, **Next page** and **Ask Socrates** controls. Typed answers, model imports and connection settings still use the desktop interface. **Exit VR** returns to desktop viewing. Physical headset and controller operation has not been tested live for this release.
+
 ## Visit earlier houses
 
-**Neighbourhood** takes you to the street. Each preserved edition has its own house; approach its entrance and press **E**, or select an edition from the journal. The original house retains its previous visual style.
+**Neighbourhood** takes you to the street. Each preserved edition has its own house; approach its entrance and press **E**, or select an edition from the journal. The original house retains its previous visual style. Earlier inhabited homes also keep their renderer: `web/inhabited-scene-v1.js` is preserved while the new designer edition adds its import layer.
 
 Older houses are read-only. Their rooms, objects, notes and conversations remain available to inspect. **Build a new edition next door** makes an independent copy that you can develop. Changing a layout, installing approved furnishings, or adding/moving/changing an assigned object also preserves the previous edition before creating the next one. Writing notes and talking to Socrates save in the current house.
 
 On first upgrade, the previous saved house is retained in the neighbourhood and its original storage envelope is copied to `data/house-before-neighborhood.json`. The new home keeps your notes and history. Back up the entire `data` folder to preserve all editions. Up to 128 editions are kept; reaching the limit stops new editions without removing an old house.
 
-## Optional GPT
+## Optional online GPT
 
-Open Socrates' conversation, choose **Connect GPT**, enter your own OpenAI API key and configure the model. The default configuration is `gpt-5.4-mini`. Configuring the key does not send a paid conversation request. Choose **GPT · online** and send a message only when you want to use it.
+The house and **Offline guide** need no account or internet connection. Both GPT routes below are online services. This release has no account/key configured and has not been tested with a live sign-in or live model request.
 
-That request sends your message, up to 12 recent conversation turns and bounded context from the current conversation room: its purpose, idea-note excerpts and installed furnishings. It goes to OpenAI and requires internet access and API billing. Model access depends on your API account. This edition has no key configured and has not been verified with a live paid request.
+### Continue with ChatGPT
 
-The key entered in settings stays in the local server's memory, is cleared when it stops, and is not saved in the house file. **Disconnect** clears it and returns to offline dialogue. Model suggestions still pass the same bounded feature validation and user approval gate.
+Open Socrates' conversation, choose **Connect GPT**, then **Continue with ChatGPT**. Open the displayed **Continue to ChatGPT** link and authorize House of Ideas in OpenAI's sign-in page. Eligible ChatGPT Plus/Pro plans can use this open-source local connection under their plan's applicable limits; availability and account permissions are controlled by OpenAI. See the [official OpenAI sign-in quickstart](https://developers.openai.com/siwc/quickstart).
+
+After returning, choose a **Plan model** from the current list supplied for your signed-in account. There is no fixed API-key model substituted for this list. Select **ChatGPT plan · online** in the conversation menu and send a message when you want an online reply. Signing in and listing models do not automatically send your saved conversation. Saved account registrations can be selected for later sign-in, or choose **Add another ChatGPT account**.
+
+The authorization is separate from your Codex or existing ChatGPT browser session; the house does not read another app's credentials. ChatGPT access, refresh and ID tokens stay in the local server's memory, renew there while connected, and clear when the server stops. The nonsecret registration file `data/chatgpt-registration.json` retains this host's ID, issued account client IDs and validated account labels/identities so they can be reauthorized later. Sign in again after restarting the server. The flow follows [OpenAI's public-client sign-in documentation](https://developers.openai.com/siwc/token-sharing-open-source/sign-in).
+
+**Cancel sign-in** ends the pending attempt. **Disconnect ChatGPT** clears the local connection and attempts to revoke its renewable session. If the app says remote revocation was not confirmed, you can disconnect House of Ideas in ChatGPT Settings. That message does not affect your local house.
+
+### Use your own API key
+
+In the same **Connect GPT** dialog, enter your OpenAI API key and configure its model. The default is `gpt-5.4-mini`, subject to your API account's model access. **Configure GPT for this session** does not send a conversation request. Choose **API key · online** and send a message only when you want to use API billing.
+
+The key stays in the local server's memory and clears when it stops; it is not saved in the house document. The API-key **Disconnect** button clears that route independently from the ChatGPT plan connection.
+
+Both online modes send your message, up to 12 recent conversation turns, and bounded context relevant to the current room: its purpose, idea notes/functions, designer object metadata, furnishings, preferences, saved aims/questions, reflections, observations and decisions. They send this to OpenAI using the same philosophical prompt. A model suggestion still goes through the same bounded feature validation and your recorded approval before any house change. OAuth, token renewal and model responses have been verified with mocked requests only.
 
 ## Save, back up and update
 
-Your durable file is `data/house.json` beside the launcher or source checkout. Stop the server and copy the `data` folder to make a backup. Keep that folder when replacing application files; replacing it with another package's empty data would lose your saved house. The folder contains personal material and should stay out of GitHub.
+Your durable neighbourhood file is `data/house.json` beside the launcher or source checkout. Imported GLBs are in `data/designs`; optional ChatGPT registration metadata is in `data/chatgpt-registration.json`. Stop the server and copy the entire `data` folder to back up the neighbourhood and its models. Keep that folder when replacing application files; replacing it with another package's empty data would lose your saved house. The folder contains personal material and should stay out of GitHub.
 
 Launcher status and errors are in `data/launcher.log`. If the house cannot open, check that log and preserve `data/house.json` before attempting a repair. Two tabs use revisions to prevent one stale tab from overwriting newer changes; reload a stale tab before saving again.
 

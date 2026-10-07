@@ -1,5 +1,6 @@
 import {validateLearning} from './socrates.js';
 import {validateResident} from './resident.js';
+import {validateDesignObjects} from './design-objects.js';
 export const GRID={width:20,height:16};
 export const CUES=['crystal','ring','sphere','book'];
 export const IDEA_ACTIONS=['read','question','experiment','reflect'];
@@ -49,6 +50,6 @@ export function validateHouse(input){
   if(!CUES.includes(i.cue))throw Error('Choose a memory object.');
   if(i.action!==undefined&&!IDEA_ACTIONS.includes(i.action))throw Error('Choose reading, questioning, experimenting or reflection for the object.');
   return {id:i.id,roomId:i.roomId,title:i.title.trim(),text:i.text,cue:i.cue,...(i.action!==undefined?{action:i.action}:{})};
- });const result={rooms,doors,ideas};if(input.learning!==undefined)result.learning=validateLearning(input.learning,result);if(input.resident!==undefined)result.resident=validateResident(input.resident,result);return result;
+ });const result={rooms,doors,ideas};if(input.designObjects!==undefined)result.designObjects=validateDesignObjects(input.designObjects,rooms);if(input.learning!==undefined)result.learning=validateLearning(input.learning,result);if(input.resident!==undefined)result.resident=validateResident(input.resident,result);return result;
 }
 export function reachableRooms(house,start){const seen=new Set([start]);let changed=true;while(changed){changed=false;for(const d of house.doors){if(seen.has(d.a)&&!seen.has(d.b)){seen.add(d.b);changed=true;}if(seen.has(d.b)&&!seen.has(d.a)){seen.add(d.a);changed=true;}}}return seen;}

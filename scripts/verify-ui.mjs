@@ -7,12 +7,13 @@ import worker from '../worker/index.js';
 import {initLearning} from '../web/learning-ui.js';
 import {initResidentUI} from '../web/resident-ui.js';
 import {initHomeUI} from '../web/home-ui.js';
+import {initChatGPTUI} from '../web/chatgpt-ui.js';
 import * as neighborhood from '../web/neighborhood.js';
 import {pragueDate,reflect as recordReflection} from '../web/socrates.js';
 // DOM-action integration harness. This checks state flows; it is not a browser/GPU test.
 class Element{
  constructor(tag='div'){this.tagName=tag;this.children=[];this.value='';this.hidden=false;this.checked=false;this.textContent='';this.style={};this.attributes={};const classes=new Set();this.classList={toggle:(v,on)=>{const add=on??!classes.has(v);if(add)classes.add(v);else classes.delete(v);return add;},add:(...v)=>v.forEach(x=>classes.add(x)),remove:v=>classes.delete(v),contains:v=>classes.has(v)};}
- append(...items){this.children.push(...items);}replaceChildren(...items){this.children=[...items];}setAttribute(k,v){this.attributes[k]=v;}setPointerCapture(){}showModal(){this.open=true;}close(){this.open=false;}createSVGPoint(){return {x:0,y:0,matrixTransform(){return {x:this.x,y:this.y};}};}getScreenCTM(){return {inverse(){return {};}};}
+ append(...items){this.children.push(...items);}replaceChildren(...items){this.children=[...items];}setAttribute(k,v){this.attributes[k]=v;}removeAttribute(k){delete this.attributes[k];}setPointerCapture(){}showModal(){this.open=true;}close(){this.open=false;}createSVGPoint(){return {x:0,y:0,matrixTransform(){return {x:this.x,y:this.y};}};}getScreenCTM(){return {inverse(){return {};}};}
 }
 const elements=new Map(),html=await fs.readFile('web/index.html','utf8');for(const match of html.matchAll(/<([^\s>]+)[^>]*\bid="([^"]+)"([^>]*)>/g)){const e=new Element(match[1]);e.hidden=match[3].includes('hidden');elements.set(match[2],e);}
 const radios=model.CUES.map(value=>{const r=new Element('input');r.value=value;r.checked=value==='crystal';return r;});const saveArea=new Element();
@@ -22,7 +23,10 @@ const sql=new DatabaseSync(':memory:');for(const file of (await fs.readdir('driz
 document.modelContext={registerTool(tool){tools.set(tool.name,tool);}};
 const DB={prepare(query){return {bind(...p){return {async first(){return sql.prepare(query).get(...p)||null;},async all(){return {results:sql.prepare(query).all(...p)};},async run(){return sql.prepare(query).run(...p);}};}};}};let lastHouse=null,selected=null,failSave=false;
 const residentTimers=new Map();let residentVisit,pick;
-const context=vm.createContext({...model,...neighborhood,initHomeUI,pragueDate,recordReflection,initLearning,initResidentUI:options=>initResidentUI({...options,schedule(fn,delay){residentTimers.set(delay,fn);return delay;},cancel(){}}),document,console,crypto,window:{addEventListener(){}},setInterval(){},createScene(container,onPick){pick=onPick;return {load(h){lastHouse=model.clone(h);},select(id){selected=id;},setWalk(){},setExterior(){},setSocrates(){},onResidentVisit(callback){residentVisit=callback;},reset(){}};},async fetch(path,opts={}){if(failSave&&opts.method==='PUT')return Response.json({error:'Test save unavailable'},{status:503});return worker.fetch(new Request('https://house.test'+path,{...opts,headers:{...opts.headers,'oai-authenticated-user-id':'ui-user'}}),{DB});}});
+// These optional panels have dedicated interaction suites. Keep this revision-
+// aware house/learning harness focused on its real storage and resident flows.
+const optionalPanel=()=>({async onLoad(){},render(){},refreshConfig(){},show(){},close(){},onHomeChange(){}});
+const context=vm.createContext({...model,...neighborhood,initHomeUI,pragueDate,recordReflection,initLearning,initChatGPTUI:optionalPanel,initDesignerUI:optionalPanel,initResidentUI:options=>initResidentUI({...options,schedule(fn,delay){residentTimers.set(delay,fn);return delay;},cancel(){}}),document,console,crypto,window:{addEventListener(){}},setInterval(){},createScene(container,onPick){pick=onPick;return {load(h){lastHouse=model.clone(h);},select(id){selected=id;},setWalk(){},setExterior(){},setSocrates(){},onResidentVisit(callback){residentVisit=callback;},reset(){}};},async fetch(path,opts={}){if(failSave&&opts.method==='PUT')return Response.json({error:'Test save unavailable'},{status:503});return worker.fetch(new Request('https://house.test'+path,{...opts,headers:{...opts.headers,'oai-authenticated-user-id':'ui-user'}}),{DB});}});
 context.AbortController=AbortController;
 const source=(await fs.readFile('web/app.js','utf8')).replace(/^import .*$/gm,'');vm.runInContext(source,context);const $=id=>elements.get(id);for(let n=0;n<8;n++)await new Promise(resolve=>setImmediate(resolve));assert.equal($('save-state').textContent,'All changes saved');assert.equal(lastHouse.rooms.length,6);
 const submit=()=>$('idea-form').onsubmit({preventDefault(){},submitter:new Element('button')});
@@ -74,6 +78,31 @@ $('plan-tab').onclick();$('house-tab').onclick();$('socrates-tab').onclick();
 $('resident-input').value='How could I improve this room with an experiment table?';await $('resident-form').onsubmit({preventDefault(){}});
 const latestResident=model.clone(lastHouse.resident);
 $('plan-tab').onclick();await $('apply-plan').onclick();assert.deepEqual(lastHouse.resident,latestResident);
+// Designer metadata saved through real storage after a layout draft starts
+// must survive building that draft. Asset-byte validation has its own suite.
+$('plan-tab').onclick();
+$('room-list').children[lastHouse.rooms.findIndex(room=>room.id==='work')].onclick();
+$('plan-name').value='Kitchen with an experiment corner';$('room-form').onsubmit({preventDefault(){}});
+const designed=model.clone(lastHouse);
+designed.designObjects=[{id:'design-draft-preservation',assetId:'a'.repeat(64),title:'A practical table',placement:'room',kind:'object',roomId:'work',action:'reflect',note:'Observe how the table helps you work.',scale:.5,rotation:0,position:[0,0,0]}];
+await context.saveHouse(designed);
+const revisedDesign=model.clone(lastHouse);
+revisedDesign.designObjects[0].action='experiment';revisedDesign.designObjects[0].note='Predict whether a smaller work surface helps you focus, then record the result.';
+await context.saveHouse(revisedDesign);
+const latestDesignObjects=model.clone(lastHouse.designObjects);
+assert.equal($('plan-workspace').hidden,false);
+await $('apply-plan').onclick();
+assert.deepEqual(lastHouse.designObjects,latestDesignObjects);
+assert.equal(lastHouse.rooms.find(room=>room.id==='work').name,'Kitchen with an experiment corner');
+// A room containing a designer model cannot be removed from the layout.
+$('plan-tab').onclick();
+$('room-list').children[lastHouse.rooms.findIndex(room=>room.id==='work')].onclick();
+const roomsWithDesign=$('room-list').children.length;
+$('remove-room').onclick();
+assert.match($('plan-message').textContent,/designer|design objects|imported/i);
+assert.equal($('room-list').children.length,roomsWithDesign);
+$('cancel-plan').onclick();
+assert.deepEqual(lastHouse.designObjects,latestDesignObjects);
 // Real scene visit event payloads create observations and bounded autonomous critiques.
 residentVisit({roomId:'connections',position:{x:5,z:0}});await residentTimers.get(15000)();
 assert.ok(lastHouse.resident.observations.some(observation=>observation.roomId==='connections'));
@@ -91,4 +120,47 @@ $('activity-edit').onclick();assert.equal($('idea-dialog').open,true);$('idea-ac
 const object=model.clone(lastHouse.ideas[0]);delete object.action;object.text='Updated through the assistant tool';await tools.get('save_idea').execute(object);assert.equal(lastHouse.ideas[0].action,'experiment');assert.equal(lastHouse.ideas[0].text,object.text);
 await tools.get('save_idea').execute({...object,action:'question'});assert.equal(lastHouse.ideas[0].action,'question');assert.deepEqual(tools.get('save_idea').inputSchema.properties.action.enum,model.IDEA_ACTIONS);
 const journalBefore=document.body.classList.contains('journal-open');$('journal-toggle').onclick();assert.equal(document.body.classList.contains('journal-open'),!journalBefore);$('journal-toggle').onclick();assert.equal(document.body.classList.contains('journal-open'),journalBefore);
-console.log('Verified real revision-aware UI actions: edits, failed-save drafts, staged layouts preserving journals and resident conversations, reflections, daily gating and approval-only physical changes. Browser/GPU checks are separate.');
+// Run the actual app startup and ChatGPT panel together in local mode. Their
+// parallel requests must share one config response and its session CSRF token.
+function deferred(){let resolve;const promise=new Promise(done=>{resolve=done;});return {promise,resolve};}
+const localConfig={mode:'local',csrfToken:'one-startup-session',gpt:{ready:false},chatgpt:{connected:false,pending:false,ready:false,account:null,accounts:[],model:null}};
+function localStartup(configResponses){
+ const requests=[];let configs=0;
+ document.body.dataset={mode:'local'};
+ const panel=()=>({...optionalPanel(),renderNeighborhood(){},notify(){}});
+ const localContext=vm.createContext({...model,...neighborhood,pragueDate,recordReflection,document,console,crypto,AbortController,window:{document,addEventListener(){},setInterval(){},clearInterval(){}},setInterval(){},initLearning:panel,initResidentUI:panel,initHomeUI:panel,initDesignerUI:panel,initChatGPTUI,createScene(){return {load(){},setAssetResolver(){}};},async fetch(path,options={}){
+  requests.push({path,options});
+  if(path==='/api/config'){const response=configResponses[configs++];assert.ok(response,'Unexpected duplicate startup config request');return await response;}
+  assert.equal(options.headers['X-Local-CSRF'],localConfig.csrfToken);
+  if(path==='/api/chatgpt/status')return Response.json(localConfig.chatgpt);
+  if(path==='/api/house')return Response.json({house:model.starter(),revision:1});
+  throw Error('Unexpected startup request '+path);
+ }});
+ vm.runInContext(source,localContext);
+ return {context:localContext,requests,configCount:()=>configs};
+}
+const firstConfig=deferred(),startup=localStartup([firstConfig.promise]);
+assert.equal(startup.configCount(),1);
+const parallelConfigA=startup.context.getLocalConfig(),parallelConfigB=startup.context.getLocalConfig();
+assert.equal(startup.configCount(),1);
+firstConfig.resolve(Response.json(localConfig));
+assert.deepEqual(await parallelConfigA,await parallelConfigB);
+for(let n=0;n<8;n++)await new Promise(resolve=>setImmediate(resolve));
+assert.equal(startup.configCount(),1);
+assert.equal(startup.requests.filter(request=>request.path==='/api/house').length,1);
+assert.equal(startup.requests.filter(request=>request.path==='/api/chatgpt/status').length,1);
+await startup.context.getLocalConfig();assert.equal(startup.configCount(),1);
+const failedConfig=deferred(),recovering=localStartup([failedConfig.promise,Response.json(localConfig)]);
+const failedRead=assert.rejects(recovering.context.getLocalConfig(),/Test config unavailable/);
+assert.equal(recovering.configCount(),1);
+failedConfig.resolve(Response.json({error:'Test config unavailable'},{status:503}));
+await failedRead;
+for(let n=0;n<8;n++)await new Promise(resolve=>setImmediate(resolve));
+assert.equal($('retry').hidden,false);
+assert.equal(recovering.requests.filter(request=>request.path!=='/api/config').length,0);
+await Promise.all([$('retry').onclick(),vm.runInContext('chatgptUI.onLoad()',recovering.context)]);
+assert.equal(recovering.configCount(),2,'A failed config promise permits a fresh shared retry.');
+assert.equal(recovering.requests.filter(request=>request.path==='/api/house').length,1);
+assert.equal(recovering.requests.filter(request=>request.path==='/api/chatgpt/status').length,1);
+assert.equal($('retry').hidden,true);
+console.log('Verified real revision-aware UI actions: edits, failed-save drafts, staged layouts preserving journals, conversations and latest designer functions/notes, guarded designer-room removal, daily approval, and single-session local startup/config retry. Browser/GPU checks are separate.');

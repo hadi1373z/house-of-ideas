@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "goal": "A dependable spatial playground in which Hadi can manipulate ideas and save discoveries.",
+  "current_milestone": "M1",
+  "active_item": null,
+  "baseline_source_commit": "3921d233329d35992e85178f6567768004d1748e",
+  "last_verified_deployment": {
+    "version_number": 1,
+    "note": "Existing published version at setup; reconcile live metadata each run."
+  },
+  "acceptance": [
+    {
+      "id": "launch_navigation",
+      "criterion": "The house renders and both dollhouse and first-person joystick navigation can reach its rooms.",
+      "status": "pending_browser_verification"
+    },
+    {
+      "id": "ideas",
+      "criterion": "Create, reopen, edit and move an idea while preserving its contents.",
+      "status": "passed_node_integration_pending_browser_verification"
+    },
+    {
+      "id": "persistence",
+      "criterion": "Saved ideas reload correctly; a failed or conflicting save retains the draft and never overwrites newer data.",
+      "status": "passed_node_integration_pending_browser_verification"
+    },
+    {
+      "id": "layout",
+      "criterion": "Room and door edits preserve ideas and reject invalid layouts.",
+      "status": "passed_node_integration_pending_browser_verification"
+    }
+  ],
+  "backlog": [
+    {
+      "id": "M1-verify",
+      "status": "ready",
+      "attempts": 0,
+      "task": "Check core flows with available supported browser QA and fix the first reproducible issue; record unavailable capabilities without pretending they passed."
+    },
+    {
+      "id": "M1-feedback",
+      "status": "ready",
+      "attempts": 0,
+      "task": "Inspect core idea and room actions for a concrete usability or data-loss defect; implement one evidence-backed repair if found."
+    },
+    {
+      "id": "M2-spec",
+      "status": "ready",
+      "attempts": 0,
+      "task": "Resolve the exact Vertigo movement, boundary, and counting rules from current user-provided research material; if unresolved, record the narrow missing rule and do not invent it."
+    },
+    {
+      "id": "M2-board",
+      "status": "waiting_for_M1_and_spec",
+      "attempts": 0,
+      "task": "Add one bounded Vertigo workbench with board editing and deterministic run/step/reset; verify small known cases and attach saved experiment state to an idea without losing old data."
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-10-07",
+      "item": "setup",
+      "result": "Created a bounded improvement procedure and a standard npm test command reusing existing checks.",
+      "verification": "npm test passed: real Worker against isolated SQLite, user isolation, save/reload, stale revisions, UI actions, draft retention, scene geometry and joystick math. npm run build passed. Rendered browser/GPU and live user storage not exercised; no user data changed."
+    },
+    {
+      "date": "2026-10-07",
+      "item": "github-project-page",
+      "result": "Prepared a responsive project page, full source export, Pages publishing workflow, and existing-test CI workflow. Repository creation and GitHub sync remain pending; preserve existing hourly Sites work.",
+      "verification": "npm test, npm run build, script syntax and copied page consistency passed. No browser visual check performed."
+    }
+  ],
+  "github": {
+    "requested_repository": "hadi1373z/house-of-ideas",
+    "repository_created": false,
+    "pages_published": false,
+    "sync_verified": false,
+    "project_page_source": "docs/index.html",
+    "status": "Prepared; GitHub connection returned no accessible repositories and browser sign-in is pending."
+  }
+}

@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import { build } from 'esbuild';
+await fs.rm('dist',{recursive:true,force:true});
+await fs.mkdir('dist/server',{recursive:true});
+await fs.mkdir('dist/.openai',{recursive:true});
+await fs.cp('web','dist/client',{recursive:true});
+await fs.cp('docs','dist/client/project',{recursive:true});
+await fs.copyFile('.openai/hosting.json','dist/.openai/hosting.json');
+await build({entryPoints:['worker/index.js'],bundle:true,format:'esm',platform:'browser',target:'es2022',outfile:'dist/server/index.js'});
+console.log('Built house and durable idea storage.');

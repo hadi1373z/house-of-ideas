@@ -5,9 +5,9 @@
   "active_item": null,
   "baseline_source_commit": "3921d233329d35992e85178f6567768004d1748e",
   "last_verified_deployment": {
-    "version_number": 5,
-    "source_commit": "f8d39db600c4d21dbeeb4e23f2f3784a6a344c4b",
-    "note": "Reconciled from Sites before the house-learning update. Read the setup run result and current Site version for the new publication outcome."
+    "version_number": 7,
+    "source_commit": "1ddca66a4138a0f8b6afd5477158812f5c039db1",
+    "note": "Published successfully, owner-private confirmed. Evening service verified with fresh Sites service access and a real D1 aggregate receipt. Reconcile the helper transport update and schedule activation from the setup run."
   },
   "acceptance": [
     {
@@ -33,12 +33,12 @@
     {
       "id": "learning_approval",
       "criterion": "Actual room visits and reflections create a dated suggestion; only explicit next-day approval adds its learning book. Room building preserves newer journal records.",
-      "status": "passed_node_integration_and_browser_reflection_flow"
+      "status": "passed_node_storage_and_isolated_browser_approve_decline"
     },
     {
       "id": "evening_service",
       "criterion": "Private service creates idempotent pending proposals and a real aggregate receipt without changing any house; persisted readback agrees.",
-      "status": "passed_isolated_storage_live_verification_in_setup_result"
+      "status": "passed_isolated_storage_and_live_service_write_readback"
     }
   ],
   "backlog": [
@@ -91,6 +91,12 @@
       "item": "house-learning-socrates",
       "result": "Built a recognizable house, room learning exercises, visible Socrates tour, saved reflections, a 21:00 Prague pending-proposal service and explicit next-entry approval. Pages now builds the interactive per-visit preview. Fixed layout journal overwrites and failed-reflection draft loss. Preserved the paused hourly source task.",
       "verification": "All four Node suites and both builds passed. Browser exterior, walking entry, furnished cutaway, Socrates tour, reflection save, unchanged ideas after preparing a proposal and phone layout verified on isolated preview. Next-day decisions, failed saves, queue isolation and additive migrations verified with isolated SQLite. No personal saved-house fixtures inserted. Reconcile publication, service write/readback, schedule creation and GitHub outcomes from this setup run."
+    },
+    {
+      "date": "2026-10-07",
+      "item": "evening-service-host-verification",
+      "result": "Verified supported private service access and actual aggregate D1 write/readback. Adapted empty stream handling and the Node helper to send explicit zero bytes through the host. All guards and approval semantics preserved.",
+      "verification": "Four Node suites passed, including empty-stream acceptance and JSON/whitespace rejection. Site version 7 deployed successfully. Real service receipt from 15:03:59 UTC read back equal with all user counts zero. GitHub snapshot provenance, CI and interactive Pages deployment passed. Browser next-day approval adds one book; decline adds none in isolated fixtures. Native schedule activation and final helper snapshot are recorded by the setup run."
     }
   ],
   "github": {
@@ -102,10 +108,10 @@
     "status": "Prior snapshot provenance reconciled. Current update publishes an interactive preview; follow the setup run result for terminal CI and Pages outcomes. Hourly source task remains paused; scheduled GitHub write access remains unverified.",
     "repository_url": "https://github.com/hadi1373z/house-of-ideas",
     "pages_url": "https://hadi1373z.github.io/house-of-ideas/",
-    "verified_snapshot_source_commit": "f8d39db600c4d21dbeeb4e23f2f3784a6a344c4b",
-    "verified_snapshot_github_commit": "d5b51f69fe45392fbf887323034a93651229946c",
-    "verification_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37632377911",
-    "pages_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37632377701",
+    "verified_snapshot_source_commit": "1ddca66a4138a0f8b6afd5477158812f5c039db1",
+    "verified_snapshot_github_commit": "d6b8933ef15c18f0b895a4fe076cddf88a56441b",
+    "verification_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37639079079",
+    "pages_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37639078990",
     "automatic_sync_enabled": false,
     "improvement_task_status": "paused"
   },
@@ -118,6 +124,14 @@
     "readback": "GET /api/review/status",
     "runbook": "NIGHTLY.md",
     "approval": "Only a signed-in user decision on or after the next Prague calendar date can add a proposed learning book.",
-    "setup_status": "Use the setup run result and fresh Sites automations for activation and live writer evidence."
+    "setup_status": "Use the setup run result and fresh Sites automations for activation and live writer evidence.",
+    "live_writer_verification": {
+      "completed_at": "2026-10-07T15:03:59.513Z",
+      "review_date": "2026-10-07",
+      "enrolled": 0,
+      "created": 0,
+      "receipt_readback_equal": true,
+      "note": "A real successful-run receipt was written and read back; no live user fixture or house content was inserted."
+    }
   }
 }

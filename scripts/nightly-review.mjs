@@ -18,7 +18,8 @@ try {
  if(input.url!==origin||typeof input.token!=='string'||!input.token)throw Error('Use the current linked private Site and a fresh service credential.');
  const headers={'OAI-Sites-Authorization':'Bearer '+input.token};
  const request=async(path,method)=>{
-  const response=await fetch(origin+path,{method,headers,redirect:'error',signal:AbortSignal.timeout(30000)});
+  // Explicit zero bytes avoids the host serializing an omitted POST body.
+  const response=await fetch(origin+path,{method,headers,body:method==='POST'?'':undefined,redirect:'error',signal:AbortSignal.timeout(30000)});
   if(!response.ok){
    let detail;try{detail=await response.json();}catch{}
    const known=['The evening review service takes no request data.','Use the private evening review service.','The evening review could not be saved. It can be retried safely.','Method not allowed.'];

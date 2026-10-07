@@ -20,13 +20,19 @@ Open the local address printed in the terminal, normally `http://127.0.0.1:4317`
 
 ## Share the house with Socrates
 
-Enter in first person, walk with WASD or the joystick, and drag to look around. Socrates walks between connected rooms, observes the house and stops to converse nearby. Press **E** near him, choose **Talk to Socrates**, or **Call Socrates** over. **Rooms & journal** opens ideas and reflections; **Floor plan** edits the architecture; **Dollhouse** shows the interior from above.
+Enter in first person, walk with WASD or the joystick, and drag to look around. Socrates walks between connected rooms, observes the house and stops to converse nearby. Press **E** near him, choose **Talk to Socrates**, or **Call Socrates** over. **Journal · J** opens ideas and reflections; **Floor plan** edits the architecture; **Dollhouse** shows the interior from above.
 
 Offline Socrates is a persistent character using local dialogue rules, room notes and recent conversation. He asks about definitions, assumptions, evidence, counterexamples, other perspectives and an examined life. He is not an LLM, and his dialogue is not historical quotation. Conversation, observations, preferences and decisions are saved with the house.
 
-Critiques can propose a question board, discussion circle, reflection lamp, experiment table or learning book. **Build this change** installs an approved addition. **Decline** leaves the room intact. Socrates cannot overwrite your notes or change the building structure through a critique.
+Critiques can propose a question board, discussion circle, reflection lamp, experiment table or learning book. **Build next edition** installs an approved addition in a new home next door. The previous edition stays available in the neighbourhood. **Decline** leaves the room intact. Socrates cannot overwrite your notes or change the building structure through a critique.
 
 The daily journal is a separate loop: the open page checks for a review at **21:00 Europe/Prague**, and missed recorded days can be reviewed when you return. Its proposed learning book requires confirmation on or after the next calendar day. No local review runs while the application is stopped.
+
+## Inhabit a home and keep its history
+
+The entrance hall, living room, kitchen, bedroom, study and library have domestic furnishings and solid furniture you can use. Choose a book from a shelf, turn its pages, sit, rest, make tea, or keep a thought in a notebook. Assigned idea objects have selectable reading, questioning, experiment or reflection functions.
+
+The house fills the screen while you walk. Open **Journal · J** for notes and tools. **Neighbourhood** lets you walk to preserved editions and enter them. Older editions retain their documents and visual style; develop them by building an independent new edition. Layout, furniture and assigned object changes create another home rather than replacing the old one. Your previous local file is backed up automatically during the first neighbourhood upgrade.
 
 ## Optional online conversation
 

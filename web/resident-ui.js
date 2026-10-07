@@ -35,8 +35,8 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
    const title=document.createElement('h3');title.textContent=proposal.title;
    const reason=document.createElement('p');reason.textContent=proposal.reason;
    const question=document.createElement('blockquote');question.textContent=proposal.question;
-   const approve=document.createElement('button');approve.className='primary';approve.textContent='Build this change';approve.disabled=busy||isSaving();approve.onclick=()=>decision(proposal.id,'approve');
-   const decline=document.createElement('button');decline.textContent='Decline';decline.disabled=busy||isSaving();decline.onclick=()=>decision(proposal.id,'decline');
+   const approve=document.createElement('button');approve.className='primary';approve.textContent='Build next edition';approve.disabled=busy||isSaving()||!isLoaded();approve.onclick=()=>decision(proposal.id,'approve');
+   const decline=document.createElement('button');decline.textContent='Decline';decline.disabled=busy||isSaving()||!isLoaded();decline.onclick=()=>decision(proposal.id,'decline');
    const actions=document.createElement('div');actions.className='proposal-actions';actions.append(decline,approve);card.append(concept,title,reason,question,actions);$('resident-proposals').append(card);
   }
   $('conversation-mode').value=dialogueMode;
@@ -94,5 +94,5 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
  const presence=schedule(renderSpatial,750);presence?.unref?.();
  const observation=schedule(async()=>{if(!isLoaded()||isSaving()||busy||!visits.size)return;let next=getHouse();for(const id of visits)if(next.rooms.some(r=>r.id===id)){next=observeRoom(next,id);const pending=pendingProposals(next);if(pending.length<3&&!pending.some(p=>p.roomId===id))next=proposeCritique(next,id);}try{await saveHouse(next);visits.clear();}catch{}},15000);observation?.unref?.();
  window.addEventListener('pagehide',()=>{cancel(presence);cancel(observation);});
- return {render,onLoad,show,close};
+ return {render,onLoad,show,close,onHomeChange(){visits.clear();note.textContent='';close();}};
 }

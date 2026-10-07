@@ -196,7 +196,7 @@ try {
   assert.equal(calls.length, beforeDisconnected);
   const persisted = JSON.parse(await fs.readFile(path.join(dataDir, 'house.json'), 'utf8'));
   assert.equal(persisted.revision, 5);
-  assert.equal(persisted.house.resident.messages.length, 4);
+  assert.equal(persisted.neighborhood.homes.at(-1).house.resident.messages.length, 4);
   assert.equal(JSON.stringify(persisted).includes(key), false);
   await assert.rejects(startServer({dataDir, webDir, port: 0, env: {}}), /already open/);
   fallback = await startServer({dataDir: path.join(temporary, 'fallback-data'), webDir, port: running.port, maxPort: running.port + 2, env: {}, fetchImpl: fakeFetch});
@@ -209,7 +209,7 @@ try {
   const restarted = (await api('/api/house')).json;
   assert.equal(restarted.revision, 5);
   assert.equal(restarted.house.rooms[0].purpose, 'Edited while GPT was replying.');
-  assert.deepEqual(restarted.house.resident, persisted.house.resident, 'Resident conversation and pending proposal survive restart.');
+  assert.deepEqual(restarted.house.resident, persisted.neighborhood.homes.at(-1).house.resident, 'Resident conversation and pending proposal survive restart.');
   await running.close(); running = null;
   const seeded = await startServer({dataDir, webDir, port: 0, env: {OPENAI_API_KEY: key, HOUSE_GPT_MODEL: 'https://invalid-model-setting'}, fetchImpl: fakeFetch});
   running = seeded; session = null;
@@ -218,6 +218,23 @@ try {
   assert.equal((await api('/api/health')).text.includes(key), false);
   assert.equal((await api('/api/gpt/disconnect', 'POST')).json.gpt.ready, false);
   assert.equal((await fs.readFile(path.join(dataDir, 'house.json'), 'utf8')).includes(key), false);
+  // Visiting an archived home is a revision-aware read-only selection, never a rollback.
+  const neighborhoodBefore=(await api('/api/house')).json;
+  const original=neighborhoodBefore.neighborhood.homes[0];
+  const originalBytes=JSON.stringify(original);
+  const visit=await api('/api/neighborhood/select','POST',{homeId:original.id,revision:neighborhoodBefore.revision});
+  assert.equal(visit.status,200);assert.deepEqual(visit.json.house,original.house);
+  assert.equal((await api('/api/house','PUT',{house:original.house,revision:visit.json.revision})).status,400);
+  const beforeArchivedChat=calls.length;
+  assert.equal((await api('/api/gpt/chat','POST',{message:'Do not mutate this archive',roomId:'math',revision:visit.json.revision})).status,409);
+  assert.equal(calls.length,beforeArchivedChat);
+  const newHome=await api('/api/neighborhood/create','POST',{revision:visit.json.revision});
+  assert.equal(newHome.status,200);assert.notEqual(newHome.json.neighborhood.activeId,original.id);
+  assert.deepEqual(newHome.json.house,original.house);
+  assert.equal(JSON.stringify(newHome.json.neighborhood.homes[0]),originalBytes);
+  assert.equal((await api('/api/neighborhood/select','POST',{homeId:original.id,revision:visit.json.revision})).status,409);
+  const envelope=JSON.parse(await fs.readFile(path.join(dataDir,'house.json'),'utf8'));
+  assert.equal(envelope.version,2);assert.deepEqual(envelope.neighborhood,newHome.json.neighborhood);
   const finalInstance = JSON.parse(await fs.readFile(path.join(dataDir, '.house-server.lock'), 'utf8'));
   const stopped = await raw(running.url, '/api/launcher/stop', {method: 'POST', headers: {'X-House-Launch-Token': finalInstance.token}});
   assert.equal(stopped.status, 200);

@@ -21,8 +21,10 @@ export function walkingRoute(house,start,roomId,target){
  }
  if(target)points.push({x:target.x,z:target.z,roomId});return points;
 }
-export function yardBounds(house){const b=houseBounds(house);return {minX:b.minX-5,maxX:b.maxX+5,minZ:b.minZ-5,maxZ:b.maxZ+8};}
+export function yardBounds(house){const b=houseBounds(house);return {minX:b.minX-8,maxX:b.maxX+8,minZ:b.minZ-5,maxZ:b.maxZ+14};}
 export function canExploreAt(house,walls,x,z,radius=.2){const b=yardBounds(house);if(x<b.minX||x>b.maxX||z<b.minZ||z>b.maxZ)return false;return !walls.some(w=>{const dist=w.axis==='x'?Math.abs(z+8-w.fixed):Math.abs(x+10-w.fixed),along=w.axis==='x'?x+10:z+8;return dist<radius&&along>w.lo-radius&&along<w.hi+radius;});}
+// Furniture has a footprint: both residents and players use the same solid space.
+export function canOccupy(obstacles,x,z,radius=.2){return !obstacles.some(o=>x>o.minX-radius&&x<o.maxX+radius&&z>o.minZ-radius&&z<o.maxZ+radius);}
 // Advance one small frame along already validated doorway waypoints.
 export function stepAlongPath(position,path,distance,canStand=()=>true){
  let remaining=distance,moved=0,heading=null;
@@ -32,11 +34,11 @@ export function stepAlongPath(position,path,distance,canStand=()=>true){
 }
 // A bounded yard/doorway search is used only when entering from an arbitrary
 // outdoor position. Residents use the smaller, explicit room-and-door graph.
-export function findWalkingPath(house,walls,start,target,spacing=.35){
+export function findWalkingPath(house,walls,start,target,spacing=.35,passable=null){
  const b=yardBounds(house),cols=Math.ceil((b.maxX-b.minX)/spacing),rows=Math.ceil((b.maxZ-b.minZ)/spacing),key=(x,z)=>z*cols+x;
  const cell=p=>({x:Math.max(0,Math.min(cols-1,Math.round((p.x-b.minX)/spacing))),z:Math.max(0,Math.min(rows-1,Math.round((p.z-b.minZ)/spacing)))}),world=p=>({x:b.minX+p.x*spacing,z:b.minZ+p.z*spacing});
  const from=cell(start),to=cell(target),queue=[from],parents=new Map([[key(from.x,from.z),null]]);let reached=false;
- for(let n=0;n<queue.length;n++){const current=queue[n];if(current.x===to.x&&current.z===to.z){reached=true;break;}for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const next={x:current.x+dx,z:current.z+dz},id=key(next.x,next.z);if(next.x<0||next.x>=cols||next.z<0||next.z>=rows||parents.has(id))continue;const p=world(next);if(!canExploreAt(house,walls,p.x,p.z,.22))continue;parents.set(id,current);queue.push(next);}}
+ for(let n=0;n<queue.length;n++){const current=queue[n];if(current.x===to.x&&current.z===to.z){reached=true;break;}for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const next={x:current.x+dx,z:current.z+dz},id=key(next.x,next.z);if(next.x<0||next.x>=cols||next.z<0||next.z>=rows||parents.has(id))continue;const p=world(next);if(!canExploreAt(house,walls,p.x,p.z,.22)||(passable&&!passable(p.x,p.z)))continue;parents.set(id,current);queue.push(next);}}
  if(!reached)return [];const route=[],cursor={...to};let prev;while((prev=parents.get(key(cursor.x,cursor.z)))!==null){route.unshift(world(cursor));cursor.x=prev.x;cursor.z=prev.z;}
  // Keep only turns to avoid a stop at every grid cell.
  const turns=[];for(let n=0;n<route.length;n++){if(n===route.length-1||n===0||Math.abs((route[n].x-route[n-1].x)*(route[n+1].z-route[n].z)-(route[n].z-route[n-1].z)*(route[n+1].x-route[n].x))>.001)turns.push(route[n]);}turns.push({x:target.x,z:target.z});return turns;

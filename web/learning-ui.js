@@ -2,7 +2,7 @@ import {pragueDate,visitRoom,reflect,reviewDay,pendingReview,decideReview,applyA
 
 export function initLearning({$,document,window,getHouse,getSelected,isLoaded,isSaving,saveHouse,selectRoom,openHouse,scene,preview=false}) {
  let critic=false,tourIndex=0,visitDate=pragueDate(),visits=new Set(),timer=null;
- const reflectionDrafts=new Map();
+ let reflectionDrafts=new Map(),homeKey='initial';const draftsByHome=new Map();
  const today=()=>pragueDate();
  function includeVisits(candidate) {
   if(visitDate!==today()){visitDate=today();visits=new Set();}
@@ -94,5 +94,5 @@ export function initLearning({$,document,window,getHouse,getSelected,isLoaded,is
  $('review-later').onclick=()=>{$('daily-dialog').close();};
  window.addEventListener('pagehide',()=>{if(timer)clearTimeout(timer);});
  const clock=setInterval(()=>{const hour=Number(new Intl.DateTimeFormat('en',{timeZone:'Europe/Prague',hour:'numeric',hourCycle:'h23'}).format(new Date()));if(hour>=21)reviewTonight();else flushVisits().catch(()=>{});},60000);clock.unref?.();
- return {render,onLoad,noteVisit,includeVisits,hideCritic,reviewTonight};
+ return {render,onLoad,noteVisit,includeVisits,hideCritic,reviewTonight,onHomeChange(id){draftsByHome.set(homeKey,reflectionDrafts);homeKey=id;reflectionDrafts=draftsByHome.get(id)||new Map();visits=new Set();if(timer)clearTimeout(timer);$('learning-message').textContent='';hideCritic();}};
 }

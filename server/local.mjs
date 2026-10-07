@@ -4,6 +4,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {randomBytes, timingSafeEqual, createHash} from 'node:crypto';
 import {starter, validateHouse, clone} from '../web/model.js';
+import {initialNeighborhood,validateNeighborhood,saveEdition,selectEdition,createEdition} from '../web/neighborhood.js';
 import {receiveGptResult} from '../web/resident.js';
 import {createGptController, validateChatInput} from './gpt.mjs';
 
@@ -95,31 +96,29 @@ async function openStore(dataDir) {
   let current;
   try {
     const data = JSON.parse(await fs.readFile(file, 'utf8'));
-    if (data.version !== 1 || !Number.isInteger(data.revision) || data.revision < 0) throw Error('Invalid local storage envelope.');
-    current = {version: 1, revision: data.revision, house: validateHouse(data.house)};
+    if (![1,2].includes(data.version) || !Number.isInteger(data.revision) || data.revision < 0) throw Error('Invalid local storage envelope.');
+    if(data.version===1){
+      validateHouse(data.house);const oldHouse=data.house;
+      // Preserve the exact prior envelope as well as the visible old house before the upgrade.
+      await fs.copyFile(file,path.join(dataDir,'house-before-neighborhood.json'),fs.constants.COPYFILE_EXCL).catch(error=>{if(error.code!=='EEXIST')throw error;});
+      current={version:2,revision:data.revision+1,neighborhood:initialNeighborhood(oldHouse)};
+      await atomicJson(file,current);
+    }else current={version:2,revision:data.revision,neighborhood:validateNeighborhood(data.neighborhood)};
   } catch (error) {
-    if (error.code !== 'ENOENT') throw new Error('The saved local house could not be read. Preserve data/house.json before repairing it.');
-    current = {version: 1, revision: 0, house: starter()};
-    await atomicJson(file, current);
+    if (error.code !== 'ENOENT') throw new Error('The saved local neighbourhood could not be read. Preserve data/house.json before repairing it.');
+    current={version:2,revision:0,neighborhood:initialNeighborhood()};
+    await atomicJson(file,current);
   }
   let tail = Promise.resolve();
-  return {
-    read() { return {house: clone(current.house), revision: current.revision}; },
-    async save(house, revision) {
-      const operation = tail.then(async () => {
-        if (revision !== current.revision) throw new LocalError('This house changed in another tab. Your draft is still here. Reload before making further changes.', 409);
-        let validated;
-        try { validated = validateHouse(house); } catch (error) { throw new LocalError(error.message); }
-        const next = {version: 1, revision: current.revision + 1, house: validated};
-        await atomicJson(file, next);
-        current = next;
-        return this.read();
-      });
-      tail = operation.catch(() => {});
-      return operation;
-    },
-    async idle() { await tail; },
+  const read=()=>{const n=clone(current.neighborhood);return {house:clone(n.homes.find(h=>h.id===n.activeId).house),neighborhood:n,revision:current.revision};};
+  const mutate=(revision,change)=>{
+    const operation=tail.then(async()=>{
+      if(revision!==current.revision)throw new LocalError('This house changed in another tab. Your draft is still here. Reload before making further changes.',409);
+      let neighborhood;try{neighborhood=validateNeighborhood(change(clone(current.neighborhood)));}catch(error){throw new LocalError(error.message);}
+      const next={version:2,revision:current.revision+1,neighborhood};await atomicJson(file,next);current=next;return read();
+    });tail=operation.catch(()=>{});return operation;
   };
+  return {read,save(house,revision){return mutate(revision,n=>saveEdition(n,validateHouse(house)));},select(homeId,revision){return mutate(revision,n=>selectEdition(n,homeId));},create(revision){return mutate(revision,n=>createEdition(n));},async idle(){await tail;}};
 }
 
 function cookieSession(request) {
@@ -200,9 +199,14 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
           const input = await readJson(request);
           ensureRevision(input.revision);
           const saved = await store.save(input.house, input.revision);
-          return send(response, {revision: saved.revision});
+          return send(response, {revision:saved.revision,neighborhood:saved.neighborhood});
         }
         throw new LocalError('Method not allowed.', 405);
+      }
+      if (['/api/neighborhood/select','/api/neighborhood/create'].includes(url.pathname) && request.method==='POST') {
+        requireMutation(request);const input=await readJson(request,4096);ensureRevision(input.revision);
+        const saved=url.pathname.endsWith('/select')?await store.select(input.homeId,input.revision):await store.create(input.revision);
+        return send(response,saved);
       }
       if (url.pathname === '/api/house/export' && request.method === 'GET') {
         const session = sessions.get(cookieSession(request));
@@ -223,6 +227,7 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
         const input = await readJson(request, 40000);
         ensureRevision(input.revision);
         const before = store.read();
+        if(before.neighborhood.activeId!==before.neighborhood.homes.at(-1).id)throw new LocalError('This older home is preserved. Build a new edition next door before starting a new conversation.',409);
         if (input.revision !== before.revision) throw new LocalError('This house changed. Reload before asking GPT.', 409);
         const checked = validateChatInput(input, before.house);
         const result = await gpt.chat(checked, before.house);

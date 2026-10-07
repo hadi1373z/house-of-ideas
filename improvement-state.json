@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "goal": "A durable offline House of Ideas shared with a persistent Socrates resident, contextual dialogue, learning and owner-approved physical improvements.",
-  "current_milestone": "offline-resident",
+  "current_milestone": "inhabited-neighborhood",
   "active_item": null,
   "canonical_source": {
     "edition": "offline",
@@ -32,10 +32,18 @@
     "verification": {
       "resident_engine": "passed",
       "isolated_server_http_storage_restart_and_mocked_gpt": "passed",
-      "integrated_source_suite": "passed_all_seven_suites_and_both_builds",
-      "packaged_launch_and_saved_restart": "passed_actual_Windows_bundle_start_reuse_stop_VBS_restart_preserved_bytes",
-      "browser_rendering": "passed_enclosed_entry_WASD_resident_approach_dialogue_approval_and_reloaded_conversation"
+      "integrated_source_suite": "passed_all_eleven_suites_and_both_builds",
+      "packaged_launch_and_saved_restart": "passed_actual_Windows_bundle_VBS_restart_complete_original_house_and_byte_exact_backup_preserved",
+      "browser_rendering": "passed_domestic_arrival_individual_book_selection_pages_saved_answer_and_physical_preserved_house_visit"
     }
+  },
+  "neighborhood": {
+    "storage_version": 2,
+    "migration_backup": "data/house-before-neighborhood.json preserves the original storage envelope byte for byte.",
+    "editions": "Complete independent house documents. Spatial or object-function changes create another home; older homes remain read-only and visitable.",
+    "appearance": "Original house uses its retained legacy renderer. Current inhabited houses use the furnished domestic renderer; future redesigns must retain that renderer too.",
+    "object_functions": "Selectable offline books have pages and reflection questions. Assigned idea objects support reading, questioning, experiments and reflection.",
+    "verification": "Atomic migration, full-history isolation, selected-home restart, furniture-aware paths, dense object placement, usable book spines, activity save races and assistant edits preserving object functions passed. Exact publication results are recorded separately in the release notes."
   },
   "legacy_cloud_edition": {
     "url": "https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site",

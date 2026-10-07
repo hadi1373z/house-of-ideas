@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node scripts/verify.mjs && node scripts/verify-ui.mjs && node scripts/verify-socrates.mjs && node scripts/verify-reviews.mjs && node scripts/verify-resident.mjs && node scripts/verify-local.mjs && node scripts/verify-scene.mjs",
+    "test": "node scripts/verify.mjs && node scripts/verify-ui.mjs && node scripts/verify-socrates.mjs && node scripts/verify-reviews.mjs && node scripts/verify-resident.mjs && node scripts/verify-local.mjs && node scripts/verify-scene.mjs && node scripts/verify-home.mjs && node scripts/verify-home-interior.mjs && node scripts/verify-neighborhood-migration.mjs && node scripts/verify-home-ui.mjs",
     "start": "node server/local.mjs",
     "build": "node scripts/build.mjs",
     "db:generate": "drizzle-kit generate",

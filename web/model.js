@@ -1,3 +1,4 @@
+import {validateLearning} from './socrates.js';
 export const GRID={width:20,height:16};
 export const CUES=['crystal','ring','sphere','book'];
 export const clone=o=>JSON.parse(JSON.stringify(o));
@@ -32,6 +33,6 @@ export function validateHouse(input){
   if(typeof i.title!=='string'||!i.title.trim()||i.title.length>100||typeof i.text!=='string'||i.text.length>6000)throw Error('Ideas need a title (up to 100 characters) and notes (up to 6,000).');
   if(!CUES.includes(i.cue))throw Error('Choose a memory object.');
   return {id:i.id,roomId:i.roomId,title:i.title.trim(),text:i.text,cue:i.cue};
- });return {rooms,doors,ideas};
+ });const result={rooms,doors,ideas};if(input.learning!==undefined)result.learning=validateLearning(input.learning,result);return result;
 }
 export function reachableRooms(house,start){const seen=new Set([start]);let changed=true;while(changed){changed=false;for(const d of house.doors){if(seen.has(d.a)&&!seen.has(d.b)){seen.add(d.b);changed=true;}if(seen.has(d.b)&&!seen.has(d.a)){seen.add(d.a);changed=true;}}}return seen;}

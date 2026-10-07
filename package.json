@@ -1,1 +1,18 @@
-{"name":"house-of-ideas","private":true,"type":"module","scripts":{"test":"node scripts/verify.mjs && node scripts/verify-ui.mjs","build":"node scripts/build.mjs","db:generate":"drizzle-kit generate"},"dependencies":{"drizzle-orm":"^0.44.7"},"devDependencies":{"drizzle-kit":"^0.31.5","esbuild":"^0.25.10"}}
+{
+  "name": "house-of-ideas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/verify.mjs && node scripts/verify-ui.mjs && node scripts/verify-socrates.mjs && node scripts/verify-reviews.mjs",
+    "build": "node scripts/build.mjs",
+    "db:generate": "drizzle-kit generate",
+    "build:pages": "node scripts/build-pages.mjs"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.7"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.5",
+    "esbuild": "^0.25.10"
+  }
+}

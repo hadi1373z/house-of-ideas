@@ -1,28 +1,30 @@
 # Publication and source synchronization
 
-Canonical app: https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site (owner-private).
+Canonical saved app: [House of Ideas on Sites](https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site), owner-private.
 
-GitHub source: https://github.com/hadi1373z/house-of-ideas.
+GitHub source: [hadi1373z/house-of-ideas](https://github.com/hadi1373z/house-of-ideas).
 
-Public project introduction: https://hadi1373z.github.io/house-of-ideas/.
+Public interactive preview: [House of Ideas on Pages](https://hadi1373z.github.io/house-of-ideas/).
 
-## Preserve the two publishing roles
+## Publishing roles
 
-Sites remains the canonical source and hosts the complete authenticated app with D1 storage. GitHub stores clean source snapshots. GitHub Pages serves only `docs/`, through `.github/workflows/pages.yml`; its publishing source is GitHub Actions. `.github/workflows/verify.yml` runs the existing tests and build on pushes and pull requests. These workflows do not create AI improvements.
+Sites remains canonical and hosts the authenticated Worker with D1 house documents, learning history and pending review queues. GitHub stores clean source snapshots. GitHub Pages serves an in-memory browser preview; changes reset on reload and do not access private saved data.
 
-The existing hourly task reads `IMPROVEMENT.md` and `improvement-state.json`. It was paused when GitHub setup completed on 7 October 2026. Preserve that status unless the owner asks to resume it. No hosted GitHub write path has been verified; a local manual push does not establish scheduled access.
+`.github/workflows/pages.yml` runs `scripts/build-pages.mjs` and publishes `dist/pages`. It watches `web/**`, `docs/**`, the Pages build script, package files and its own workflow on `main`, and also supports manual dispatch. `web/` is the interactive preview source; The private app's `/project/` redirects to the saved house. Pages uses GitHub Actions as its publishing source. `.github/workflows/verify.yml` runs `npm ci`, `npm test` and the Worker build. Neither workflow generates improvements or uses a paid AI API.
+
+The daily Socrates task prepares pending room and learning exercises through the private service described in `NIGHTLY.md`. It does not publish source or synchronize GitHub. The separate hourly task reads `IMPROVEMENT.md` and `improvement-state.json`; preserve its paused status unless the owner explicitly requests resumption. A local manual push does not verify GitHub writes in a scheduled executor.
 
 ## Mirror a successful source update
 
-1. Recover the same Site through the Sites workflow. Read the improvement records and reconcile any pending deployment. Run the required checks, publish the candidate normally, and confirm its successful deployment. Retain that exact Sites source commit.
-2. Confirm GitHub access in the current execution environment. Use the connected GitHub operations or existing Git authentication without placing credentials in files, arguments, exports, or commits. If write access is unavailable, record it once and stop synchronization.
-3. Fetch GitHub `main` into a separate clean checkout. Retain its head before touching files. An acknowledged snapshot commit carries a `Sites-Source-Commit: <full SHA>` trailer. Compare its complete source tree to that known canonical commit. If the trailer is absent, the commit is unavailable, or the tree differs, treat the remote as independently edited and stop for reconciliation. Do not overwrite GitHub changes merely because they were fetched successfully.
-4. Export the verified canonical commit using `git archive`. Copy only that tracked snapshot into the separate checkout, preserving `.git`. Never export Git configuration, credentials, `.env`, database contents, saved ideas, dependency directories, build output, scratch files, or deployment archives. Remove obsolete tracked source files only within this confirmed checkout after verifying their paths; do not remove unrelated untracked work.
-5. Create an ordinary commit on the retained GitHub head with the exact `Sites-Source-Commit` trailer. Skip a no-op. Push normally without force. If another writer changes `main`, stop and reconcile; do not retry by replacing their work. For GitHub API writes, use a commit whose parent is the retained head and an expected-head lease when updating the branch ref.
-6. Read back GitHub `main` and confirm the pushed commit and tracked tree. Check the verification workflow and, when `docs/` changed, the Pages deployment and its returned URL. Record the canonical commit, GitHub commit, actual checks, and any limitation in the run result. Reconcile the record on the next run instead of creating an extra deployment only to copy a commit or deployment ID into itself.
+1. Reopen the same Site through the supported Sites workflow. Reconcile pending source or deployments, run the applicable checks and both builds, publish normally, and confirm terminal deployment success. Retain the exact verified canonical source commit.
+2. Verify authorized GitHub writes in the current execution environment using available connected operations or existing Git authentication. Keep credentials out of files, arguments, exports and commits. If access is unavailable, record the limitation and leave GitHub unchanged.
+3. Fetch GitHub `main` into a separate clean checkout and retain its head. An acknowledged mirror commit carries `Sites-Source-Commit: <full SHA>`. Compare its complete source tree with that known canonical commit. Stop for reconciliation if provenance is absent, the canonical commit is unavailable, the tree differs, or another writer has changed the branch. Successful fetching does not authorize overwriting edits.
+4. Export the exact tested and deployed canonical commit with `git archive`. Copy only tracked source into the separate checkout, preserving `.git`. Exclude credentials, Git configuration, `.env`, database contents, saved ideas, dependencies, build output, scratch files and deployment archives. Remove obsolete tracked source only inside the confirmed checkout after validating target paths; preserve unrelated untracked work.
+5. Create an ordinary commit on the retained GitHub head with the exact `Sites-Source-Commit` trailer; skip a no-op. Push normally without force. Stop and reconcile concurrent changes. API writes must use the retained parent commit and an expected-head lease for the branch update.
+6. Read back GitHub `main` and confirm the pushed commit and tracked tree. Check verification Actions and the Pages deployment when any watched preview source changed. Verify the actual published URL. Record source and mirror commits, checks actually completed and remaining limitations. Reconcile publication evidence on the next run instead of making an extra deployment just to write its own identifier into source.
 
-Never force-push, mirror Git refs, copy the Sites Git history, or assume a successful source upload means hourly synchronization is active. A repository edit should be reconciled into the canonical source before the next mirror.
+Never force-push, mirror refs, copy Sites Git history, or equate one successful upload with automatic synchronization. Reconcile independent repository edits into canonical source before the next mirror.
 
-## Manual Pages recovery
+## Pages recovery
 
-If a Pages job fails because setup is missing, confirm that the repository's Pages publishing source is **GitHub Actions**, then dispatch **Publish project page** on `main`. Verify terminal job success and the actual published URL before marking publication complete. Preserve the app's private audience.
+If setup is missing, confirm the repository's Pages publishing source is **GitHub Actions**, then dispatch **Publish project page** on `main`. Require terminal job success and verify the deployed interactive preview before reporting publication complete. Preserve the saved app's private audience.

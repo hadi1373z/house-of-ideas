@@ -40,8 +40,14 @@ Report meaningful completed improvements and specific blockers concisely, with w
 
 ## GitHub synchronization
 
-The requested repository and Pages introduction now exist. Read `PUBLISHING.md` after each successful Sites publication. The existing task prompt already reads this procedure; no duplicate task is needed. Preserve its enabled or paused status unless Hadi requests a change.
+The requested repository and interactive Pages preview now exist. Read `PUBLISHING.md` after each successful Sites publication. The existing task prompt already reads this procedure; no duplicate task is needed. Preserve its enabled or paused status unless Hadi requests a change.
 
 Only synchronize source that has passed its checks and has a successful Sites deployment. Export tracked files from that exact source commit; exclude credentials, working directories, build dependencies, and saved house data. Confirm authorized GitHub writes in the current executor rather than assuming credentials from another chat or computer are available. If access is missing, record the blocker once and leave GitHub unchanged; continue independent useful work within the existing scope.
 
 Before replacing a GitHub snapshot, confirm that its current head is the last acknowledged mirror of a known Sites source commit. Stop on human edits, missing provenance, or a concurrent change. Preserve GitHub history with ordinary commits and non-forced pushes, then read back the resulting commit and check the applicable Actions runs. Record verified outcomes and unresolved access separately; a successful one-time upload is not proof that hourly synchronization is running.
+
+## Socrates and the daily learning loop
+
+The owner requested a recognizable house, room learning activities, Socrates as a critic and an evening proposal confirmed on the next entry. The accepted time is 21:00 Europe/Prague. Suggestions are restricted to rooms and learning activities. Preserve the explicit next-day approval gate, journal data, deterministic guide and private storage. A pending or declined suggestion must never add or change an idea. Layout drafts must preserve the latest journal and review decisions.
+
+The separate **Socrates evening review** schedule calls the narrowly scoped private runtime service documented in `NIGHTLY.md`. It queues learning proposals from enrolled, recorded activity and reads back an aggregate receipt. It does not edit source, deploy code, approve ideas, resume this paused hourly source task, or synchronize GitHub. The prohibition on this source task reading personal house documents still applies.

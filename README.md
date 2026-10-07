@@ -1,47 +1,40 @@
 # House of Ideas
 
-By Hadi Zamani. A spatial playground for mathematics, art, questions, and discoveries.
+By Hadi Zamani. A house to explore, learn in, and improve through your own decisions.
 
-[Open the working app](https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site) (currently owner-private). The project introduction is in `docs/index.html` and is also included under `/project/` in the hosted app.
+[Explore the public house](https://hadi1373z.github.io/house-of-ideas/) · [Open your saved house](https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site) · [Source](https://github.com/hadi1373z/house-of-ideas)
 
-A private, editable 3D mind palace. Rooms represent themes; ideas are saved as notes with physical memory objects. An editable 20 × 16 grid generates the floors, walls, and connected door openings. Dollhouse and first-person modes both use an analog joystick.
+The house opens from outside with a roof, windows and an entrance. Enter it, view its rooms from above, or walk through connected doors. Mathematics, Art, Work, Questions, Learning and Connections each have a purpose, a short learning activity, and physical objects for your ideas. The floor plan remains editable.
 
-## Run and build
+## Learn with Socrates
 
-`npm ci`, `npm run build`. The build bundles the Cloudflare Worker into `dist/server/index.js`, and copies browser assets into `dist/client`. Three.js is vendored under `web/vendor` with its license. No external CDNs are required.
+Open **Socrates** to explore the rooms with a critical companion. He points to the room's actual ideas, asks a question, and suggests an exercise. Save what you discovered as a reflection.
 
-## Storage
+The requested evening review is daily at **21:00 Europe/Prague**. It prepares one suggestion from that day's recorded room visits, ideas and reflections. On your next entry, on or after the following day, confirm or decline the suggestion. Confirmation places a learning book in the reviewed room; declining leaves the ideas unchanged. Preparing a proposal never applies it. Missing reviews can also be prepared from recorded activity when you return. See [NIGHTLY.md](NIGHTLY.md) for the service and schedule setup.
 
-Private Sites authentication supplies `oai-authenticated-user-id`. D1 stores one complete house document per authenticated user, using parameterized queries and optimistic revisions to prevent stale tabs overwriting a saved house. `db/schema.ts` is the Drizzle source; checked-in migrations under `drizzle` are applied by Sites before deployment. Failed saves preserve editor input. No user data is stored in localStorage.
+Socrates uses deterministic guided questions and local rules. He is not an LLM, and his prompts are not historical quotations. The app calls no paid AI API. The daily workflow improves your rooms and learning activities; it does not edit application source.
 
-## Interaction
+## Preview and saved house
 
-- Select rooms or idea objects, add/edit/remove ideas, change themes and memory objects.
-- Draw rooms on the grid or enter dimensions numerically; connect adjacent rooms with doors.
-- Build the staged layout to update and save the house. Rooms containing ideas cannot be removed until their ideas are moved.
-- Joystick: drag continuously for analog speed, release to stop. Focus the joystick for arrow-key navigation. Drag the 3D view to look/orbit.
-- Feature-detected WebMCP tools share the same visible actions: read_house, navigate_to_room, save_idea.
+GitHub Pages runs the interactive browser preview, including the house, floor plan, ideas and Socrates. Its state stays in memory for the current visit and resets on reload. It has no background reviews or durable journal.
 
-## Verification
+The owner-private Sites app keeps authenticated house documents and learning history in D1. Entering the saved house enables its guided learning records. User IDs come from Sites authentication; saves use parameterized queries and optimistic revisions to reject stale tabs. Pending evening proposals live separately from house documents, so the service cannot overwrite edits or make decisions. Operational run receipts contain only dates, aggregate counts and completion times. No user data is stored in localStorage or committed to GitHub.
 
-Domain, scene-geometry, and storage checks run in Node. GPU/browser and supported WebMCP-context checks are unavailable in this execution environment.
+## Build and checks
 
-Run `npm test` for the existing domain and UI-action checks. These are not rendered browser tests; determine available browser capabilities on each run before making visual claims.
+```sh
+npm ci
+npm test
+npm run build
+npm run build:pages
+```
 
-## Hourly improvement
+`npm run build` creates the Cloudflare Worker and browser assets under `dist/server` and `dist/client`. `npm run build:pages` creates the static preview under `dist/pages`. Three.js and its license are vendored under `web/vendor`; external CDNs are unnecessary.
 
-The owner requested bounded recurring improvements to this playground. Read `IMPROVEMENT.md` and `improvement-state.json` before changing the project. They contain the scope, acceptance criteria, backlog, failure history, and update procedure. Source and deployment history are the durable record; a scratch checkout is not.
+The Node suites cover house validation, navigation geometry, UI actions, Socratic learning and decisions, isolated SQLite storage, daily queues, run receipts and revision conflicts. They do not establish GPU rendering or touch usability; record available browser checks separately.
 
-## GitHub repository and Pages
+## Publication and recurring work
 
-[Source repository](https://github.com/hadi1373z/house-of-ideas) · [Project page](https://hadi1373z.github.io/house-of-ideas/). Both were created and verified on 7 October 2026 from the prepared project in the Develop Ideas Playground chats.
+Sites is canonical and hosts the saved app. GitHub contains verified source snapshots, and `.github/workflows/pages.yml` builds the public preview from `web/` through `scripts/build-pages.mjs`. The verification workflow runs tests and the Worker build. Follow [PUBLISHING.md](PUBLISHING.md) before synchronizing source.
 
-The `.github/workflows/pages.yml` publishes only `docs/` after changes on `main`, or on manual dispatch, once Pages is enabled with GitHub Actions as its publishing source. The separate verification workflow runs the existing tests and build. Neither workflow uses a paid AI API or generates improvements by itself.
-
-GitHub Pages serves the project introduction. The complete application requires its Cloudflare Worker, D1 database, authenticated visitor identity, and the Sites deployment flow. It cannot be deployed as a complete application to static Pages. No saved user ideas or database contents belong in the repository.
-
-The existing **Improve House of Ideas** task is scheduled hourly in Europe/Prague and was verified **paused** on 7 October 2026. This publication preserves that status. Its prompt reads `IMPROVEMENT.md` and `improvement-state.json` on each run. Those records now include the GitHub synchronization procedure and publication evidence.
-
-Manual source upload and readback are verified. Scheduled GitHub synchronization is not active: the task is paused, and GitHub write authorization must be verified in its execution environment before future runs can synchronize. Local Git authentication succeeded; the connected GitHub integration did not have repository access.
-
-Treat Sites source as canonical until a deliberate, verified migration is requested. Follow `PUBLISHING.md` to export only a tested, successfully deployed source snapshot, preserve GitHub history, reject unexpected remote changes, and read back the pushed commit. Neither CI workflow generates improvements or resumes the task.
+The separate **Improve House of Ideas** hourly source task was verified paused on 7 October 2026. Preserve that status unless the owner asks to resume it. This daily review request does not resume it or establish unattended GitHub writes. The evening schedule and live service verification must be confirmed through the native Sites tools; this README describes the implemented workflow rather than claiming activation.

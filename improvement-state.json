@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "goal": "A dependable spatial playground in which Hadi can manipulate ideas and save discoveries.",
+  "goal": "An explorable house where Hadi learns, reflects with Socrates, and approves room learning improvements each day.",
   "current_milestone": "M1",
   "active_item": null,
   "baseline_source_commit": "3921d233329d35992e85178f6567768004d1748e",
   "last_verified_deployment": {
-    "version_number": 3,
-    "source_commit": "01ddd1b44e32e16e6ad5d8482caf36c4a0073973",
-    "note": "Verified canonical source at recovery. Reconcile the current publication outcome from Sites on the next run."
+    "version_number": 5,
+    "source_commit": "f8d39db600c4d21dbeeb4e23f2f3784a6a344c4b",
+    "note": "Reconciled from Sites before the house-learning update. Read the setup run result and current Site version for the new publication outcome."
   },
   "acceptance": [
     {
       "id": "launch_navigation",
-      "criterion": "The house renders and both dollhouse and first-person joystick navigation can reach its rooms.",
-      "status": "pending_browser_verification"
+      "criterion": "Recognizable exterior and furnished room views render; geometry checks cover doorway navigation. Desktop and phone browser entry works.",
+      "status": "passed_geometry_and_browser_rendering_desktop_mobile"
     },
     {
       "id": "ideas",
@@ -29,6 +29,16 @@
       "id": "layout",
       "criterion": "Room and door edits preserve ideas and reject invalid layouts.",
       "status": "passed_node_integration_pending_browser_verification"
+    },
+    {
+      "id": "learning_approval",
+      "criterion": "Actual room visits and reflections create a dated suggestion; only explicit next-day approval adds its learning book. Room building preserves newer journal records.",
+      "status": "passed_node_integration_and_browser_reflection_flow"
+    },
+    {
+      "id": "evening_service",
+      "criterion": "Private service creates idempotent pending proposals and a real aggregate receipt without changing any house; persisted readback agrees.",
+      "status": "passed_isolated_storage_live_verification_in_setup_result"
     }
   ],
   "backlog": [
@@ -75,6 +85,12 @@
       "item": "github-publication",
       "result": "Created the requested repository, published the prepared source and project page, and added a conservative synchronization runbook. Preserved the owner-private app and paused hourly task.",
       "verification": "Existing Node domain/storage/geometry and UI-action checks passed locally and in GitHub CI on Node 22.14.0. Locked dependency installation and build passed. Pages deployment succeeded; live HTML matched the initial docs snapshot byte for byte. Rendered browser/GPU and live saved house data were not exercised. Reconcile the final record update from its source commit and deployment on the next run."
+    },
+    {
+      "date": "2026-10-07",
+      "item": "house-learning-socrates",
+      "result": "Built a recognizable house, room learning exercises, visible Socrates tour, saved reflections, a 21:00 Prague pending-proposal service and explicit next-entry approval. Pages now builds the interactive per-visit preview. Fixed layout journal overwrites and failed-reflection draft loss. Preserved the paused hourly source task.",
+      "verification": "All four Node suites and both builds passed. Browser exterior, walking entry, furnished cutaway, Socrates tour, reflection save, unchanged ideas after preparing a proposal and phone layout verified on isolated preview. Next-day decisions, failed saves, queue isolation and additive migrations verified with isolated SQLite. No personal saved-house fixtures inserted. Reconcile publication, service write/readback, schedule creation and GitHub outcomes from this setup run."
     }
   ],
   "github": {
@@ -82,15 +98,26 @@
     "repository_created": true,
     "pages_published": true,
     "sync_verified": true,
-    "project_page_source": "docs/index.html",
-    "status": "Repository, snapshot readback, CI and live Pages content verified. Hourly task remains paused; scheduled executor GitHub write access is unverified. Follow PUBLISHING.md after successful Sites updates.",
+    "project_page_source": "web/ via scripts/build-pages.mjs",
+    "status": "Prior snapshot provenance reconciled. Current update publishes an interactive preview; follow the setup run result for terminal CI and Pages outcomes. Hourly source task remains paused; scheduled GitHub write access remains unverified.",
     "repository_url": "https://github.com/hadi1373z/house-of-ideas",
     "pages_url": "https://hadi1373z.github.io/house-of-ideas/",
-    "verified_snapshot_source_commit": "01ddd1b44e32e16e6ad5d8482caf36c4a0073973",
-    "verified_snapshot_github_commit": "7d72187267a2e4d59347935878fed9d579a7d092",
+    "verified_snapshot_source_commit": "f8d39db600c4d21dbeeb4e23f2f3784a6a344c4b",
+    "verified_snapshot_github_commit": "d5b51f69fe45392fbf887323034a93651229946c",
     "verification_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37632377911",
     "pages_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37632377701",
     "automatic_sync_enabled": false,
     "improvement_task_status": "paused"
+  },
+  "daily_review": {
+    "title": "Socrates evening review",
+    "timezone": "Europe/Prague",
+    "time": "21:00",
+    "scope": "Rooms and learning activities only",
+    "writer": "POST /api/review/run",
+    "readback": "GET /api/review/status",
+    "runbook": "NIGHTLY.md",
+    "approval": "Only a signed-in user decision on or after the next Prague calendar date can add a proposed learning book.",
+    "setup_status": "Use the setup run result and fresh Sites automations for activation and live writer evidence."
   }
 }

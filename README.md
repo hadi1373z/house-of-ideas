@@ -50,6 +50,14 @@ Open **City guide · 10 houses** to jump to a named gallery, or walk along the s
 
 The city connects the existing [artist-galleries project](https://github.com/hadi1373z/artist-galleries). Its complete ten artist websites and all sixty images are bundled locally: **Explore this artist’s local website** works offline. Source and original website links open online only when selected. These are fictional gallery houses and independent artist studies, with per-image attribution and reuse records retained in the websites and `web/art-city/credits.json`.
 
+## Travel between cities
+
+**Travel & collection** connects your home neighbourhood, Artists’ City and **Makers’ City**. Makers’ City has three roofed, furnished halls you can enter: a library, an experiment workshop and a dialogue house. Their books, chairs, tea cups, idea boards and notebooks each open a learning activity. Socrates walks between the halls and follows you between cities.
+
+Copy a book or an idea from any preserved home into your travelling collection. The original stays in that home. Place separate, selectable display copies at each city's library, learning table/workshop or plaza; your collection stays with you. Each city has its own journal, saved independently of home editions. **Discuss this with Socrates** prepares a question for your companion; you choose when to send it. His offline guide offers a question and a small test to bring home, without changing buildings or approving proposals.
+
+Export a **collection JSON** to carry copied learning objects and city journals to another offline installation; import adds records and preserves existing ones. Full home templates and GLB assets continue to travel through the Design workshop's portable home package. The public preview keeps this collection only for the current visit; the offline edition persists it in `data/house.json` with the homes and protects concurrent saves with the same revision checks.
+
 ## Explore with a VR headset
 
 **Enter VR** uses WebXR when your browser and connected headset support immersive VR. The page needs a secure origin: HTTPS or the same computer's trusted loopback page. Browser and hardware compatibility varies; see [WebXR permissions and security](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Permissions_and_security).

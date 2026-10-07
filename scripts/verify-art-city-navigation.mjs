@@ -98,11 +98,12 @@ function verifyReturn(presenting, fromNeighborhood, blockSaved = false) {
   assert.equal(homeClear(saved.position.x, saved.position.z), !blockSaved);
   assert.equal(homeClear(saved.resident.x, saved.resident.z), !blockSaved);
   const context = vm.createContext({THREE, camera, visitor, built, neighborhoodGroup, designs,
-    artCity: city, artCityMode: true, artCitySaved: saved, house: privateHouse,
+    artCity: city, makersCity: null, cityId: 'artists', artCityMode: true, artCitySaved: saved, house: privateHouse,
     neighborhoodMode: false, residentRoomId: null, path: [{x: 2, z: 4}], pause: 0,
     residentTalking: true, summoning: true, yaw: -1.8, pitch: .4, firstPersonPosition: null,
     held: new Set(['up']), stick: {reset() { resets++; }}, look: {id: 1},
-    playerPath: [{x: 1, z: 2}], seatTarget: {height: 1.1},
+    playerPath: [{x: 1, z: 2}], seatTarget: {height: 1.1}, landmarkLookAt: {x: 4, z: 2},
+    showCityLayers() {},
     xr: {presenting, relocate(...args) { relocations.push(args); }},
     canStand: homeClear, canNavigate: homeClear, freePoint: freeRoom, roomAtPoint, entranceFor,
     onPick(data) { sceneEvents.push({data, cityMode: context.artCityMode, returnHidden: returnButton.hidden}); },
@@ -113,6 +114,7 @@ function verifyReturn(presenting, fromNeighborhood, blockSaved = false) {
   city.group.visible = true;
   vm.runInContext('leaveArtCity()', context);
   assert.equal(context.artCityMode, false); assert.equal(context.artCitySaved, null);
+  assert.equal(context.cityId, 'home'); assert.equal(context.landmarkLookAt, null);
   assert.equal(city.group.visible, false);
   assert.equal(built.group.visible, true); assert.equal(neighborhoodGroup.visible, true);
   assert.equal(designs.group.visible, true); assert.equal(visitor.visible, true);

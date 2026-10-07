@@ -1,6 +1,8 @@
 // Persistent, local Socratic dialogue. This module has no network/model calls.
 // Optional model replies are data validated into the same approval-only actions.
 import {ARTISTS} from './art-city-data.js';
+import {BOOKS} from './books.js';
+import {CITIES} from './city-network.js';
 const clone = value => JSON.parse(JSON.stringify(value));
 const validId = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,60}$/.test(value);
 const LIMITS = {messages: 80, observations: 40, proposals: 48, pending: 12, features: 64};
@@ -482,19 +484,94 @@ function artistGalleryReply(context, facts) {
   return `${note}\n\nThat account comes from the gallery note. Which visible detail can you actually point to in the image? Separate that detail from what you think it means. What alternative interpretation could explain the same detail?\n\nTry it in ${facts.room.name}: spend five minutes writing three short lines: “I can point to…”, “I think this means…”, and “Another explanation is…”.${existing}${purpose}\n\nNext visit: return to “${work.title}”, find the detail again, and test both interpretations against it. In ${facts.room.name}, compare your earlier notes and say what you would keep, revise, or leave uncertain.`;
 }
 
+const CITY_DISCUSSION_END = 'Help me examine this place and choose one small learning test to bring home.';
+const CITY_ACTIONS = ['read', 'question', 'experiment', 'reflect'];
+const BOOK_CONCEPTS = {definitions: 'clarify', assumptions: 'assumptions', counterexamples: 'counterexample',
+  care: 'examined_life', practice: 'evidence', dialogue: 'perspective'};
+
+export function formatCityDiscussion(prepared) {
+  const city = CITIES.find(item => item.id === prepared?.cityId);
+  if (!city || !CITY_ACTIONS.includes(prepared?.action)) throw Error('Choose a known city and a reading, questioning, experiment or reflection activity.');
+  const title = text(prepared.title, 1, 100, 'The city activity title').replace(/[“”\r\n]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!title) throw Error('Name the city activity before discussing it.');
+  const question = text(prepared.question || 'Which reason supports your view, and what would challenge it?', 1, 600, 'The city question');
+  const excerpt = text(prepared.text || '', 0, 6000, 'The city activity note');
+  const chosen = prepared.bookId === undefined ? null : BOOKS.find(book => book.id === prepared.bookId);
+  if (prepared.bookId !== undefined && !chosen) throw Error('Choose a known offline library book.');
+  const reading = chosen ? `Reading: “${chosen.title}”. ` : '';
+  return `In ${city.name}, I am exploring “${title}”. Activity: ${prepared.action}. ${reading}${truncate(question, 400)} ${truncate(excerpt, 350)} ${CITY_DISCUSSION_END}`;
+}
+
+function cityLearningContext(content) {
+  const city = CITIES.find(item => content.startsWith(`In ${item.name}, I am exploring “`));
+  if (!city) return null;
+  const body = content.slice(`In ${city.name}, I am exploring “`.length);
+  const match = /^([^“”\r\n]{1,100})”\. Activity: (read|question|experiment|reflect)\. ([\s\S]*)$/u.exec(body);
+  if (!match || !content.endsWith(CITY_DISCUSSION_END)) return {city, valid: false};
+  let remainder = match[3], chosen = null;
+  if (remainder.startsWith('Reading: ')) {
+    const reading = /^Reading: “([^“”\r\n]{1,100})”\. /u.exec(remainder);
+    chosen = reading && BOOKS.find(book => book.title === reading[1]);
+    if (!chosen) return {city, valid: false};
+    remainder = remainder.slice(reading[0].length);
+  }
+  const action = match[2], concept = chosen ? BOOK_CONCEPTS[chosen.id]
+    : ({read: 'clarify', question: 'counterexample', experiment: 'evidence', reflect: 'examined_life'})[action];
+  return {city, valid: true, title: match[1], action, book: chosen, concept};
+}
+
+function cityLearningReply(context, facts) {
+  const {city} = context;
+  if (!context.valid) return `Which activity in ${city.name} are we examining: reading, questioning, an experiment or reflection? Choose a known library book or a copied idea, then describe one observation. We can turn that into a small learning test and keep the result in the city journal.`;
+  const {title, concept, book} = context;
+  const example = city.id === 'artists' ? 'a visible detail in an artwork'
+    : city.id === 'makers' ? 'one step in a workshop task' : 'a daily activity in your home';
+  const placeQuestion = city.id === 'artists' ? 'Which detail can you point to, and which part is your interpretation?'
+    : city.id === 'makers' ? 'Which workshop task does this place support, and how could you observe whether it helps?'
+      : 'Which ordinary use makes this place useful to you, and what gets in its way?';
+  const exercises = {
+    clarify: [`What do you mean by a useful result for “${title}”? Which example would another person recognise?`,
+      `Define one key word in a sentence. Use ${example} as an example, then name a case your definition excludes.`,
+      'Try the same definition on a second example. Keep or revise it, explaining what the new case revealed.'],
+    assumptions: [`Which unstated premise connects “${title}” with the benefit you expect?`,
+      `Write your claim and its hidden premise separately. For ${example}, imagine the premise is false and describe what would change.`,
+      'Look for one observation that supports the premise and one that challenges it. Narrow the claim if needed.'],
+    counterexample: [`Can you find a case where your explanation of “${title}” fails? What boundary does it reveal?`,
+      `State one claim, then use ${example} to look for a counterexample. Change only the part of the claim the counterexample challenges.`,
+      'Return to the same case and a new one. Say whether your revised claim handles both without hiding the exception.'],
+    evidence: [`What result would count against your expectation for “${title}”?`,
+      `For ${example}, write a prediction before trying one small, repeatable comparison. Keep what you observed separate from what you hoped would happen.`,
+      'Repeat the comparison once and record the result in this city’s journal. Keep, revise or suspend the claim, giving a reason.'],
+    perspective: [`How would someone with another viewpoint explain “${title}” fairly?`,
+      `Describe your account of ${example}, then the strongest alternative. Ask which detail each account notices or overlooks.`,
+      'Compare both accounts against one shared observation. Record a question or revision that came from listening.'],
+    examined_life: [`What value would “${title}” serve in life here? Does its use support that value?`,
+      'Take a quiet pause and notice one comfort or friction in this place. Describe a small change in how you use it; rest can remain a pause without a task.',
+      'Return after a pause and say whether the use helped you live by that value. A new object alone is not evidence of care.'],
+  };
+  const [question, practice, test] = exercises[concept];
+  const reading = book ? ` The local reading “${book.title}” gives us the method for this exercise.` : '';
+  return `In ${city.name}, let us examine “${title}”.${reading} ${placeQuestion}\n\n${question}\n\nTry it: ${practice}\n\nNext visit: ${test}\n\nBring home: compare what you noticed with the way you use ${facts.room.name}. Which part travels well, and which depends on this city?`;
+}
+
 export function converse(house, roomId, content, options = {}) {
   const message = text(content, 1, 1200, 'Your message'), at = nowAt(options);
   let result = working(house);
   const facts = roomFacts(result, roomId);
   const prior = [...result.resident.messages].reverse().find(item => item.role === 'user' && item.roomId === roomId);
   const gallery = artistGalleryContext(message);
-  const concept = gallery ? 'evidence' : conceptFor(message, result);
+  const cityLearning = gallery ? null : cityLearningContext(message);
+  const concept = gallery ? 'evidence' : cityLearning ? cityLearning.concept || 'clarify' : conceptFor(message, result);
   appendMessage(result, roomId, 'user', message, 'local', null, at);
   recordUserMemory(result, message);
   result.resident.memory.lastRoomId = roomId;
   result.resident.memory.lastConcept = concept;
   if (gallery) {
     appendMessage(result, roomId, 'resident', truncate(artistGalleryReply(gallery, facts), 2200), 'local', concept, at);
+    return result;
+  }
+  if (cityLearning) {
+    appendMessage(result, roomId, 'resident', truncate(cityLearningReply(cityLearning, facts), 2200), 'local', concept, at);
     return result;
   }
   const requestedFeature = /\b(add|place|install|put)\b/i.test(message) ? FEATURES.find(feature => message.toLowerCase().includes(feature.replaceAll('_', ' '))) : undefined;

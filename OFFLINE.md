@@ -69,6 +69,20 @@ Save an artwork observation to today’s journal in your selected home room, or 
 
 City walking and artwork selection also use the existing WebXR controls when compatible hardware is present. Artwork title and learning question appear in the in-world reading panel; the painting remains on its gallery wall. Physical headset operation is still unverified.
 
+## Travel and carry learning between cities
+
+Open **Travel & collection**, or approach a travel sign and press **E**. Choose the home neighbourhood, Artists’ City or Makers’ City. Your embodied Socrates companion comes with you. Makers’ City has an open-door library, workshop and dialogue house with physical books, experiment tables, question boards, seats, tea and notebooks.
+
+Choose a source home and **Copy this idea to my collection**, or copy a library book. Copying works from preserved editions and keeps their original documents intact. Choose a city landmark and **Place a display copy in this city**. You can place the same item in more than one city and still carry it in your collection. Visit a landmark to find its copies, then approach an object and press **E** to read or use its assigned activity.
+
+Keep observations in the **city journal** or save an answer while reading a book. City notes are separate from room reflections and do not create or modify home editions. Travel retains unfinished city journal and activity drafts during that browser session. Saved copies, placements, journals and visit counts survive a local restart. Returning home restores the place you left, using a nearby clear position if an approved furnishing has since occupied it.
+
+**Discuss this with Socrates** prepares a question and calls him over. It does not send a message. His offline city guide helps examine a definition, assumption or practical use and suggests one small learning test; it does not build or approve anything. Optional GPT still requires a deliberate online conversation.
+
+**Export collection JSON** saves your copied personal idea notes, display locations and city journals to a portable file. Import merges that file into another local installation; repeated import is safe, and identifier conflicts preserve both records. Keep the file private if its notes are private. Full houses and their GLB files use the separate portable home package in Design workshop.
+
+Each collection holds up to 64 learning objects, 128 displays (eight per landmark) and 120 city notes. Reaching a limit stops the addition and retains existing records. No records are silently removed. Stop the program before replacing its files; updating preserves the complete `data` folder.
+
 ## Use a VR headset
 
 Connect a headset supported by your browser's WebXR implementation and open the house on a secure origin. The same computer's `http://127.0.0.1` page can be trusted; remote pages need HTTPS. The loopback address refers to the device opening it, so it does not connect a standalone headset browser to a server on a different PC. This launcher does not expose the server to the network. See [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts) and [WebXR permissions](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Permissions_and_security).

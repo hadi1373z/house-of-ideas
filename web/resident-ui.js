@@ -8,9 +8,9 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
  const roomId=()=>{const state=location();return state.near&&!state.summoning&&getHouse().rooms.some(r=>r.id===state.roomId)?state.roomId:getSelected();};
  function renderSpatial() {
   const state=location(),room=getHouse().rooms.find(r=>r.id===state.roomId);
-  $('resident-location').textContent=state.artistCity?'Socrates · '+state.locationLabel:room?'Socrates · '+room.name:'Socrates · Front door';
+  $('resident-location').textContent=(state.artistCity||state.cityId==='makers')?'Socrates · '+state.locationLabel:room?'Socrates · '+room.name:'Socrates · Front door';
   $('resident-activity').textContent=state.talking?'Listening to you':state.activity||'Exploring the house';
-  $('conversation-location').textContent=state.summoning?'Socrates is coming to meet you':state.near?(state.artistCity?'Together in '+state.locationLabel:room?'Together in '+room.name:'Together by the front door'):state.artistCity?'Socrates is exploring '+state.locationLabel:room?'Socrates is in '+room.name:'Meet Socrates inside the house';
+  $('conversation-location').textContent=state.summoning?'Socrates is coming to meet you':state.near?((state.artistCity||state.cityId==='makers')?'Together in '+state.locationLabel:room?'Together in '+room.name:'Together by the front door'):(state.artistCity||state.cityId==='makers')?'Socrates is exploring '+state.locationLabel:room?'Socrates is in '+room.name:'Meet Socrates inside the house';
   if(open&&state.near&&!state.talking&&!state.summoning)scene?.setResidentTalking?.(true);
   $('resident-send').disabled=busy||isSaving()||!isLoaded()||!state.near||Boolean(state.summoning);
   $('resident-critic').disabled=busy||isSaving()||!isLoaded();
@@ -75,12 +75,12 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
  $('resident-critic').onclick=()=>change(house=>proposeCritique(house,roomId()),saved=>pendingProposals(saved).some(proposal=>proposal.roomId===roomId())?'Socrates has a proposal. Read its reasoning, practice and next-visit test before deciding whether to build it.':'Socrates found a useful practice for this room. Read his response; no new furnishing is needed.');
  $('resident-form').onsubmit=async event=>{
   event.preventDefault();if(busy||isSaving()||!isLoaded()||!location().near||location().summoning)return;
-  const text=$('resident-input').value.trim();if(!text)return;
+  const draft=$('resident-input').value,text=draft.trim();if(!text)return;
   busy=true;note.textContent=['gpt','chatgpt'].includes(dialogueMode)?'Socrates is thinking with '+(dialogueMode==='chatgpt'?'ChatGPT…':'GPT…'):'Socrates is considering your question…';render();
   try{
    if(['gpt','chatgpt'].includes(dialogueMode)){if(dialogueMode==='gpt'&&!gptReady)throw Error('Configure the GPT API key first, or choose Offline.');if(dialogueMode==='chatgpt'&&!chatgptReady)throw Error('Continue with ChatGPT in local settings first, or choose Offline.');await gptChat(text,roomId(),dialogueMode);}
    else await saveHouse(converse(getHouse(),roomId(),text));
-   $('resident-input').value='';note.textContent='';
+   if($('resident-input').value===draft)$('resident-input').value='';note.textContent='';
   }catch(error){note.textContent=error.message;}
   finally{busy=false;render();}
  };

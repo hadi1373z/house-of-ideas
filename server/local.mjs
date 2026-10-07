@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {randomBytes, timingSafeEqual, createHash} from 'node:crypto';
 import {starter, validateHouse, clone} from '../web/model.js';
 import {initialNeighborhood,validateNeighborhood,saveEdition,selectEdition,createEdition} from '../web/neighborhood.js';
+import {initialCityNetwork,validateCityNetwork,CITY_LIMITS} from '../web/city-network.js';
 import {receiveGptResult} from '../web/resident.js';
 import {createGptController, validateChatInput} from './gpt.mjs';
 import {createDesignAssetStore} from './design-assets.mjs';
@@ -125,7 +126,7 @@ async function openStore(dataDir) {
       const next={version:2,revision:current.revision+1,neighborhood};await atomicJson(file,next);current=next;return read();
     });tail=operation.catch(()=>{});return operation;
   };
-  return {read,save(house,revision){return mutate(revision,n=>saveEdition(n,validateHouse(house)));},select(homeId,revision){return mutate(revision,n=>selectEdition(n,homeId));},create(revision){return mutate(revision,n=>createEdition(n));},import(neighborhood,revision){return mutate(revision,()=>neighborhood);},async idle(){await tail;}};
+  return {read,save(house,revision){return mutate(revision,n=>saveEdition(n,validateHouse(house)));},saveCities(cityNetwork,revision){return mutate(revision,n=>({...n,cityNetwork:validateCityNetwork(cityNetwork)}));},select(homeId,revision){return mutate(revision,n=>selectEdition(n,homeId));},create(revision){return mutate(revision,n=>createEdition(n));},import(neighborhood,revision){return mutate(revision,()=>neighborhood);},async idle(){await tail;}};
 }
 
 function cookieSession(request) {
@@ -203,6 +204,15 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
       if (['/api/config', '/api/gpt/config'].includes(url.pathname) && request.method === 'GET') {
         const {session, headers} = headersForSession(request);
         return send(response, {mode: 'local', csrfToken: session.csrf, gpt: gpt.config(),chatgpt:chatgptPlan.config()}, 200, headers);
+      }
+      if(url.pathname==='/api/cities'){
+        if(request.method==='GET'){const saved=store.read();return send(response,{cityNetwork:saved.neighborhood.cityNetwork??initialCityNetwork(),revision:saved.revision});}
+        if(request.method==='PUT'){
+          requireMutation(request);const input=await readJson(request,CITY_LIMITS.travelPackBytes+4096);ensureRevision(input.revision);
+          if(Object.keys(input).some(key=>!['cityNetwork','revision'].includes(key))||!Object.hasOwn(input,'cityNetwork')||input.cityNetwork===null)throw new LocalError('Save a complete city network and its current revision.');
+          const saved=await store.saveCities(input.cityNetwork,input.revision);return send(response,{...saved,cityNetwork:saved.neighborhood.cityNetwork});
+        }
+        throw new LocalError('Method not allowed.',405);
       }
       if (url.pathname === '/api/house') {
         if (request.method === 'GET') return send(response, store.read());

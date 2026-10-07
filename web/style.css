@@ -51,3 +51,18 @@ dialog.designer-panel{margin:auto}
 body.art-city-mode .scene-caption h2,body.art-city-mode #view-hint{display:none}
 body.art-city-mode .view-tools{display:none}
 @media(max-width:600px){.art-city-list{grid-template-columns:1fr}#art-city-dialog{padding:18px}#art-city-detail figure{padding:10px}#art-city-image{max-height:300px}}
+:root { --city-paper: #f5efdf; }
+.city-travel-dialog { max-width:760px; width:min(760px,calc(100vw - 24px)); max-height:88dvh; overflow:auto; background:var(--city-paper); color:#253d37; padding:24px; }
+.city-travel-dialog section { border-top:1px solid #cfccb9; margin-top:22px; padding-top:14px; }
+.city-travel-dialog h2,.city-travel-dialog h3 { margin:0 0 12px; }
+.city-travel-dialog p { line-height:1.6; white-space:pre-line; }
+.city-travel-actions,.city-travel-dialog .dialog-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.city-travel-dialog .dialog-head { justify-content:space-between; }
+.city-travel-list { display:grid; gap:10px; margin:14px 0; }
+.city-travel-list article { padding:12px; border:1px solid #d8d0bb; border-radius:7px; background:#fff9ec; }
+.city-travel-dialog label { display:block; margin:10px 0; }
+.city-travel-dialog textarea,.city-travel-dialog select { width:100%; }
+#city-travel-status.error { color:#93412b; }
+#city-travel-activity { background:#eee5cc; border-radius:10px; padding:18px; }
+#city-travel-book-page { min-width:110px; text-align:center; }
+@media(max-width:600px){ .city-travel-dialog { padding:16px; } .city-travel-actions button { flex:1 1 140px; } }

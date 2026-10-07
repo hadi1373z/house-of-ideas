@@ -1,4 +1,5 @@
 import {clone,legacyStarter,starter,validateHouse,defaultIdeaAction} from './model.js';
+import {validateCityNetwork} from './city-network.js';
 
 // Every edition owns a whole independent document. Never discard a home to
 // make space: the owner can export the neighborhood before continuing.
@@ -27,7 +28,7 @@ export function validateNeighborhood(input){
  });
  if(!ids.has(input.activeId))throw Error('Choose a home in this neighborhood.');
  if(!['inhabited','atelier'].includes(homes.at(-1).edition))throw Error('The newest home must be an inhabited edition.');
- return {version:1,activeId:input.activeId,homes};
+ return {version:1,activeId:input.activeId,homes,...(Object.hasOwn(input,'cityNetwork')?{cityNetwork:validateCityNetwork(input.cityNetwork)}:{})};
 }
 export function initialNeighborhood(oldHouse,options={}){
  const old=snapshot(oldHouse??legacyStarter());

@@ -185,7 +185,7 @@ export function initArtCityUI({$, document, window, scene, artists, getHouse, ge
     const cityState = scene?.playerState?.()?.artistCity;
     if (typeof cityState === 'boolean') inCity = cityState;
     $('art-city-open').textContent = inCity ? 'City guide · 10 houses' : 'Artists’ City · 10 houses';
-    $('art-city-return').hidden = !inCity;
+    $('art-city-return').hidden = !(inCity || scene?.playerState?.()?.cityId === 'makers');
     previous.disabled = next.disabled = (artist?.works?.length || 0) < 2;
     save.disabled = pending || isSaving() || isReadOnly() || !room || !work;
     examine.disabled = pending || isSaving();

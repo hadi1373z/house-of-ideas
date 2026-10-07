@@ -7,6 +7,7 @@ import {buildArtCity} from '../web/art-city-scene.js';
 import {findCityPath} from '../web/art-city-navigation.js';
 import {starter} from '../web/model.js';
 import {pragueDate, reflect} from '../web/socrates.js';
+import {centerOf, canExploreAt, canOccupy, roomAtPoint, entranceFor} from '../web/navigation.js';
 
 const city = buildArtCity(THREE, ARTISTS);
 assert.equal(city.houses.length, 10);
@@ -71,13 +72,14 @@ function declaration(name) {
   assert.ok(end > start, 'scene declaration is followed by another function');
   return source.slice(start, end);
 }
-const actualFunctions = ['resetInput', 'faceDirection', 'placeCityPlayer', 'leaveArtCity']
+const actualFunctions = ['resetInput', 'faceDirection', 'placeCityPlayer', 'homeReturnPoint', 'leaveArtCity']
   .map(declaration).join('\n');
-function verifyReturn(presenting, fromNeighborhood) {
+function verifyReturn(presenting, fromNeighborhood, blockSaved = false) {
   const camera = new THREE.PerspectiveCamera(); camera.position.set(city.spawn.x, 1.65, city.spawn.z);
   const visitor = new THREE.Group(); visitor.position.set(city.spawn.x + 1.2, 0, city.spawn.z + 1.2);
-  const saved = {position: new THREE.Vector3(-5.7, 1.65, 8.3), yaw: .84, pitch: -.21,
-    neighborhood: fromNeighborhood, resident: new THREE.Vector3(1.2, 0, -2.6), roomId: 'art'};
+  const saved = {position: fromNeighborhood ? new THREE.Vector3(-5.7, 1.65, 8.3) : new THREE.Vector3(-7.8, 1.65, -5.9),
+    yaw: .84, pitch: -.21, neighborhood: fromNeighborhood,
+    resident: new THREE.Vector3(-1.8, 0, -5.9), roomId: 'art'};
   const built = {group: new THREE.Group()}, neighborhoodGroup = new THREE.Group(), designs = {group: new THREE.Group()};
   built.group.visible = neighborhoodGroup.visible = designs.group.visible = false;
   const bodyClasses = new Set(['art-city-mode']), returnButton = {hidden: false}, relocations = [], sceneEvents = [];
@@ -86,6 +88,15 @@ function verifyReturn(presenting, fromNeighborhood) {
   privateHouse.ideas.push({id: 'private-note', roomId: 'art', title: 'Private note', text: 'Personal sketch notes.', cue: 'book'});
   privateHouse.resident = {messages: [{role: 'user', text: 'A private conversation.'}], memories: [{text: 'A private memory.'}]};
   const before = JSON.stringify(privateHouse);
+  // New furnishings can occupy the original player and companion positions
+  // during a gallery visit. Room centres remain clear in this collision fixture.
+  const furniture = blockSaved ? [saved.position, saved.resident].map(point => ({
+    minX: point.x - .25, maxX: point.x + .25, minZ: point.z - .25, maxZ: point.z + .25
+  })) : [];
+  const homeClear = (x, z) => canExploreAt(privateHouse, [], x, z) && canOccupy(furniture, x, z);
+  const freeRoom = room => { const point = centerOf(room); return new THREE.Vector3(point.x, 0, point.z); };
+  assert.equal(homeClear(saved.position.x, saved.position.z), !blockSaved);
+  assert.equal(homeClear(saved.resident.x, saved.resident.z), !blockSaved);
   const context = vm.createContext({THREE, camera, visitor, built, neighborhoodGroup, designs,
     artCity: city, artCityMode: true, artCitySaved: saved, house: privateHouse,
     neighborhoodMode: false, residentRoomId: null, path: [{x: 2, z: 4}], pause: 0,
@@ -93,6 +104,7 @@ function verifyReturn(presenting, fromNeighborhood) {
     held: new Set(['up']), stick: {reset() { resets++; }}, look: {id: 1},
     playerPath: [{x: 1, z: 2}], seatTarget: {height: 1.1},
     xr: {presenting, relocate(...args) { relocations.push(args); }},
+    canStand: homeClear, canNavigate: homeClear, freePoint: freeRoom, roomAtPoint, entranceFor,
     onPick(data) { sceneEvents.push({data, cityMode: context.artCityMode, returnHidden: returnButton.hidden}); },
     document: {body: {classList: {remove(value) { bodyClasses.delete(value); }}},
       getElementById(id) { assert.equal(id, 'art-city-return'); return returnButton; }}
@@ -104,13 +116,24 @@ function verifyReturn(presenting, fromNeighborhood) {
   assert.equal(city.group.visible, false);
   assert.equal(built.group.visible, true); assert.equal(neighborhoodGroup.visible, true);
   assert.equal(designs.group.visible, true); assert.equal(visitor.visible, true);
-  assert.deepEqual(visitor.position.toArray(), saved.resident.toArray());
+  if (blockSaved) {
+    assert.ok(homeClear(visitor.position.x, visitor.position.z), 'The companion returns to a clear point after furnishing changes');
+    assert.notDeepEqual(visitor.position.toArray(), saved.resident.toArray());
+    assert.equal(roomAtPoint(privateHouse, visitor.position.x, visitor.position.z), 'art');
+  } else assert.deepEqual(visitor.position.toArray(), saved.resident.toArray());
   assert.equal(context.residentRoomId, 'art'); assert.equal(context.neighborhoodMode, fromNeighborhood);
   assert.equal(context.residentTalking, false); assert.equal(context.summoning, false);
   assert.equal(context.yaw, saved.yaw); assert.equal(context.pitch, saved.pitch);
   assert.equal(camera.rotation.order, 'YXZ'); assert.equal(camera.rotation.x, saved.pitch);
   assert.equal(camera.rotation.y, saved.yaw);
-  assert.deepEqual(context.firstPersonPosition.toArray(), saved.position.toArray());
+  const returned = context.firstPersonPosition;
+  assert.ok(homeClear(returned.x, returned.z), 'The player returns to a currently clear point');
+  if (blockSaved) {
+    assert.notDeepEqual(returned.toArray(), saved.position.toArray());
+    const returnedRoom = roomAtPoint(privateHouse, returned.x, returned.z);
+    if (fromNeighborhood) assert.ok(privateHouse.rooms.some(room => room.id === returnedRoom), 'An obstructed outdoor point falls back to a clear current room');
+    else assert.equal(returnedRoom, 'math', 'An obstructed indoor point returns within its original room');
+  } else assert.deepEqual(returned.toArray(), saved.position.toArray());
   assert.equal(context.held.size, 0); assert.equal(context.look, null);
   assert.equal(context.playerPath.length, 0); assert.equal(context.seatTarget, null);
   assert.equal(context.path.length, 0); assert.equal(resets, 1);
@@ -120,8 +143,8 @@ function verifyReturn(presenting, fromNeighborhood) {
     assert.equal(event.cityMode, false); assert.equal(event.returnHidden, true);
   }
   assert.equal(JSON.stringify(privateHouse), before, 'Returning preserves all personal house data');
-  if (presenting) assert.deepEqual(relocations, [[saved.position.x, saved.position.z, saved.yaw]]);
-  else { assert.deepEqual(camera.position.toArray(), saved.position.toArray()); assert.equal(relocations.length, 0); }
+  if (presenting) assert.deepEqual(relocations, [[returned.x, returned.z, saved.yaw]]);
+  else { assert.deepEqual(camera.position.toArray(), returned.toArray()); assert.equal(relocations.length, 0); }
   vm.runInContext('leaveArtCity()', context);
   assert.equal(resets, 1, 'Returning again is a harmless no-op');
 }
@@ -129,5 +152,9 @@ verifyReturn(false, false);
 verifyReturn(false, true);
 verifyReturn(true, false);
 verifyReturn(true, true);
+verifyReturn(false, false, true);
+verifyReturn(false, true, true);
+verifyReturn(true, false, true);
+verifyReturn(true, true, true);
 city.dispose();
-console.log('Artist City navigation passed: ' + routes + ' real routes through ten houses and sixty artwork anchors, segment collisions, unreachable targets and source-backed desktop/XR return with personal data preserved.');
+console.log('Artist City navigation passed: ' + routes + ' real routes through ten houses and sixty artwork anchors, segment collisions, unreachable targets and source-backed desktop/XR return before and after furnishing changes with personal data preserved.');

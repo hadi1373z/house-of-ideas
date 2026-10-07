@@ -3,7 +3,7 @@ import {pragueDate, reflect as recordReflection} from './socrates.js';
 const REFLECTION_LIMIT = 1200;
 
 export function initArtCityUI({$, document, window, scene, artists, getHouse, getSelected,
-  isReadOnly, isSaving, saveHouse, examineArtist, notify}) {
+  isReadOnly, isSaving, saveHouse, examineArtist, beforeEnter, notify}) {
   const dialog = $('art-city-dialog'), nodes = {}, drafts = new Map();
   let artistId = null, workId = null, inCity = false, pending = false, context = 0, version = 0;
 
@@ -120,7 +120,7 @@ export function initArtCityUI({$, document, window, scene, artists, getHouse, ge
 
   async function visit(id) {
     close();
-    try { await scene.enterArtistHouse(id); }
+    try { await beforeEnter?.(); await scene.enterArtistHouse(id); }
     catch (error) { showOverview(); message(error.message, true); }
   }
   function showOverview() {
@@ -232,7 +232,7 @@ export function initArtCityUI({$, document, window, scene, artists, getHouse, ge
     const alreadyInCity = typeof cityState === 'boolean' ? cityState : inCity;
     if (alreadyInCity) { showOverview(); return; }
     close();
-    try { await scene.enterArtCity(); inCity = true; render(); }
+    try { await beforeEnter?.(); await scene.enterArtCity(); inCity = true; render(); }
     catch (error) { message(error.message, true); }
   };
   $('art-city-return').onclick = async () => {

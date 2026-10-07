@@ -47,10 +47,12 @@ artists[2].works[0].imageUrl = 'data:text/html,unsafe';
 let house = starter(), selected = 'questions', readOnly = false, saving = false;
 let failSave = false, saveWait = null;
 const sceneCalls = [], saved = [], questions = [], notices = [];
+const entryOrder = [], stagedFloorplan = {name: 'My unsaved room layout'};
+let planVisible = true, preparationWait = null;
 const scene = {
-  enterArtCity() { sceneCalls.push(['enter']); },
+  enterArtCity() { assert.equal(planVisible, false); entryOrder.push('enter'); sceneCalls.push(['enter']); },
   leaveArtCity() { sceneCalls.push(['leave']); },
-  enterArtistHouse(id) { sceneCalls.push(['visit', id]); }
+  enterArtistHouse(id) { assert.equal(planVisible, false); entryOrder.push('visit:' + id); sceneCalls.push(['visit', id]); }
 };
 const ui = initArtCityUI({$, document, window, scene, artists,
   getHouse: () => house, getSelected: () => selected, isReadOnly: () => readOnly,
@@ -61,6 +63,11 @@ const ui = initArtCityUI({$, document, window, scene, artists,
     house = candidate;
   },
   async examineArtist(...args) { questions.push(args); },
+  async beforeEnter() {
+    entryOrder.push('prepare');
+    if (preparationWait) await preparationWait.promise;
+    planVisible = false;
+  },
   notify: (...args) => notices.push(args)
 });
 const submit = () => $('art-city-reflection-form').onsubmit({preventDefault() {}});
@@ -72,7 +79,13 @@ assert.equal($('art-city-list').children.length, 10);
 assert.equal($('art-city-return').hidden, true);
 assert.equal($('art-city-open').textContent, 'Artists’ City · 10 houses');
 assert.equal(imageLoads.length, 0);
-await $('art-city-open').onclick();
+preparationWait = deferred();
+const firstEntry = $('art-city-open').onclick();
+assert.equal(sceneCalls.length, 0, 'The scene waits until the floorplan UI is closed');
+assert.equal(planVisible, true);
+preparationWait.resolve(); await firstEntry; preparationWait = null;
+assert.deepEqual(entryOrder, ['prepare', 'enter']);
+assert.equal(stagedFloorplan.name, 'My unsaved room layout');
 assert.deepEqual(sceneCalls.at(-1), ['enter']);
 assert.equal($('art-city-dialog').open, false, 'The first visit enters the physical city without a modal');
 assert.equal($('art-city-open').textContent, 'City guide · 10 houses');
@@ -82,7 +95,10 @@ assert.equal(sceneCalls.filter(([action]) => action === 'enter').length, 1);
 assert.equal($('art-city-overview').hidden, false);
 assert.equal($('art-city-return').hidden, false);
 for (const artist of artists) {
+  planVisible = true;
   await $('art-city-visit-' + artist.id).onclick();
+  assert.deepEqual(entryOrder.slice(-2), ['prepare', 'visit:' + artist.id]);
+  assert.equal(stagedFloorplan.name, 'My unsaved room layout');
   assert.deepEqual(sceneCalls.at(-1), ['visit', artist.id]);
   assert.equal($('art-city-dialog').open, false);
 }
@@ -110,6 +126,12 @@ $('art-city-answer').value = 'My experiment with A.';
 $('art-city-previous').onclick();
 assert.equal($('art-city-answer').value, 'My observation of B.');
 $('art-city-work').value = 'work-a'; $('art-city-work').onchange();
+assert.equal($('art-city-answer').value, 'My experiment with A.');
+// Preparing a gallery visit closes stale planning UI without dropping artwork drafts.
+planVisible = true;
+await $('art-city-visit-artist-7').onclick();
+assert.equal(planVisible, false);
+ui.showArtist('artist-0', 'work-a');
 assert.equal($('art-city-answer').value, 'My experiment with A.');
 $('art-city-dialog').close(); ui.showArtist('artist-0', 'work-a');
 assert.equal($('art-city-answer').value, 'My experiment with A.');

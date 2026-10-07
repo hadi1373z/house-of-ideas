@@ -262,11 +262,17 @@ export function createScene(container,onPick){
   visitor.position.set(artCity.spawn.x+1.2,0,artCity.spawn.z+1.2);path=[];pause=4;summoning=false;residentTalking=false;cityPatrol=0;placeCityPlayer(artCity.spawn);
   document.body.classList.add('art-city-mode');document.getElementById('art-city-return').hidden=false;onPick({sceneMessage:'Artists’ City · walk into ten galleries. E inspects a work. Socrates explores with you.'});onPick({artAction:'city-state'});return true;
  }
+ function homeReturnPoint(position,resident=false){
+  const safe=resident?canNavigate:canStand;if(safe(position.x,position.z))return position.clone();
+  const id=roomAtPoint(house,position.x,position.z),rooms=[...house.rooms].sort((a,b)=>Number(b.id===id)-Number(a.id===id));
+  for(const room of rooms){const point=freePoint(room);if(safe(point.x,point.z))return new THREE.Vector3(point.x,position.y,point.z);}
+  const e=entranceFor(house);return new THREE.Vector3(e.x,position.y,e.z+1.4);
+ }
  function leaveArtCity(){
   if(!artCityMode)return;
   artCityMode=false;artCity.group.visible=false;built.group.visible=true;neighborhoodGroup.visible=true;designs.group.visible=true;visitor.visible=true;
-  const saved=artCitySaved;artCitySaved=null;neighborhoodMode=saved.neighborhood;visitor.position.copy(saved.resident);residentRoomId=saved.roomId;path=[];pause=3;residentTalking=false;summoning=false;
-  placeCityPlayer({x:saved.position.x,z:saved.position.z,yaw:saved.yaw});pitch=saved.pitch;faceDirection();document.body.classList.remove('art-city-mode');document.getElementById('art-city-return').hidden=true;onPick({artAction:'city-state'});
+  const saved=artCitySaved;artCitySaved=null;neighborhoodMode=saved.neighborhood;const residentPoint=homeReturnPoint(saved.resident,true);visitor.position.copy(residentPoint);residentRoomId=residentPoint.equals(saved.resident)?saved.roomId:roomAtPoint(house,residentPoint.x,residentPoint.z);path=[];pause=3;residentTalking=false;summoning=false;
+  const destination=homeReturnPoint(saved.position);placeCityPlayer({x:destination.x,z:destination.z,yaw:saved.yaw});pitch=saved.pitch;faceDirection();document.body.classList.remove('art-city-mode');document.getElementById('art-city-return').hidden=true;onPick({artAction:'city-state'});
  }
  function enterArtistHouse(id){enterArtCity();const point=artCity.entryFor(id);if(!point)throw Error('This artist’s house is not in the city.');placeCityPlayer(point);residentTalking=false;const target={x:point.x+1.2,z:point.z};if(!artCity.canStand(target.x,target.z))target.x=point.x;cityResidentTarget(target);onPick({sceneMessage:'Welcome to '+artCityArtists.find(a=>a.id===id).name+'’s house. Look at a frame and press E.'});return true;}
  const pickables=()=>tourState?[tourState.group]:artCityMode?[visitor,artCity.group]:[visitor,built?.group,neighborhoodGroup,designs.group].filter(Boolean);

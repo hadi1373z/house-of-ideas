@@ -1,0 +1,3 @@
+# The vendored gallery is verified byte for byte against its source edition.
+web/artists-websites.html -text
+web/art-city/artworks/*.webp -text

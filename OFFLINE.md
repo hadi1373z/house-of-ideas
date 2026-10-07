@@ -59,6 +59,16 @@ Select an imported object nearby or choose it in the workshop. Its saved note an
 
 Imported files in the browser preview last for that visit. Export a package before closing the preview if you want to keep them. The desktop edition keeps its GLBs under `data/designs`.
 
+## Visit the artists
+
+Choose **Artists’ City · 10 houses** to enter the street. **City guide · 10 houses** opens a list of the houses you can visit. Every gallery has six artworks from your existing artist websites. Approach a painting and press **E**; walk around the bench to reach the back wall. The artist’s worktable and doorway plaque open its guide too. Artist houses are fictional places for learning, with their own roofs and visual details.
+
+The ten websites, their 130 views and all sixty artwork images work from the local folder without Internet access. **Explore this artist’s local website** opens the bundled site in another tab. Artwork source, image license and original GitHub website links are explicit online actions. Source credits and reuse records remain attached to each work; the bundled source edition is recorded in `web/art-city/credits.json`.
+
+Save an artwork observation to today’s journal in your selected home room, or discuss the work with Socrates. The discussion button prepares a question; it does not send a message or start a paid request. Socrates walks through the galleries and can be called to meet you. His offline art exercises use the saved gallery notes, ask for evidence and an alternative interpretation, and suggest a five-minute activity for your selected home room. They do not install furnishings or approve changes. Return through the gate or **Return to my home** to resume at your previous location. Artist city visits do not replace or create personal home editions. Preserved homes remain available, and saving new observations requires a current home edition.
+
+City walking and artwork selection also use the existing WebXR controls when compatible hardware is present. Artwork title and learning question appear in the in-world reading panel; the painting remains on its gallery wall. Physical headset operation is still unverified.
+
 ## Use a VR headset
 
 Connect a headset supported by your browser's WebXR implementation and open the house on a secure origin. The same computer's `http://127.0.0.1` page can be trusted; remote pages need HTTPS. The loopback address refers to the device opening it, so it does not connect a standalone headset browser to a server on a different PC. This launcher does not expose the server to the network. See [secure contexts](https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts) and [WebXR permissions](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Permissions_and_security).

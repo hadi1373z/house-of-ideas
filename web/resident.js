@@ -1,5 +1,6 @@
 // Persistent, local Socratic dialogue. This module has no network/model calls.
 // Optional model replies are data validated into the same approval-only actions.
+import {ARTISTS} from './art-city-data.js';
 const clone = value => JSON.parse(JSON.stringify(value));
 const validId = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,60}$/.test(value);
 const LIMITS = {messages: 80, observations: 40, proposals: 48, pending: 12, features: 64};
@@ -456,16 +457,46 @@ export function proposeCritique(house, roomId, options = {}) {
   return result;
 }
 
+function artistGalleryContext(content) {
+  if (!/^We are visiting .+[’']s gallery in Artists[’'] City, looking at /u.test(content)) return null;
+  // Straight apostrophes are accepted for a hand-edited gallery prompt too.
+  const normalized = content.replaceAll("'", '’');
+  for (const artist of ARTISTS) for (const name of new Set([artist.name, artist.id])) {
+    const prefix = `We are visiting ${name}’s gallery in Artists’ City, looking at `.replaceAll("'", '’');
+    if (!normalized.startsWith(prefix)) continue;
+    const subject = normalized.slice(prefix.length);
+    for (const work of [...artist.works].sort((a, b) => b.title.length - a.title.length)) {
+      for (const sourceTitle of new Set([work.title, work.id])) {const title=sourceTitle.replaceAll("'", '’');if (subject === title || subject === `${title}.` || subject.startsWith(`${title}. `)) return {artist, work};}
+    }
+    return {artist, work: null};
+  }
+  return {artist: null, work: null};
+}
+
+function artistGalleryReply(context, facts) {
+  if (!context.work) return `I cannot match that artist and work to the saved city catalog. Which catalog artwork are we discussing?\n\nIn ${facts.room.name}, try a short evidence exercise: name one detail you can point to, separate it from your interpretation, and offer another explanation for the same detail. On our next visit, bring the work's title and check whether the detail supports either explanation.`;
+  const {artist, work} = context;
+  const note = work.description?.trim() ? `The saved gallery note for ${artist.name}’s “${work.title}” describes it this way: ${truncate(work.description, 400)}` : `The saved gallery catalog identifies this work as ${artist.name}’s “${work.title}”; it has no description to use.`;
+  const purpose = facts.purpose ? ` Relate the exercise to this room's declared purpose: ${truncate(facts.purpose, 180)}` : '';
+  const existing = facts.notes[0] ? ` Use your existing idea “${truncate(facts.notes[0].title, 100)}” as the home comparison.` : ' Use your existing room journal for the home comparison.';
+  return `${note}\n\nThat account comes from the gallery note. Which visible detail can you actually point to in the image? Separate that detail from what you think it means. What alternative interpretation could explain the same detail?\n\nTry it in ${facts.room.name}: spend five minutes writing three short lines: “I can point to…”, “I think this means…”, and “Another explanation is…”.${existing}${purpose}\n\nNext visit: return to “${work.title}”, find the detail again, and test both interpretations against it. In ${facts.room.name}, compare your earlier notes and say what you would keep, revise, or leave uncertain.`;
+}
+
 export function converse(house, roomId, content, options = {}) {
   const message = text(content, 1, 1200, 'Your message'), at = nowAt(options);
   let result = working(house);
   const facts = roomFacts(result, roomId);
   const prior = [...result.resident.messages].reverse().find(item => item.role === 'user' && item.roomId === roomId);
-  const concept = conceptFor(message, result);
+  const gallery = artistGalleryContext(message);
+  const concept = gallery ? 'evidence' : conceptFor(message, result);
   appendMessage(result, roomId, 'user', message, 'local', null, at);
   recordUserMemory(result, message);
   result.resident.memory.lastRoomId = roomId;
   result.resident.memory.lastConcept = concept;
+  if (gallery) {
+    appendMessage(result, roomId, 'resident', truncate(artistGalleryReply(gallery, facts), 2200), 'local', concept, at);
+    return result;
+  }
   const requestedFeature = /\b(add|place|install|put)\b/i.test(message) ? FEATURES.find(feature => message.toLowerCase().includes(feature.replaceAll('_', ' '))) : undefined;
   const wantsHouseChange = /\b(furnish|decorate|critique)\b|\b(improve|change|build|propose|suggest)\b.{0,80}\b(houses?|homes?|rooms?|space|furniture|feature)\b|\b(houses?|homes?|rooms?|physical)\s+(proposal|suggestion|improvement)\b|\bmake.{0,60}\b(houses?|homes?|rooms?).{0,40}\bbetter\b|\bideas?.{0,40}\b(for|to improve).{0,30}\b(houses?|homes?|rooms?)\b|^improve[.!? ]*$/i.test(message);
   if (wantsHouseChange || requestedFeature) {

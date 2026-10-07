@@ -7,7 +7,7 @@ import {createHash} from 'node:crypto';
 
 const execFileAsync=promisify(execFile),SCRIPT_ROOT=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const IGNORE=new Set(['.git','.openai','node_modules','data','dist','outputs','work']);
-const WEB_EXT=new Set(['.html','.js','.mjs','.css','.svg','.txt','.png','.jpg','.jpeg','.webp','.ico','.woff2']);
+const WEB_EXT=new Set(['.html','.js','.mjs','.css','.svg','.txt','.json','.png','.jpg','.jpeg','.webp','.ico','.woff2']);
 const DOC_EXT=new Set(['.md','.txt','.html','.css','.svg','.png','.jpg','.jpeg','.webp','.pdf']);
 const secretName=name=>name.startsWith('.')||/^(?:credentials|secrets|tokens|api[-_]?keys)(?:[._-]|$)/i.test(name)||/^\.env(?:[._-]|$)/i.test(name);
 function contained(parent,child){const relative=path.relative(parent,child);return relative!==''&&!relative.startsWith('..'+path.sep)&&relative!=='..'&&!path.isAbsolute(relative);}

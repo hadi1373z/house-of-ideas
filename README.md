@@ -42,6 +42,14 @@ Import a House of Ideas **house JSON** or **portable design package** to create 
 
 The workshop currently accepts up to 24 contributions per home, with static GLBs up to 12 MiB each and a portable package model budget of 32 MiB. Geometry and textures must be embedded; animations, external files and unsupported compressed extensions are rejected. This is a local learning and design exploration prototype, with no native BIM/CAD editing, multiplayer or asset marketplace. A GLB house tour shows the supplied geometry; it does not automatically turn its rooms, furniture and doors into the app's interactive household objects.
 
+## Visit Artists’ City
+
+**Artists’ City · 10 houses** takes you from your home into a walkable gallery street. You can also follow its sign in your neighbourhood. Each house has a roof, an open doorway, a bench, an artist worktable and six selectable artworks. The ten houses are Claude Monet, Wassily Kandinsky, Vincent van Gogh, Katsushika Hokusai, Auguste Rodin, Hilma af Klint, Piet Mondrian, Dorothea Lange, William Morris and Paul Klee.
+
+Open **City guide · 10 houses** to jump to a named gallery, or walk along the street. Walk around the furniture, approach a frame and press **E** or select it. Browse works, read their original descriptions and source credits, and keep an observation in your current home’s learning journal. Earlier home editions remain preserved. **Discuss this work with Socrates** prepares a question for your embodied companion; you choose when to send it using offline dialogue or your optional online connection. Socrates explores the galleries and can walk over to meet you. His offline art dialogue uses the gallery’s recorded description, asks you to separate a visible detail from an interpretation, and gives a five-minute activity plus a next-visit test. **Return to my home** restores the place you left.
+
+The city connects the existing [artist-galleries project](https://github.com/hadi1373z/artist-galleries). Its complete ten artist websites and all sixty images are bundled locally: **Explore this artist’s local website** works offline. Source and original website links open online only when selected. These are fictional gallery houses and independent artist studies, with per-image attribution and reuse records retained in the websites and `web/art-city/credits.json`.
+
 ## Explore with a VR headset
 
 **Enter VR** uses WebXR when your browser and connected headset support immersive VR. The page needs a secure origin: HTTPS or the same computer's trusted loopback page. Browser and hardware compatibility varies; see [WebXR permissions and security](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Permissions_and_security).

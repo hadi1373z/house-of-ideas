@@ -32,3 +32,22 @@ dialog.designer-panel{margin:auto}
 #chatgpt-settings{border-top:1px solid #d5dace;margin-top:22px;padding-top:12px}#chatgpt-authorize{display:block;padding:12px;background:#e6ecdf;border-radius:8px;margin:12px 0}#chatgpt-authorize[hidden]{display:none}
 .world-controls{flex-wrap:wrap;max-width:calc(100vw - 32px)}
 @media(max-width:650px){.designer-grid{grid-template-columns:1fr}.world-controls{gap:5px}.world-controls button{padding:8px;font-size:12px}#design-dialog{padding:16px}}
+/* The artists' guide is opened deliberately; the city remains the main view. */
+#art-city-dialog{width:min(920px,94vw);max-height:88vh;overflow:auto;padding:26px;background:#f6f0e4;color:#243d42;border:1px solid #c8b998;border-radius:14px}
+#art-city-dialog::backdrop{background:rgba(15,29,34,.48)}
+.art-city-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.art-city-card{padding:17px;border:1px solid #d5cbb7;background:#fffaf0;border-radius:8px}
+.art-city-card h3{margin:0 0 8px;font-family:Georgia,serif;font-size:22px}
+.art-city-card p{font-size:13px;line-height:1.5;margin:0 0 14px}
+.art-city-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0}
+.art-city-actions a{color:#29545b;text-underline-offset:3px;font-size:13px}
+.art-city-actions label{flex:1;min-width:180px;margin:0}
+#art-city-detail figure{margin:20px 0;text-align:center;background:#e4dccb;padding:20px;border-radius:6px}
+#art-city-image{display:block;max-width:100%;width:auto;max-height:420px;height:auto;object-fit:contain;margin:auto;box-shadow:0 3px 16px #63584444}
+#art-city-caption{margin-top:14px;font-family:Georgia,serif;font-size:18px}
+#art-city-approach,#art-city-question{line-height:1.7;padding:14px;background:#ede5d4;border-left:3px solid #987945}
+#art-city-rights,#art-city-reflection-room{font-size:12px;line-height:1.6;color:#5b665c}
+#art-city-status[data-error="true"]{color:#a13e32}
+body.art-city-mode .scene-caption h2,body.art-city-mode #view-hint{display:none}
+body.art-city-mode .view-tools{display:none}
+@media(max-width:600px){.art-city-list{grid-template-columns:1fr}#art-city-dialog{padding:18px}#art-city-detail figure{padding:10px}#art-city-image{max-height:300px}}

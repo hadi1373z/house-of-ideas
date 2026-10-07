@@ -17,10 +17,13 @@ const MIME = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; char
 const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'";
 class LocalError extends Error { constructor(message, status = 400) { super(message); this.status = status; } }
 
-function htmlPolicy(html) {
+function htmlPolicy(html, artistGallery = false) {
   const hashes = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
     .filter(match => !/\bsrc\s*=/i.test(match[1]) && match[2].length)
     .map(match => `'sha256-${createHash('sha256').update(match[2]).digest('base64')}'`);
+  // The frozen gallery contains trusted srcdoc pages. Their two original
+  // executable scripts inherit the parent policy; authorise their exact bytes.
+  if (artistGallery) hashes.push("'sha256-P2NgFkkvB2nT8+Gcww4KSudslToyPVnLCOMYsc3jqgM='", "'sha256-2of+j0tuBOoInGV4aZpG2vYvSxW56VLKIe+9ExZ1xjQ='");
   return hashes.length ? CSP.replace("script-src 'self'", `script-src 'self' ${hashes.join(' ')}`) : CSP;
 }
 
@@ -265,7 +268,7 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
       if (!MIME[extension]) throw new LocalError('Not found.', 404);
       let bytes = await fs.readFile(file);
       if (file === path.join(webDir, 'index.html')) bytes = Buffer.from(bytes.toString('utf8').replace(/<body(?:\s[^>]*)?>/i, '<body data-mode="local">'));
-      response.writeHead(200, {'Content-Type': MIME[extension], 'Content-Length': bytes.length, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': extension === '.html' ? htmlPolicy(bytes.toString('utf8')) : CSP});
+      response.writeHead(200, {'Content-Type': MIME[extension], 'Content-Length': bytes.length, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Security-Policy': extension === '.html' ? htmlPolicy(bytes.toString('utf8'),url.pathname === '/artists-websites.html') : CSP});
       response.end(request.method === 'HEAD' ? undefined : bytes);
     } catch (error) {
       if (response.headersSent) { response.destroy(); return; }

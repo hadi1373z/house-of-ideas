@@ -1,70 +1,242 @@
 {
   "schema_version": 1,
-  "goal": "An explorable house where Hadi learns, reflects with Socrates, and approves room learning improvements each day.",
-  "current_milestone": "M1",
+  "goal": "A durable offline House of Ideas shared with a persistent Socrates resident, contextual dialogue, learning and owner-approved physical improvements.",
+  "current_milestone": "offline-resident",
   "active_item": null,
-  "baseline_source_commit": "3921d233329d35992e85178f6567768004d1748e",
-  "last_verified_deployment": {
-    "version_number": 7,
-    "source_commit": "1ddca66a4138a0f8b6afd5477158812f5c039db1",
-    "note": "Published successfully, owner-private confirmed. Evening service verified with fresh Sites service access and a real D1 aggregate receipt. Reconcile the helper transport update and schedule activation from the setup run."
+  "canonical_source": {
+    "edition": "offline",
+    "repository": "hadi1373z/house-of-ideas",
+    "url": "https://github.com/hadi1373z/house-of-ideas",
+    "note": "GitHub is canonical for the local edition. Source publication is verified separately in the release task."
+  },
+  "local_edition": {
+    "runtime": "server/local.mjs",
+    "node_minimum": "22.14.0",
+    "dependencies_required_to_play": false,
+    "launcher": "Start House.vbs",
+    "stop_launcher": "Stop House.vbs",
+    "durable_file": "data/house.json",
+    "packaged_distribution": "Separate Windows portable deliverable; no GitHub Release asset has been published.",
+    "resident": "Persistent local dialogue rules, room observations, conversation and preferences; not an LLM.",
+    "physical_approval": "Only an explicit owner approval installs a bounded additive furnishing or learning book. Declines preserve the room.",
+    "daily_review": "The open local page checks at 21:00 Europe/Prague; missed recorded activity can be reviewed on return. Its book requires next-day confirmation. Nothing runs while stopped.",
+    "optional_gpt": {
+      "configured_default_model": "gpt-5.4-mini",
+      "configured_key": false,
+      "key_storage": "Local server memory only",
+      "network": "Explicit online send only; bounded current-room context and recent dialogue.",
+      "paid_live_request_verified": false,
+      "verification": "Mocked Responses transport and strict structured-result validation passed in isolated tests."
+    },
+    "handoff": "The exported conversation improvement brief is shared manually with GPT or Codex. It never executes or publishes code.",
+    "verification": {
+      "resident_engine": "passed",
+      "isolated_server_http_storage_restart_and_mocked_gpt": "passed",
+      "integrated_source_suite": "passed_all_seven_suites_and_both_builds",
+      "packaged_launch_and_saved_restart": "passed_actual_Windows_bundle_start_reuse_stop_VBS_restart_preserved_bytes",
+      "browser_rendering": "passed_enclosed_entry_WASD_resident_approach_dialogue_approval_and_reloaded_conversation"
+    }
+  },
+  "legacy_cloud_edition": {
+    "url": "https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site",
+    "version_number": 8,
+    "audience": "owner-private",
+    "status": "Older separate cloud edition. No deployment or new schedule is part of this offline update.",
+    "historical_record": {
+      "schema_version": 1,
+      "goal": "An explorable house where Hadi learns, reflects with Socrates, and approves room learning improvements each day.",
+      "current_milestone": "M1",
+      "active_item": null,
+      "baseline_source_commit": "3921d233329d35992e85178f6567768004d1748e",
+      "last_verified_deployment": {
+        "version_number": 7,
+        "source_commit": "1ddca66a4138a0f8b6afd5477158812f5c039db1",
+        "note": "Published successfully, owner-private confirmed. Evening service verified with fresh Sites service access and a real D1 aggregate receipt. Reconcile the helper transport update and schedule activation from the setup run."
+      },
+      "acceptance": [
+        {
+          "id": "launch_navigation",
+          "criterion": "Recognizable exterior and furnished room views render; geometry checks cover doorway navigation. Desktop and phone browser entry works.",
+          "status": "passed_geometry_and_browser_rendering_desktop_mobile"
+        },
+        {
+          "id": "ideas",
+          "criterion": "Create, reopen, edit and move an idea while preserving its contents.",
+          "status": "passed_node_integration_pending_browser_verification"
+        },
+        {
+          "id": "persistence",
+          "criterion": "Saved ideas reload correctly; a failed or conflicting save retains the draft and never overwrites newer data.",
+          "status": "passed_node_integration_pending_browser_verification"
+        },
+        {
+          "id": "layout",
+          "criterion": "Room and door edits preserve ideas and reject invalid layouts.",
+          "status": "passed_node_integration_pending_browser_verification"
+        },
+        {
+          "id": "learning_approval",
+          "criterion": "Actual room visits and reflections create a dated suggestion; only explicit next-day approval adds its learning book. Room building preserves newer journal records.",
+          "status": "passed_node_storage_and_isolated_browser_approve_decline"
+        },
+        {
+          "id": "evening_service",
+          "criterion": "Private service creates idempotent pending proposals and a real aggregate receipt without changing any house; persisted readback agrees.",
+          "status": "passed_isolated_storage_and_live_service_write_readback"
+        }
+      ],
+      "backlog": [
+        {
+          "id": "M1-verify",
+          "status": "ready",
+          "attempts": 0,
+          "task": "Check core flows with available supported browser QA and fix the first reproducible issue; record unavailable capabilities without pretending they passed."
+        },
+        {
+          "id": "M1-feedback",
+          "status": "ready",
+          "attempts": 0,
+          "task": "Inspect core idea and room actions for a concrete usability or data-loss defect; implement one evidence-backed repair if found."
+        },
+        {
+          "id": "M2-spec",
+          "status": "ready",
+          "attempts": 0,
+          "task": "Resolve the exact Vertigo movement, boundary, and counting rules from current user-provided research material; if unresolved, record the narrow missing rule and do not invent it."
+        },
+        {
+          "id": "M2-board",
+          "status": "waiting_for_M1_and_spec",
+          "attempts": 0,
+          "task": "Add one bounded Vertigo workbench with board editing and deterministic run/step/reset; verify small known cases and attach saved experiment state to an idea without losing old data."
+        }
+      ],
+      "history": [
+        {
+          "date": "2026-10-07",
+          "item": "setup",
+          "result": "Created a bounded improvement procedure and a standard npm test command reusing existing checks.",
+          "verification": "npm test passed: real Worker against isolated SQLite, user isolation, save/reload, stale revisions, UI actions, draft retention, scene geometry and joystick math. npm run build passed. Rendered browser/GPU and live user storage not exercised; no user data changed."
+        },
+        {
+          "date": "2026-10-07",
+          "item": "github-project-page",
+          "result": "Prepared a responsive project page, full source export, Pages publishing workflow, and existing-test CI workflow. Repository creation and GitHub sync remain pending; preserve existing hourly Sites work.",
+          "verification": "npm test, npm run build, script syntax and copied page consistency passed. No browser visual check performed."
+        },
+        {
+          "date": "2026-10-07",
+          "item": "github-publication",
+          "result": "Created the requested repository, published the prepared source and project page, and added a conservative synchronization runbook. Preserved the owner-private app and paused hourly task.",
+          "verification": "Existing Node domain/storage/geometry and UI-action checks passed locally and in GitHub CI on Node 22.14.0. Locked dependency installation and build passed. Pages deployment succeeded; live HTML matched the initial docs snapshot byte for byte. Rendered browser/GPU and live saved house data were not exercised. Reconcile the final record update from its source commit and deployment on the next run."
+        },
+        {
+          "date": "2026-10-07",
+          "item": "house-learning-socrates",
+          "result": "Built a recognizable house, room learning exercises, visible Socrates tour, saved reflections, a 21:00 Prague pending-proposal service and explicit next-entry approval. Pages now builds the interactive per-visit preview. Fixed layout journal overwrites and failed-reflection draft loss. Preserved the paused hourly source task.",
+          "verification": "All four Node suites and both builds passed. Browser exterior, walking entry, furnished cutaway, Socrates tour, reflection save, unchanged ideas after preparing a proposal and phone layout verified on isolated preview. Next-day decisions, failed saves, queue isolation and additive migrations verified with isolated SQLite. No personal saved-house fixtures inserted. Reconcile publication, service write/readback, schedule creation and GitHub outcomes from this setup run."
+        },
+        {
+          "date": "2026-10-07",
+          "item": "evening-service-host-verification",
+          "result": "Verified supported private service access and actual aggregate D1 write/readback. Adapted empty stream handling and the Node helper to send explicit zero bytes through the host. All guards and approval semantics preserved.",
+          "verification": "Four Node suites passed, including empty-stream acceptance and JSON/whitespace rejection. Site version 7 deployed successfully. Real service receipt from 15:03:59 UTC read back equal with all user counts zero. GitHub snapshot provenance, CI and interactive Pages deployment passed. Browser next-day approval adds one book; decline adds none in isolated fixtures. Native schedule activation and final helper snapshot are recorded by the setup run."
+        }
+      ],
+      "github": {
+        "requested_repository": "hadi1373z/house-of-ideas",
+        "repository_created": true,
+        "pages_published": true,
+        "sync_verified": true,
+        "project_page_source": "web/ via scripts/build-pages.mjs",
+        "status": "Prior snapshot provenance reconciled. Current update publishes an interactive preview; follow the setup run result for terminal CI and Pages outcomes. Hourly source task remains paused; scheduled GitHub write access remains unverified.",
+        "repository_url": "https://github.com/hadi1373z/house-of-ideas",
+        "pages_url": "https://hadi1373z.github.io/house-of-ideas/",
+        "verified_snapshot_source_commit": "1ddca66a4138a0f8b6afd5477158812f5c039db1",
+        "verified_snapshot_github_commit": "d6b8933ef15c18f0b895a4fe076cddf88a56441b",
+        "verification_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37639079079",
+        "pages_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37639078990",
+        "automatic_sync_enabled": false,
+        "improvement_task_status": "paused"
+      },
+      "daily_review": {
+        "title": "Socrates evening review",
+        "timezone": "Europe/Prague",
+        "time": "21:00",
+        "scope": "Rooms and learning activities only",
+        "writer": "POST /api/review/run",
+        "readback": "GET /api/review/status",
+        "runbook": "NIGHTLY.md",
+        "approval": "Only a signed-in user decision on or after the next Prague calendar date can add a proposed learning book.",
+        "setup_status": "Use the setup run result and fresh Sites automations for activation and live writer evidence.",
+        "live_writer_verification": {
+          "completed_at": "2026-10-07T15:03:59.513Z",
+          "review_date": "2026-10-07",
+          "enrolled": 0,
+          "created": 0,
+          "receipt_readback_equal": true,
+          "note": "A real successful-run receipt was written and read back; no live user fixture or house content was inserted."
+        }
+      }
+    }
+  },
+  "source_improvement": {
+    "mode": "Manual owner-requested work and exported briefs",
+    "hourly_task_status": "paused",
+    "automatic_github_writes": false,
+    "cloud_deployment_requested": false,
+    "schedule_changes_requested": false
   },
   "acceptance": [
     {
-      "id": "launch_navigation",
-      "criterion": "Recognizable exterior and furnished room views render; geometry checks cover doorway navigation. Desktop and phone browser entry works.",
-      "status": "passed_geometry_and_browser_rendering_desktop_mobile"
+      "id": "local_persistence",
+      "criterion": "Local house, journal, resident memory and decisions survive a safe restart; stale tabs cannot overwrite newer state.",
+      "status": "passed_local_and_browser"
     },
     {
-      "id": "ideas",
-      "criterion": "Create, reopen, edit and move an idea while preserving its contents.",
-      "status": "passed_node_integration_pending_browser_verification"
+      "id": "resident_dialogue",
+      "criterion": "Local conversations use actual room material, preserve recent history and distinguish guided rules from optional GPT.",
+      "status": "passed_local_and_browser"
     },
     {
-      "id": "persistence",
-      "criterion": "Saved ideas reload correctly; a failed or conflicting save retains the draft and never overwrites newer data.",
-      "status": "passed_node_integration_pending_browser_verification"
+      "id": "physical_approval",
+      "criterion": "Pending and declined critiques leave furniture/ideas intact; explicit approval installs only a safe additive feature or book.",
+      "status": "passed_local_and_browser"
     },
     {
-      "id": "layout",
-      "criterion": "Room and door edits preserve ideas and reject invalid layouts.",
-      "status": "passed_node_integration_pending_browser_verification"
-    },
-    {
-      "id": "learning_approval",
-      "criterion": "Actual room visits and reflections create a dated suggestion; only explicit next-day approval adds its learning book. Room building preserves newer journal records.",
-      "status": "passed_node_storage_and_isolated_browser_approve_decline"
-    },
-    {
-      "id": "evening_service",
-      "criterion": "Private service creates idempotent pending proposals and a real aggregate receipt without changing any house; persisted readback agrees.",
-      "status": "passed_isolated_storage_and_live_service_write_readback"
+      "id": "daily_gate",
+      "criterion": "Daily learning books still require explicit confirmation on or after the next Prague calendar date.",
+      "status": "passed_local_and_browser"
     }
   ],
   "backlog": [
     {
       "id": "M1-verify",
-      "status": "ready",
+      "status": "legacy_backlog_not_active",
       "attempts": 0,
-      "task": "Check core flows with available supported browser QA and fix the first reproducible issue; record unavailable capabilities without pretending they passed."
+      "task": "Check core flows with available supported browser QA and fix the first reproducible issue; record unavailable capabilities without pretending they passed.",
+      "previous_status": "ready"
     },
     {
       "id": "M1-feedback",
-      "status": "ready",
+      "status": "legacy_backlog_not_active",
       "attempts": 0,
-      "task": "Inspect core idea and room actions for a concrete usability or data-loss defect; implement one evidence-backed repair if found."
+      "task": "Inspect core idea and room actions for a concrete usability or data-loss defect; implement one evidence-backed repair if found.",
+      "previous_status": "ready"
     },
     {
       "id": "M2-spec",
-      "status": "ready",
+      "status": "legacy_backlog_not_active",
       "attempts": 0,
-      "task": "Resolve the exact Vertigo movement, boundary, and counting rules from current user-provided research material; if unresolved, record the narrow missing rule and do not invent it."
+      "task": "Resolve the exact Vertigo movement, boundary, and counting rules from current user-provided research material; if unresolved, record the narrow missing rule and do not invent it.",
+      "previous_status": "ready"
     },
     {
       "id": "M2-board",
-      "status": "waiting_for_M1_and_spec",
+      "status": "legacy_backlog_not_active",
       "attempts": 0,
-      "task": "Add one bounded Vertigo workbench with board editing and deterministic run/step/reset; verify small known cases and attach saved experiment state to an idea without losing old data."
+      "task": "Add one bounded Vertigo workbench with board editing and deterministic run/step/reset; verify small known cases and attach saved experiment state to an idea without losing old data.",
+      "previous_status": "waiting_for_M1_and_spec"
     }
   ],
   "history": [
@@ -97,41 +269,12 @@
       "item": "evening-service-host-verification",
       "result": "Verified supported private service access and actual aggregate D1 write/readback. Adapted empty stream handling and the Node helper to send explicit zero bytes through the host. All guards and approval semantics preserved.",
       "verification": "Four Node suites passed, including empty-stream acceptance and JSON/whitespace rejection. Site version 7 deployed successfully. Real service receipt from 15:03:59 UTC read back equal with all user counts zero. GitHub snapshot provenance, CI and interactive Pages deployment passed. Browser next-day approval adds one book; decline adds none in isolated fixtures. Native schedule activation and final helper snapshot are recorded by the setup run."
+    },
+    {
+      "date": "2026-10-07",
+      "item": "offline-resident-edition",
+      "result": "Prepared the dependency-free local runtime, persistent resident, approval-only furnishings, optional session-key GPT adapter, Windows launcher packaging and offline-first documentation. GitHub becomes canonical for this edition; older private Sites v8 remains separate.",
+      "verification": "All seven source suites and both builds passed. Real browser checks covered enclosed entrance, held WASD movement, embodied resident approach, offline conversation save, approved furnishing and reload, and return from floor plan. Actual Windows bundle Start/Stop VBS, server reuse and restart passed with saved bytes preserved. Four same-room furnishings fit separately even in 3 x 3 rooms with doors. No live API key or paid request; GPT transport is mocked. GitHub source/CI/Pages outcomes are recorded separately by the release task."
     }
-  ],
-  "github": {
-    "requested_repository": "hadi1373z/house-of-ideas",
-    "repository_created": true,
-    "pages_published": true,
-    "sync_verified": true,
-    "project_page_source": "web/ via scripts/build-pages.mjs",
-    "status": "Prior snapshot provenance reconciled. Current update publishes an interactive preview; follow the setup run result for terminal CI and Pages outcomes. Hourly source task remains paused; scheduled GitHub write access remains unverified.",
-    "repository_url": "https://github.com/hadi1373z/house-of-ideas",
-    "pages_url": "https://hadi1373z.github.io/house-of-ideas/",
-    "verified_snapshot_source_commit": "1ddca66a4138a0f8b6afd5477158812f5c039db1",
-    "verified_snapshot_github_commit": "d6b8933ef15c18f0b895a4fe076cddf88a56441b",
-    "verification_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37639079079",
-    "pages_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37639078990",
-    "automatic_sync_enabled": false,
-    "improvement_task_status": "paused"
-  },
-  "daily_review": {
-    "title": "Socrates evening review",
-    "timezone": "Europe/Prague",
-    "time": "21:00",
-    "scope": "Rooms and learning activities only",
-    "writer": "POST /api/review/run",
-    "readback": "GET /api/review/status",
-    "runbook": "NIGHTLY.md",
-    "approval": "Only a signed-in user decision on or after the next Prague calendar date can add a proposed learning book.",
-    "setup_status": "Use the setup run result and fresh Sites automations for activation and live writer evidence.",
-    "live_writer_verification": {
-      "completed_at": "2026-10-07T15:03:59.513Z",
-      "review_date": "2026-10-07",
-      "enrolled": 0,
-      "created": 0,
-      "receipt_readback_equal": true,
-      "note": "A real successful-run receipt was written and read back; no live user fixture or house content was inserted."
-    }
-  }
+  ]
 }

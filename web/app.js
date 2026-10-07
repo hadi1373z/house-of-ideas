@@ -1,17 +1,25 @@
 import {starter,clone,validateHouse,sharedEdge,reachableRooms,CUES,GRID} from './model.js';
 import {createScene} from './scene.js';
 import {initLearning} from './learning-ui.js';
+import {initResidentUI} from './resident-ui.js';
 const $=id=>document.getElementById(id),symbols={crystal:'◇',ring:'◎',sphere:'●',book:'▤'};
 let house=starter(),revision=0,selected=house.rooms[0].id,loaded=false,saving=false,plan=null,planSelected=null,drawing=false,drag=null,ideaEditing=null;
 const preview=document.body.dataset?.mode==='preview';
-let previewDocument=starter(),previewRevision=0,learningUI=null;
+const local=document.body.dataset?.mode==='local';
+let previewDocument=starter(),previewRevision=0,learningUI=null,residentUI=null,localSettings=null;
+document.body.classList.add('immersive');
 if(preview)$('preview-banner').hidden=false;
+async function getLocalConfig(){if(!local)return {gpt:{ready:false}};if(!localSettings){const response=await fetch('/api/config');const data=await response.json();if(!response.ok)throw Error(data.error||'Could not open local settings.');localSettings=data;}return localSettings;}
+async function localRequest(path,options={}){const config=await getLocalConfig();const response=await fetch(path,{...options,headers:{...options.headers,'X-Local-CSRF':config.csrfToken}});const data=await response.json();if(!response.ok)throw Error(data.error||'The local request failed.');return data;}
+async function gptConnect(apiKey,model){const data=await localRequest('/api/gpt/connect',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({apiKey,model})});localSettings={...localSettings,gpt:data.gpt};return data;}
+async function gptDisconnect(){const data=await localRequest('/api/gpt/disconnect',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});localSettings={...localSettings,gpt:data.gpt};return data;}
+async function gptChat(message,roomId){if(!loaded||saving)throw Error('Wait for the current save to finish.');saving=true;status('Talking with GPT…');render();try{const data=await localRequest('/api/gpt/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,roomId,revision})});house=validateHouse(data.house);revision=data.revision;scene?.load(house);status('Saved on this computer');return data;}catch(error){status(error.message,true);throw error;}finally{saving=false;render();}}
 async function houseRequest(options={}){
- if(!preview)return fetch('/api/house',options);
+ if(!preview){if(local){const config=await getLocalConfig();options={...options,headers:{...options.headers,'X-Local-CSRF':config.csrfToken}};}return fetch('/api/house',options);}
  if(options.method==='PUT'){const data=JSON.parse(options.body);if(data.revision!==previewRevision)return {ok:false,json:async()=>({error:'This preview changed. Reload before saving.'})};previewDocument=validateHouse(data.house);previewRevision++;}
  return {ok:true,json:async()=>({house:clone(previewDocument),revision:previewRevision})};
 }
-let scene=null;try{scene=createScene($('scene'),data=>{if(data.roomId)selectRoom(data.roomId);if(data.ideaId)openIdea(data.ideaId);});scene.load(house);}catch(e){console.error('3D view unavailable',e);$('scene-error').hidden=false;}
+let scene=null;try{scene=createScene($('scene'),data=>{if(data.resident){residentUI?.show();return;}if(data.roomId)selectRoom(data.roomId,false);if(data.ideaId)openIdea(data.ideaId);});scene.load(house);}catch(e){console.error('3D view unavailable',e);$('scene-error').hidden=false;}
 const inPlan=()=>!$('plan-workspace').hidden;
 function status(text,error=false){$('save-state').textContent=text;document.querySelector('.save-area').classList.toggle('error',error);}
 function roomButton(room,count){const button=document.createElement('button');button.className='room-button'+((inPlan()?planSelected:selected)===room.id?' active':'');const dot=document.createElement('i');dot.style.background=room.color;const name=document.createElement('span');name.textContent=room.name;const small=document.createElement('small');small.textContent=count;button.append(dot,name,small);button.onclick=()=>inPlan()?selectPlanRoom(room.id):selectRoom(room.id);return button;}
@@ -19,13 +27,13 @@ function render(){
  const current=inPlan()?plan:house;const list=$('room-list');list.replaceChildren(...current.rooms.map(r=>roomButton(r,house.ideas.filter(i=>i.roomId===r.id).length)));$('room-count').textContent=current.rooms.length;
  const room=house.rooms.find(r=>r.id===selected)||house.rooms[0];selected=room.id;$('room-name').textContent=room.name;$('room-purpose').textContent=room.purpose;$('scene-room').textContent=scene?.exterior?'HOUSE OF IDEAS':room.name;
  const ideas=house.ideas.filter(i=>i.roomId===selected);$('idea-list').replaceChildren(...ideas.map(i=>{const b=document.createElement('button');b.className='idea-card';const symbol=document.createElement('span');symbol.className='cue-symbol';symbol.textContent=symbols[i.cue];symbol.style.color=room.color;const title=document.createElement('span');title.textContent=i.title;const note=document.createElement('small');note.textContent=i.text?i.text.slice(0,85)+(i.text.length>85?'…':''):'A '+i.cue+' in this room';b.append(symbol,title,note);b.onclick=()=>openIdea(i.id);return b;}));$('empty-room').hidden=ideas.length>0;
- $('house-stats').textContent=house.rooms.length+' rooms · '+house.ideas.length+' ideas';$('add-idea').disabled=!loaded||saving||ideas.length>=12;$('rename-room').disabled=!loaded||saving;$('apply-plan').disabled=!loaded||saving;$('plan-tab').disabled=!loaded||saving;learningUI?.render();
+ $('house-stats').textContent=house.rooms.length+' rooms · '+house.ideas.length+' ideas';$('add-idea').disabled=!loaded||saving||ideas.length>=12;$('rename-room').disabled=!loaded||saving;$('apply-plan').disabled=!loaded||saving;$('plan-tab').disabled=!loaded||saving;learningUI?.render();residentUI?.render();
 }
-function selectRoom(id,move=true){if(!house.rooms.some(r=>r.id===id))return;if(scene?.exterior)setView(false);selected=id;if(move)scene?.select(id);render();learningUI?.noteVisit(id);}
-async function load(){status('Opening house…');$('retry').hidden=true;try{const response=await houseRequest();const data=await response.json();if(!response.ok)throw Error(data.error||'Could not open the house.');house=validateHouse(data.house);revision=data.revision;loaded=true;scene?.load(house);render();status(preview?'Preview · this visit only':'All changes saved');await learningUI?.onLoad();}catch(e){status(e.message,true);$('retry').hidden=false;loaded=false;scene?.load(house);render();}}
+function selectRoom(id,move=true){if(!house.rooms.some(r=>r.id===id))return;selected=id;if(move)scene?.select(id);render();learningUI?.noteVisit(id);}
+async function load(){status('Opening house…');$('retry').hidden=true;try{const response=await houseRequest();const data=await response.json();if(!response.ok)throw Error(data.error||'Could not open the house.');house=validateHouse(data.house);revision=data.revision;loaded=true;scene?.load(house);render();status(preview?'Preview · this visit only':local?'Saved on this computer':'All changes saved');await learningUI?.onLoad();await residentUI?.onLoad();}catch(e){status(e.message,true);$('retry').hidden=false;loaded=false;scene?.load(house);render();}}
 async function saveHouse(next){
  if(!loaded)throw Error('Open your saved house before editing.');if(saving)throw Error('Wait for the current save to finish.');next=validateHouse(learningUI?.includeVisits(next)||next);saving=true;status('Saving…');render();
- try{const response=await houseRequest({method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({house:next,revision})});const data=await response.json();if(!response.ok)throw Error(data.error||'Could not save. Please try again.');revision=data.revision;house=next;scene?.load(house);render();status(preview?'Preview · this visit only':'All changes saved');return house;}catch(e){status(e.message,true);throw e;}finally{saving=false;render();}
+ try{const response=await houseRequest({method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({house:next,revision})});const data=await response.json();if(!response.ok)throw Error(data.error||'Could not save. Please try again.');revision=data.revision;house=next;scene?.load(house);render();status(preview?'Preview · this visit only':local?'Saved on this computer':'All changes saved');return house;}catch(e){status(e.message,true);throw e;}finally{saving=false;render();}
 }
 function fillRooms(select,value){select.replaceChildren(...house.rooms.map(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name;return o;}));select.value=value;}
 function openIdea(id=null){
@@ -43,16 +51,17 @@ document.querySelectorAll('.close-dialog').forEach(b=>b.onclick=()=>b.closest('d
 $('rename-room').onclick=()=>{const room=house.rooms.find(r=>r.id===selected);$('theme-name').value=room.name;$('theme-purpose').value=room.purpose;$('theme-color').value=room.color;$('theme-message').textContent='';$('room-dialog').showModal();};
 $('theme-form').onsubmit=async e=>{e.preventDefault();try{const next=clone(house),r=next.rooms.find(r=>r.id===selected);r.name=$('theme-name').value;r.purpose=$('theme-purpose').value;r.color=$('theme-color').value;await saveHouse(next);$('room-dialog').close();}catch(err){$('theme-message').textContent=err.message;}};
 $('retry').onclick=load;
-function setView(walk){scene?.setExterior?.(false);scene?.setWalk(walk);$('exterior').classList.remove('selected');$('enter-house').hidden=true;$('house-welcome').hidden=true;$('walk').classList.toggle('selected',walk);$('overview').classList.toggle('selected',!walk);$('view-hint').textContent=walk?'Drag to look · Use the joystick to walk · Select an object':'Drag to orbit · Scroll to zoom · Select a room or object';$('joystick-label').textContent=walk?'Walk':'Move view';}
+function setView(walk){scene?.setWalk(walk);$('exterior').classList.remove('selected');$('enter-house').hidden=true;$('house-welcome').hidden=true;$('walk').classList.toggle('selected',walk);$('overview').classList.toggle('selected',!walk);$('view-hint').textContent=walk?'WASD to walk · Drag to look · E to talk to Socrates':'Drag to orbit · Scroll to zoom · Select a room or object';$('joystick-label').textContent=walk?'Walk · WASD':'Move view';}
 $('exterior').onclick=()=>{scene?.setExterior?.(true);$('exterior').classList.add('selected');$('overview').classList.remove('selected');$('walk').classList.remove('selected');$('enter-house').hidden=false;$('house-welcome').hidden=false;$('view-hint').textContent='Open the door, explore a room, and learn something worth keeping.';render();};
-$('enter-house').onclick=()=>{setView(true);selectRoom(selected);};
+$('enter-house').onclick=()=>{setView(true);scene?.enterHouse?.();};
 $('walk').onclick=()=>{setView(true);selectRoom(selected,false);};$('overview').onclick=()=>{setView(false);selectRoom(selected,false);};$('reset-view').onclick=()=>scene?.reset();
 function setPlan(show){
- if(show)learningUI?.hideCritic();if(show&&!plan){plan=clone(house);planSelected=selected;}if(show)plan.ideas=clone(house.ideas);document.body.classList.toggle('plan-mode',show);$('plan-workspace').hidden=!show;$('house-overlay').hidden=show;$('room-panel').hidden=show;$('plan-panel').hidden=!show;$('plan-tab').classList.toggle('selected',show);$('house-tab').classList.toggle('selected',!show);
+ if(show){learningUI?.hideCritic();residentUI?.close();}if(show&&!plan){plan=clone(house);planSelected=selected;}if(show)plan.ideas=clone(house.ideas);document.body.classList.toggle('plan-mode',show);$('resident-hud').hidden=show;$('plan-workspace').hidden=!show;$('house-overlay').hidden=show;$('room-panel').hidden=show;$('plan-panel').hidden=!show;$('plan-tab').classList.toggle('selected',show);$('house-tab').classList.toggle('selected',!show);
  if(show){renderPlan();fillPlanForm();}else{drawing=false;drag=null;$('draw-room').classList.remove('pending');$('draw-room').textContent='Draw a room';$('plan-grid').classList.remove('drawing');$('plan-instruction').textContent='Select a room, or draw a new one. One cell = one metre.';}render();
 }
 // A staged plan remains editable until Build or Discard. The house shows saved geometry.
-$('plan-tab').onclick=()=>setPlan(true);$('house-tab').onclick=()=>{learningUI?.hideCritic();if(plan){$('plan-message').textContent='Your layout draft is kept. Use Build this house to apply it.';}setPlan(false);};
+$('rooms-toggle').onclick=()=>{const show=document.body.classList.toggle('rooms-open');$('rooms-toggle').setAttribute('aria-expanded',String(show));};
+$('plan-tab').onclick=()=>setPlan(true);$('house-tab').onclick=()=>{learningUI?.hideCritic();residentUI?.close();if(plan){$('plan-message').textContent='Your layout draft is kept. Use Build this house to apply it.';}setPlan(false);setView(true);};
 function selectPlanRoom(id){planSelected=id;drawing=false;$('draw-room').classList.remove('pending');$('draw-room').textContent='Draw a room';$('plan-grid').classList.remove('drawing');fillPlanForm();renderPlan();render();}
 function fillPlanForm(){
  const r=plan.rooms.find(r=>r.id===planSelected)||plan.rooms[0];planSelected=r.id;for(const key of ['name','purpose','color','x','y','w','h'])$('plan-'+key).value=r[key];
@@ -79,12 +88,13 @@ $('plan-grid').onpointerdown=e=>{if(!drawing||e.button!==0)return;e.preventDefau
 $('plan-grid').onpointermove=e=>{if(!drag||e.pointerId!==drag.id)return;drag.end=point(e);renderPlan();};
 $('plan-grid').onpointerup=e=>{if(!drag||e.pointerId!==drag.id)return;drag.end=point(e);const rect=drawRect();drag=null;const r={id:crypto.randomUUID(),name:'New room',purpose:'',color:'#6d91aa',...rect};try{const next=clone(plan);next.rooms.push(r);plan=validateHouse(next);selectPlanRoom(r.id);$('plan-message').textContent='Room added. Give it a theme, then connect it with a door.';}catch(err){$('plan-message').textContent=err.message;renderPlan();}};
 $('plan-grid').onpointercancel=()=>{drag=null;renderPlan();};
-$('apply-plan').onclick=async()=>{try{const next=clone(plan);next.ideas=clone(house.ideas);if(house.learning)next.learning=clone(house.learning);await saveHouse(next);selected=planSelected;plan=null;setPlan(false);selectRoom(selected);$('plan-message').textContent='';}catch(e){$('plan-message').textContent=e.message;}};
+$('apply-plan').onclick=async()=>{try{const next=clone(plan);next.ideas=clone(house.ideas);if(house.learning)next.learning=clone(house.learning);if(house.resident)next.resident=clone(house.resident);await saveHouse(next);selected=planSelected;plan=null;setPlan(false);selectRoom(selected);$('plan-message').textContent='';}catch(e){$('plan-message').textContent=e.message;}};
 $('cancel-plan').onclick=()=>{plan=null;setPlan(false);};
 // Keep the room navigator in sync when walking through a door, without moving the camera.
 setInterval(()=>{if(scene?.walking&&!inPlan()){const id=scene.roomAt();if(id&&id!==selected)selectRoom(id,false);}},500);
 window.addEventListener('resize',()=>{if(inPlan())renderPlan();});
-learningUI=initLearning({$,document,window,getHouse:()=>house,getSelected:()=>selected,isLoaded:()=>loaded,isSaving:()=>saving,saveHouse,selectRoom,openHouse:()=>{setPlan(false);setView(false);},scene,preview});
+learningUI=initLearning({$,document,window,getHouse:()=>house,getSelected:()=>selected,isLoaded:()=>loaded,isSaving:()=>saving,saveHouse,selectRoom,openHouse:()=>{setPlan(false);document.body.classList.add('rooms-open');},scene,preview});
+residentUI=initResidentUI({$,document,window,scene,getHouse:()=>house,getSelected:()=>selected,isLoaded:()=>loaded,isSaving:()=>saving,saveHouse,openHouse:()=>{setPlan(false);setView(true);},local,preview,gptConfig:getLocalConfig,gptConnect,gptDisconnect,gptChat});
 render();load();
 const context=document.modelContext;if(context?.registerTool){const life=new AbortController();window.addEventListener('pagehide',()=>life.abort(),{once:true});const register=tool=>{try{Promise.resolve(context.registerTool(tool,{signal:life.signal})).catch(console.error);}catch(e){console.error(e);}};
  register({name:'read_house',title:'Read house',description:'Read the saved rooms, connections, and ideas currently shown in the house.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true,untrustedContentHint:true},execute(){if(!loaded)throw Error('House has not loaded.');return clone(house);}});

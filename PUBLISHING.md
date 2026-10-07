@@ -1,30 +1,25 @@
-# Publication and source synchronization
+# Source and publication
 
-Canonical saved app: [House of Ideas on Sites](https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site), owner-private.
+[hadi1373z/house-of-ideas](https://github.com/hadi1373z/house-of-ideas) is canonical for the offline edition. The Windows portable package is a local deliverable assembled from that source; it is not currently a GitHub Release binary.
 
-GitHub source: [hadi1373z/house-of-ideas](https://github.com/hadi1373z/house-of-ideas).
+The [public Pages site](https://hadi1373z.github.io/house-of-ideas/) is an in-memory demonstration. It cannot keep a durable local house or configure the local-server GPT connection. The older owner-private [Sites edition](https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site), version 8, remains a separate cloud edition. Updating offline source does not deploy or synchronize it.
 
-Public interactive preview: [House of Ideas on Pages](https://hadi1373z.github.io/house-of-ideas/).
+## Update the offline source
 
-## Publishing roles
+1. Read the owner's current request and GitHub branch state. Preserve unrelated changes and use normal commits; do not force-push or restore an older Sites snapshot over the local edition.
+2. Implement a bounded change with an observable pass condition. Preserve saved ideas, resident memory, journal records and both approval flows. Use temporary data folders for tests.
+3. Run the relevant checks and `npm test`; verify visible changes in a real browser when available. Record limitations separately. Optional GPT tests use mocked responses unless a live paid request is explicitly authorized and configured.
+4. Push only source and documentation. Exclude `data/`, credentials, API keys, dependencies, logs, generated packages, build output and personal conversation exports. Retained layout drafts must preserve the latest ideas, learning journal and resident state.
+5. Read back the pushed commit and check the applicable GitHub Actions. When Pages source changes, verify its deployment separately. Record the exact results in the task outcome and `improvement-state.json` as appropriate.
 
-Sites remains canonical and hosts the authenticated Worker with D1 house documents, learning history and pending review queues. GitHub stores clean source snapshots. GitHub Pages serves an in-memory browser preview; changes reset on reload and do not access private saved data.
+## Prepare a portable package
 
-`.github/workflows/pages.yml` runs `scripts/build-pages.mjs` and publishes `dist/pages`. It watches `web/**`, `docs/**`, the Pages build script, package files and its own workflow on `main`, and also supports manual dispatch. `web/` is the interactive preview source; The private app's `/project/` redirects to the saved house. Pages uses GitHub Actions as its publishing source. `.github/workflows/verify.yml` runs `npm ci`, `npm test` and the Worker build. Neither workflow generates improvements or uses a paid AI API.
+Use `scripts/package-offline.mjs` with the tested source and the intended Windows Node runtime. The package contains the local server, browser assets, runtime and Start/Stop launchers. Validate launch, graceful stop and a saved-house restart in a temporary package before delivery. Keep user data outside the source/package assembly input.
 
-The daily Socrates task prepares pending room and learning exercises through the private service described in `NIGHTLY.md`. It does not publish source or synchronize GitHub. The separate hourly task reads `IMPROVEMENT.md` and `improvement-state.json`; preserve its paused status unless the owner explicitly requests resumption. A local manual push does not verify GitHub writes in a scheduled executor.
+Delivering a ZIP in a chat does not publish a release. Create or upload a GitHub Release only when requested, and verify that action before describing a binary as downloadable there.
 
-## Mirror a successful source update
+## Legacy cloud work
 
-1. Reopen the same Site through the supported Sites workflow. Reconcile pending source or deployments, run the applicable checks and both builds, publish normally, and confirm terminal deployment success. Retain the exact verified canonical source commit.
-2. Verify authorized GitHub writes in the current execution environment using available connected operations or existing Git authentication. Keep credentials out of files, arguments, exports and commits. If access is unavailable, record the limitation and leave GitHub unchanged.
-3. Fetch GitHub `main` into a separate clean checkout and retain its head. An acknowledged mirror commit carries `Sites-Source-Commit: <full SHA>`. Compare its complete source tree with that known canonical commit. Stop for reconciliation if provenance is absent, the canonical commit is unavailable, the tree differs, or another writer has changed the branch. Successful fetching does not authorize overwriting edits.
-4. Export the exact tested and deployed canonical commit with `git archive`. Copy only tracked source into the separate checkout, preserving `.git`. Exclude credentials, Git configuration, `.env`, database contents, saved ideas, dependencies, build output, scratch files and deployment archives. Remove obsolete tracked source only inside the confirmed checkout after validating target paths; preserve unrelated untracked work.
-5. Create an ordinary commit on the retained GitHub head with the exact `Sites-Source-Commit` trailer; skip a no-op. Push normally without force. Stop and reconcile concurrent changes. API writes must use the retained parent commit and an expected-head lease for the branch update.
-6. Read back GitHub `main` and confirm the pushed commit and tracked tree. Check verification Actions and the Pages deployment when any watched preview source changed. Verify the actual published URL. Record source and mirror commits, checks actually completed and remaining limitations. Reconcile publication evidence on the next run instead of making an extra deployment just to write its own identifier into source.
+`worker/`, D1 migrations, `.openai/hosting.json` and `NIGHTLY.md` describe the older cloud implementation. `npm run build` still builds those assets; running it does not deploy a Site. Do not schedule or deploy cloud changes as part of an offline update.
 
-Never force-push, mirror refs, copy Sites Git history, or equate one successful upload with automatic synchronization. Reconcile independent repository edits into canonical source before the next mirror.
-
-## Pages recovery
-
-If setup is missing, confirm the repository's Pages publishing source is **GitHub Actions**, then dispatch **Publish project page** on `main`. Require terminal job success and verify the deployed interactive preview before reporting publication complete. Preserve the saved app's private audience.
+The earlier hourly source-improvement task remains paused. The resident and exported improvement brief do not resume it or establish automatic repository writes. Existing cloud review operations remain separate from local-page reviews.

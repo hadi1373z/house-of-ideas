@@ -83,8 +83,9 @@ export function initLearning({$,document,window,getHouse,getSelected,isLoaded,is
   if(JSON.stringify(next)!==JSON.stringify(getHouse()))await saveHouse(next);
   render();showPending();
  }
- $('socrates-tab').onclick=()=>{openHouse();critic=true;scene?.setExterior?.(false);scene?.setSocrates?.(true);noteVisit(getSelected());$('house-tab').classList.remove('selected');$('socrates-tab').classList.add('selected');render();};
- $('learn-room').onclick=()=>{$('socrates-tab').onclick();$('reflection-answer').focus?.();};
+ function showReflection(){openHouse();critic=true;scene?.setSocrates?.(true);noteVisit(getSelected());$('house-tab').classList.remove('selected');render();}
+ $('socrates-tab').onclick=showReflection;
+ $('learn-room').onclick=()=>{showReflection();$('reflection-answer').focus?.();};
  $('socrates-next').onclick=()=>{const rooms=getHouse().rooms;tourIndex=(rooms.findIndex(r=>r.id===getSelected())+1)%rooms.length;selectRoom(rooms[tourIndex].id);render();};
  $('reflection-answer').oninput=()=>reflectionDrafts.set(getSelected(),$('reflection-answer').value);
  $('reflection-form').onsubmit=async event=>{event.preventDefault();$('learning-message').textContent='';const roomId=getSelected(),answer=$('reflection-answer').value;reflectionDrafts.set(roomId,answer);try{let next=reflect(includeVisits(getHouse()),today(),roomId,answer);if(!preview)next.learning.enabled=true;await saveHouse(next);reflectionDrafts.delete(roomId);render();$('learning-message').textContent=preview?'Reflection added to this preview.':'Reflection saved. Revisit this idea tomorrow.';}catch(error){$('learning-message').textContent=error.message;}};

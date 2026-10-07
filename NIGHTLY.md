@@ -1,3 +1,7 @@
+# Legacy private cloud runbook
+
+This file applies only to the older owner-private Sites edition. The offline edition uses the open local page and next-entry catch-up described in OFFLINE.md. Do not deploy or create a cloud schedule while updating the offline edition. The historical instructions below are retained for an explicitly requested cloud maintenance task.
+
 # Socrates evening review
 
 The owner requested a daily review at **21:00 Europe/Prague**. Its scope is the house's rooms and learning: prepare a next-day exercise from recorded visits, ideas and reflections, then require the user's decision when they return. The review does not edit source, publish a Site, synchronize GitHub, or resume the paused hourly improvement task. Socrates uses deterministic local guidance and no paid API.

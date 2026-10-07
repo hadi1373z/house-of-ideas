@@ -2,3 +2,5 @@ node_modules/
 dist/
 .sites-runtime/
 *.tgz
+data/
+.local-test-*/

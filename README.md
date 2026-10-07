@@ -1,40 +1,47 @@
 # House of Ideas
 
-By Hadi Zamani. A house to explore, learn in, and improve through your own decisions.
+By Hadi Zamani. A house you can walk through, learn in, and develop with Socrates as a fellow resident.
 
-[Explore the public house](https://hadi1373z.github.io/house-of-ideas/) · [Open your saved house](https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site) · [Source](https://github.com/hadi1373z/house-of-ideas)
+The [GitHub repository](https://github.com/hadi1373z/house-of-ideas) is the source of truth for this offline edition. Use the supplied Windows portable package, or run the source locally. The [public browser preview](https://hadi1373z.github.io/house-of-ideas/) is a demonstration; the older [private cloud edition](https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site) remains separate.
 
-The house opens from outside with a roof, windows and an entrance. Enter it, view its rooms from above, or walk through connected doors. Mathematics, Art, Work, Questions, Learning and Connections each have a purpose, a short learning activity, and physical objects for your ideas. The floor plan remains editable.
+## Run offline
 
-## Learn with Socrates
+With a supplied portable ZIP, extract the entire folder and double-click **Start House.vbs**. It includes its own Node runtime and opens the house in your browser. **Stop House.vbs** closes the local server safely. Your saved house stays in `data/house.json`. See [OFFLINE.md](OFFLINE.md) for controls, backups and optional GPT.
 
-Open **Socrates** to explore the rooms with a critical companion. He points to the room's actual ideas, asks a question, and suggests an exercise. Save what you discovered as a reflection.
-
-The requested evening review is daily at **21:00 Europe/Prague**. It prepares one suggestion from that day's recorded room visits, ideas and reflections. On your next entry, on or after the following day, confirm or decline the suggestion. Confirmation places a learning book in the reviewed room; declining leaves the ideas unchanged. Preparing a proposal never applies it. Missing reviews can also be prepared from recorded activity when you return. See [NIGHTLY.md](NIGHTLY.md) for the service and schedule setup.
-
-Socrates uses deterministic guided questions and local rules. He is not an LLM, and his prompts are not historical quotations. The app calls no paid AI API. The daily workflow improves your rooms and learning activities; it does not edit application source.
-
-## Preview and saved house
-
-GitHub Pages runs the interactive browser preview, including the house, floor plan, ideas and Socrates. Its state stays in memory for the current visit and resets on reload. It has no background reviews or durable journal.
-
-The owner-private Sites app keeps authenticated house documents and learning history in D1. Entering the saved house enables its guided learning records. User IDs come from Sites authentication; saves use parameterized queries and optimistic revisions to reject stale tabs. Pending evening proposals live separately from house documents, so the service cannot overwrite edits or make decisions. Operational run receipts contain only dates, aggregate counts and completion times. No user data is stored in localStorage or committed to GitHub.
-
-## Build and checks
+To run a source checkout, install Node.js **22.14 or newer**, then:
 
 ```sh
-npm ci
+git clone https://github.com/hadi1373z/house-of-ideas.git
+cd house-of-ideas
+node server/local.mjs
+```
+
+Open the local address printed in the terminal, normally `http://127.0.0.1:4317`. Runtime startup needs no npm installation and no internet connection.
+
+## Share the house with Socrates
+
+Enter in first person, walk with WASD or the joystick, and drag to look around. Socrates walks between connected rooms, observes the house and stops to converse nearby. Press **E** near him, choose **Talk to Socrates**, or **Call Socrates** over. **Rooms & journal** opens ideas and reflections; **Floor plan** edits the architecture; **Dollhouse** shows the interior from above.
+
+Offline Socrates is a persistent character using local dialogue rules, room notes and recent conversation. He asks about definitions, assumptions, evidence, counterexamples, other perspectives and an examined life. He is not an LLM, and his dialogue is not historical quotation. Conversation, observations, preferences and decisions are saved with the house.
+
+Critiques can propose a question board, discussion circle, reflection lamp, experiment table or learning book. **Build this change** installs an approved addition. **Decline** leaves the room intact. Socrates cannot overwrite your notes or change the building structure through a critique.
+
+The daily journal is a separate loop: the open page checks for a review at **21:00 Europe/Prague**, and missed recorded days can be reviewed when you return. Its proposed learning book requires confirmation on or after the next calendar day. No local review runs while the application is stopped.
+
+## Optional online conversation
+
+**Connect GPT** configures your own OpenAI API key for the local server session. Then choose **GPT · online** to send a message. The configured default model is `gpt-5.4-mini`. This option requires internet access and paid API access; offline dialogue remains available. No paid connection is preconfigured, and no live paid request has been verified for this edition.
+
+**Export conversation for game improvements** downloads a text brief you can give to GPT or Codex. It includes recent dialogue, observations and decisions. Exporting does not execute code, update the repository or publish changes.
+
+## Development
+
+Install dependencies only for development checks and builds:
+
+```sh
+npm install
 npm test
-npm run build
 npm run build:pages
 ```
 
-`npm run build` creates the Cloudflare Worker and browser assets under `dist/server` and `dist/client`. `npm run build:pages` creates the static preview under `dist/pages`. Three.js and its license are vendored under `web/vendor`; external CDNs are unnecessary.
-
-The Node suites cover house validation, navigation geometry, UI actions, Socratic learning and decisions, isolated SQLite storage, daily queues, run receipts and revision conflicts. They do not establish GPU rendering or touch usability; record available browser checks separately.
-
-## Publication and recurring work
-
-Sites is canonical and hosts the saved app. GitHub contains verified source snapshots, and `.github/workflows/pages.yml` builds the public preview from `web/` through `scripts/build-pages.mjs`. The verification workflow runs tests and the Worker build. Follow [PUBLISHING.md](PUBLISHING.md) before synchronizing source.
-
-The separate **Improve House of Ideas** hourly source task was verified paused on 7 October 2026. Preserve that status unless the owner asks to resume it. This daily review request does not resume it or establish unattended GitHub writes. The evening schedule and live service verification must be confirmed through the native Sites tools; this README describes the implemented workflow rather than claiming activation.
+Three.js is vendored locally. The runtime server uses Node's built-in modules. Tests cover actual loopback HTTP, atomic file saves and restart, revision conflicts, conversation memory, bounded mocked GPT responses, approval gates, furnishings and navigation. Browser rendering and paid API verification must be recorded separately. Follow [PUBLISHING.md](PUBLISHING.md) for source or package updates.

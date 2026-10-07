@@ -5,6 +5,7 @@ import {DatabaseSync} from 'node:sqlite';
 import * as model from '../web/model.js';
 import worker from '../worker/index.js';
 import {initLearning} from '../web/learning-ui.js';
+import {initResidentUI} from '../web/resident-ui.js';
 // DOM-action integration harness. This checks state flows; it is not a browser/GPU test.
 class Element{
  constructor(tag='div'){this.tagName=tag;this.children=[];this.value='';this.hidden=false;this.checked=false;this.textContent='';this.style={};this.attributes={};this.classList={toggle:()=>{},add:()=>{},remove:()=>{}};}
@@ -15,7 +16,8 @@ const radios=model.CUES.map(value=>{const r=new Element('input');r.value=value;r
 const document={getElementById:id=>{assert.ok(elements.has(id),'Expected element '+id);return elements.get(id);},createElement:tag=>new Element(tag),createElementNS:(ns,tag)=>new Element(tag),body:new Element('body'),querySelectorAll:()=>[],querySelector:selector=>{if(selector==='.save-area')return saveArea;if(selector.includes(':checked'))return radios.find(r=>r.checked);const value=selector.match(/value="([^"]+)"/)?.[1];return radios.find(r=>r.value===value);}};
 const sql=new DatabaseSync(':memory:');for(const file of (await fs.readdir('drizzle')).filter(f=>f.endsWith('.sql')).sort())sql.exec(await fs.readFile('drizzle/'+file,'utf8'));
 const DB={prepare(query){return {bind(...p){return {async first(){return sql.prepare(query).get(...p)||null;},async all(){return {results:sql.prepare(query).all(...p)};},async run(){return sql.prepare(query).run(...p);}};}};}};let lastHouse=null,selected=null,failSave=false;
-const context=vm.createContext({...model,initLearning,document,console,crypto,window:{addEventListener(){}},setInterval(){},createScene(){return {load(h){lastHouse=model.clone(h);},select(id){selected=id;},setWalk(){},setExterior(){},setSocrates(){},reset(){}};},async fetch(path,opts={}){if(failSave&&opts.method==='PUT')return Response.json({error:'Test save unavailable'},{status:503});return worker.fetch(new Request('https://house.test'+path,{...opts,headers:{...opts.headers,'oai-authenticated-user-id':'ui-user'}}),{DB});}});
+const residentTimers=new Map();let residentVisit;
+const context=vm.createContext({...model,initLearning,initResidentUI:options=>initResidentUI({...options,schedule(fn,delay){residentTimers.set(delay,fn);return delay;},cancel(){}}),document,console,crypto,window:{addEventListener(){}},setInterval(){},createScene(){return {load(h){lastHouse=model.clone(h);},select(id){selected=id;},setWalk(){},setExterior(){},setSocrates(){},onResidentVisit(callback){residentVisit=callback;},reset(){}};},async fetch(path,opts={}){if(failSave&&opts.method==='PUT')return Response.json({error:'Test save unavailable'},{status:503});return worker.fetch(new Request('https://house.test'+path,{...opts,headers:{...opts.headers,'oai-authenticated-user-id':'ui-user'}}),{DB});}});
 const source=(await fs.readFile('web/app.js','utf8')).replace(/^import .*$/gm,'');vm.runInContext(source,context);const $=id=>elements.get(id);for(let n=0;n<8;n++)await new Promise(resolve=>setImmediate(resolve));assert.equal($('save-state').textContent,'All changes saved');assert.equal(lastHouse.rooms.length,6);
 const submit=()=>$('idea-form').onsubmit({preventDefault(){},submitter:new Element('button')});
 $('add-idea').onclick();$('idea-title').value='A proof worth remembering';$('idea-text').value='The central observation goes here.';await submit();assert.equal(lastHouse.ideas.length,1);assert.equal($('idea-dialog').open,false);
@@ -29,7 +31,7 @@ $('room-list').children[0].onclick();$('idea-list').children[0].onclick();$('ide
 // Do not remove a room holding ideas. A staged overlap also leaves the plan intact.
 $('plan-tab').onclick();$('room-list').children[1].onclick();$('remove-room').onclick();assert.match($('plan-message').textContent,/Move this room/);$('plan-x').value=5;$('room-form').onsubmit({preventDefault(){}});assert.match($('plan-message').textContent,/overlap/);$('cancel-plan').onclick();assert.equal(lastHouse.rooms.length,7);
 // New learning controls use the same real revision-aware storage.
-$('socrates-tab').onclick();assert.equal($('socrates-panel').hidden,false);assert.equal($('room-panel').hidden,true);
+$('learn-room').onclick();assert.equal($('socrates-panel').hidden,false);assert.equal($('room-panel').hidden,true);
 $('socrates-next').onclick();assert.equal($('socrates-room').textContent,lastHouse.rooms.find(r=>r.id===selected).name);
 $('reflection-answer').value='I should test the assumption with a small example.';
 failSave=true;
@@ -42,11 +44,32 @@ assert.equal(lastHouse.learning.enabled,true);assert.equal(lastHouse.learning.da
 const ideaCount=lastHouse.ideas.length;await $('review-now').onclick();assert.equal(lastHouse.ideas.length,ideaCount);assert.equal(lastHouse.learning.days.at(-1).review.status,'pending');assert.equal($('pending-review-button').hidden,true);
 $('house-tab').onclick();assert.equal($('socrates-panel').hidden,true);
 // A retained architecture draft must not replace newer reflections or review decisions.
-$('plan-tab').onclick();$('house-tab').onclick();$('socrates-tab').onclick();
+$('plan-tab').onclick();$('house-tab').onclick();$('learn-room').onclick();
 $('reflection-answer').value='This discovery was saved after the layout draft was started.';
 await $('reflection-form').onsubmit({preventDefault(){}});
 const latestLearning=model.clone(lastHouse.learning);
 $('plan-tab').onclick();await $('apply-plan').onclick();
 assert.deepEqual(lastHouse.learning,latestLearning);
 assert.equal(lastHouse.learning.days.at(-1).review.status,'pending');
-console.log('Verified UI actions: idea editing, failed-save draft retention, room building, journal preservation across staged layouts, Socratic reflections and next-day proposal gating. Rendered browser checks are separate.');
+// The embodied resident owns the Socrates tab and saves conversation through the real revision gate.
+$('socrates-tab').onclick();assert.equal($('resident-conversation').hidden,false);
+$('resident-input').value='What assumption should I test?';
+failSave=true;await $('resident-form').onsubmit({preventDefault(){}});
+assert.equal($('resident-input').value,'What assumption should I test?');
+assert.match($('resident-message').textContent,/unavailable/);
+failSave=false;await $('resident-form').onsubmit({preventDefault(){}});
+assert.equal($('resident-input').value,'');assert.equal(lastHouse.resident.messages.at(-2).role,'user');assert.equal(lastHouse.resident.messages.at(-1).role,'resident');
+await $('resident-critic').onclick();
+assert.equal(lastHouse.resident.roomFeatures.length,0);assert.equal(lastHouse.resident.proposals.at(-1).status,'pending');
+const actions=$('resident-proposals').children[0].children.at(-1);
+await actions.children[1].onclick();assert.equal(lastHouse.resident.roomFeatures.length,1);assert.equal(lastHouse.resident.proposals.at(-1).status,'applied');
+// A saved resident conversation after beginning a layout draft must survive building that draft.
+$('plan-tab').onclick();$('house-tab').onclick();$('socrates-tab').onclick();
+$('resident-input').value='How could I improve this room with an experiment table?';await $('resident-form').onsubmit({preventDefault(){}});
+const latestResident=model.clone(lastHouse.resident);
+$('plan-tab').onclick();await $('apply-plan').onclick();assert.deepEqual(lastHouse.resident,latestResident);
+// Real scene visit event payloads create observations and bounded autonomous critiques.
+residentVisit({roomId:'connections',position:{x:5,z:0}});await residentTimers.get(15000)();
+assert.ok(lastHouse.resident.observations.some(observation=>observation.roomId==='connections'));
+assert.ok(lastHouse.resident.proposals.some(proposal=>proposal.roomId==='connections'&&proposal.status==='pending'));
+console.log('Verified real revision-aware UI actions: edits, failed-save drafts, staged layouts preserving journals and resident conversations, reflections, daily gating and approval-only physical changes. Browser/GPU checks are separate.');

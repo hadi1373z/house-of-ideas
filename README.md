@@ -34,12 +34,14 @@ The owner requested bounded recurring improvements to this playground. Read `IMP
 
 ## GitHub repository and Pages
 
-The intended repository name is `hadi1373z/house-of-ideas`. Repository creation and GitHub Pages publication are pending authenticated setup; this name is a target, not evidence that the repository exists.
+[Source repository](https://github.com/hadi1373z/house-of-ideas) · [Project page](https://hadi1373z.github.io/house-of-ideas/). Both were created and verified on 7 October 2026 from the prepared project in the Develop Ideas Playground chats.
 
-The prepared `.github/workflows/pages.yml` publishes only `docs/` after changes on `main`, or on manual dispatch, once Pages is enabled with GitHub Actions as its publishing source. The separate verification workflow runs the existing tests and build. Neither workflow uses a paid AI API or generates improvements by itself.
+The `.github/workflows/pages.yml` publishes only `docs/` after changes on `main`, or on manual dispatch, once Pages is enabled with GitHub Actions as its publishing source. The separate verification workflow runs the existing tests and build. Neither workflow uses a paid AI API or generates improvements by itself.
 
 GitHub Pages serves the project introduction. The complete application requires its Cloudflare Worker, D1 database, authenticated visitor identity, and the Sites deployment flow. It cannot be deployed as a complete application to static Pages. No saved user ideas or database contents belong in the repository.
 
-The hourly Sites task is enabled for the hosted app. A GitHub write-and-readback path must be verified before calling repository synchronization active. Preserve that working task while access is being completed. Avoid competing development copies: treat Sites source as canonical until a deliberate, verified migration is requested.
+The existing **Improve House of Ideas** task is scheduled hourly in Europe/Prague and was verified **paused** on 7 October 2026. This publication preserves that status. Its prompt reads `IMPROVEMENT.md` and `improvement-state.json` on each run. Those records now include the GitHub synchronization procedure and publication evidence.
 
-To finish setup with authorized GitHub access: create or resolve the target repository; upload the current clean source; read back its commit; enable the Pages workflow; verify its successful deployment and actual URL; then extend the existing hourly task to synchronize successful source updates, recording conflicts without force-pushing.
+Manual source upload and readback are verified. Scheduled GitHub synchronization is not active: the task is paused, and GitHub write authorization must be verified in its execution environment before future runs can synchronize. Local Git authentication succeeded; the connected GitHub integration did not have repository access.
+
+Treat Sites source as canonical until a deliberate, verified migration is requested. Follow `PUBLISHING.md` to export only a tested, successfully deployed source snapshot, preserve GitHub history, reject unexpected remote changes, and read back the pushed commit. Neither CI workflow generates improvements or resumes the task.

@@ -37,3 +37,11 @@ M1: A dependable house. Verify launch, both navigation modes, create/edit/move/o
 M2: One interactive workbench. The proposed first experiment is a small Vertigo board: place/remove turn markers, start/pause/step/reset, inspect the route and turn count, and preserve an arrangement with a note. Confirm exact mathematical rules from a current user-provided specification before using research claims or implementing an uncertain variant. Keep this one experiment bounded; do not start graph and art studios simultaneously. A route-to-colour view is a later optional idea.
 
 Report meaningful completed improvements and specific blockers concisely, with what was verified and a Site link. Do not send an hourly reminder telling Hadi to do the work. No-change runs need no announcement. Use the run record for cumulative context.
+
+## GitHub synchronization
+
+The requested repository and Pages introduction now exist. Read `PUBLISHING.md` after each successful Sites publication. The existing task prompt already reads this procedure; no duplicate task is needed. Preserve its enabled or paused status unless Hadi requests a change.
+
+Only synchronize source that has passed its checks and has a successful Sites deployment. Export tracked files from that exact source commit; exclude credentials, working directories, build dependencies, and saved house data. Confirm authorized GitHub writes in the current executor rather than assuming credentials from another chat or computer are available. If access is missing, record the blocker once and leave GitHub unchanged; continue independent useful work within the existing scope.
+
+Before replacing a GitHub snapshot, confirm that its current head is the last acknowledged mirror of a known Sites source commit. Stop on human edits, missing provenance, or a concurrent change. Preserve GitHub history with ordinary commits and non-forced pushes, then read back the resulting commit and check the applicable Actions runs. Record verified outcomes and unresolved access separately; a successful one-time upload is not proof that hourly synchronization is running.

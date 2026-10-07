@@ -5,8 +5,9 @@
   "active_item": null,
   "baseline_source_commit": "3921d233329d35992e85178f6567768004d1748e",
   "last_verified_deployment": {
-    "version_number": 1,
-    "note": "Existing published version at setup; reconcile live metadata each run."
+    "version_number": 3,
+    "source_commit": "01ddd1b44e32e16e6ad5d8482caf36c4a0073973",
+    "note": "Verified canonical source at recovery. Reconcile the current publication outcome from Sites on the next run."
   },
   "acceptance": [
     {
@@ -68,14 +69,28 @@
       "item": "github-project-page",
       "result": "Prepared a responsive project page, full source export, Pages publishing workflow, and existing-test CI workflow. Repository creation and GitHub sync remain pending; preserve existing hourly Sites work.",
       "verification": "npm test, npm run build, script syntax and copied page consistency passed. No browser visual check performed."
+    },
+    {
+      "date": "2026-10-07",
+      "item": "github-publication",
+      "result": "Created the requested repository, published the prepared source and project page, and added a conservative synchronization runbook. Preserved the owner-private app and paused hourly task.",
+      "verification": "Existing Node domain/storage/geometry and UI-action checks passed locally and in GitHub CI on Node 22.14.0. Locked dependency installation and build passed. Pages deployment succeeded; live HTML matched the initial docs snapshot byte for byte. Rendered browser/GPU and live saved house data were not exercised. Reconcile the final record update from its source commit and deployment on the next run."
     }
   ],
   "github": {
     "requested_repository": "hadi1373z/house-of-ideas",
-    "repository_created": false,
-    "pages_published": false,
-    "sync_verified": false,
+    "repository_created": true,
+    "pages_published": true,
+    "sync_verified": true,
     "project_page_source": "docs/index.html",
-    "status": "Prepared; GitHub connection returned no accessible repositories and browser sign-in is pending."
+    "status": "Repository, snapshot readback, CI and live Pages content verified. Hourly task remains paused; scheduled executor GitHub write access is unverified. Follow PUBLISHING.md after successful Sites updates.",
+    "repository_url": "https://github.com/hadi1373z/house-of-ideas",
+    "pages_url": "https://hadi1373z.github.io/house-of-ideas/",
+    "verified_snapshot_source_commit": "01ddd1b44e32e16e6ad5d8482caf36c4a0073973",
+    "verified_snapshot_github_commit": "7d72187267a2e4d59347935878fed9d579a7d092",
+    "verification_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37632377911",
+    "pages_workflow_url": "https://github.com/hadi1373z/house-of-ideas/actions/runs/37632377701",
+    "automatic_sync_enabled": false,
+    "improvement_task_status": "paused"
   }
 }

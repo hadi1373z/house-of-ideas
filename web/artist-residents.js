@@ -19,7 +19,7 @@ export function buildArtistResidents(THREE,artists,city){
  if(!THREE?.Group||!Array.isArray(artists)||artists.length<1||artists.length>10||!city?.canStand||!Array.isArray(city.houses))throw Error('Artist residents need one to ten artists and a walkable city.');
  const ids=new Set();for(const artist of artists){if(!artist?.id||ids.has(artist.id)||!LOOKS[artist.id]||!city.houses.some(h=>h.artistId===artist.id))throw Error('Each resident needs a unique known artist and their own gallery house.');ids.add(artist.id);}
  const group=new THREE.Group();group.name='Artist residents';
- const geometries=new Map(),materials=new Map(),textures=new Set(),residents=new Map();let disposed=false;
+ const geometries=new Map(),materials=new Map(),textures=new Set(),residents=new Map();let disposed=false,lastPlayerHouse=null;
  const geometry=(key,create)=>{if(!geometries.has(key))geometries.set(key,create());return geometries.get(key);};
  const material=(color,basic=false)=>{const key=color+':'+basic;if(!materials.has(key))materials.set(key,basic?new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide}):new THREE.MeshStandardMaterial({color,roughness:.88}));return materials.get(key);};
  const box=(parent,w,h,d,x,y,z,color)=>{const mesh=new THREE.Mesh(geometry(`box:${w}:${h}:${d}`,()=>new THREE.BoxGeometry(w,h,d)),material(color));mesh.position.set(x,y,z);parent.add(mesh);return mesh;};
@@ -96,7 +96,9 @@ export function buildArtistResidents(THREE,artists,city){
   const house=city.houses.find(h=>h.artistId===artist.id),direction=house.row===0?1:-1;
   const nav={bounds:{minX:house.minX+.34,maxX:house.maxX-.34,minZ:house.minZ+.34,maxZ:house.maxZ-.34},colliders:city.colliders||[],collisionRadius:.22,
    canStand(x,z){return x>house.minX+.34&&x<house.maxX-.34&&z>house.minZ+.34&&z<house.maxZ-.34&&city.canStand(x,z);}};
-  const entrance={x:house.cx-.78*direction,z:house.cz+1.82*direction};
+  // Leave enough space to see the resident's head, name and held tool from the
+  // doorway. This spot stays on the clear side of the central gallery bench.
+  const entrance={x:house.cx-1.85*direction,z:house.cz+1.4*direction};
   if(!nav.canStand(entrance.x,entrance.z))throw Error('The resident entrance must be clear in '+artist.id+'’s house.');
   root.position.set(entrance.x,0,entrance.z);root.rotation.y=direction===1?0:Math.PI;
   return {artist,root,head,legs,arms,label,house,nav,entrance,anchors:[entrance,...house.approaches],next:index%Math.max(1,house.approaches.length)+1,path:[],pause:2.5+index*.24,walkingTime:0,activity:'observing',focus:null,greeting:false};
@@ -107,14 +109,17 @@ export function buildArtistResidents(THREE,artists,city){
   resident.focus=target.lookAt||null;resident.activity=resident.path.length?'walking':'observing';
  }
  function face(resident,target,dt){if(!target||![target.x,target.z].every(Number.isFinite))return;const angle=Math.atan2(target.x-resident.root.position.x,target.z-resident.root.position.z);let delta=angle-resident.root.rotation.y;delta=Math.atan2(Math.sin(delta),Math.cos(delta));resident.root.rotation.y+=delta*Math.min(1,dt*5);}
- function state(id){const resident=residents.get(id);return resident?{artistId:id,position:{x:resident.root.position.x,z:resident.root.position.z},activity:resident.activity}:null;}
+ function meet(resident){plan(resident,resident.entrance);resident.pause=6;resident.greeting=true;}
+ function state(id){const resident=residents.get(id);return resident?{artistId:id,position:{x:resident.root.position.x,z:resident.root.position.z},meetingPoint:{...resident.entrance},activity:resident.activity}:null;}
  return {group,targets:[group],state,states(){return [...residents.keys()].map(state);},greet(id){
-  if(disposed)return false;const resident=residents.get(id);if(!resident)return false;plan(resident,resident.entrance);resident.pause=6;resident.greeting=true;return true;
+  if(disposed)return false;const resident=residents.get(id);if(!resident)return false;meet(resident);return true;
  },update(dt,{player,talkingId=null}={}){
   if(disposed||!Number.isFinite(dt)||dt<=0)return;dt=Math.min(dt,.1);
+  const playerHouse=player&&[player.x,player.z].every(Number.isFinite)?city.insideAt(player.x,player.z):null;
+  if(playerHouse!==lastPlayerHouse){const host=residents.get(playerHouse);if(host&&talkingId!==playerHouse)meet(host);lastPlayerHouse=playerHouse;}
   for(const resident of residents.values()){
    const position=resident.root.position,nearPlayer=player&&[player.x,player.z].every(Number.isFinite)&&Math.hypot(player.x-position.x,player.z-position.z)<4;
-   if(resident.greeting&&(!player||city.insideAt(player.x,player.z)!==resident.artist.id))resident.greeting=false;
+   if(resident.greeting&&playerHouse!==resident.artist.id)resident.greeting=false;
    if(player&&[player.x,player.z].every(Number.isFinite))resident.label.rotation.y=Math.atan2(player.x-position.x,player.z-position.z)-resident.root.rotation.y;
    let moving=false;
    if(talkingId===resident.artist.id){resident.activity='talking';if(nearPlayer)face(resident,player,dt);}

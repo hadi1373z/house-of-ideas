@@ -69,6 +69,7 @@ for(const artist of ARTISTS){
  for(let i=0;i<20;i++)run('moveResident(.05)');assert.deepEqual(artistResidents.state(artist.id).position,held);assert.equal(artistResidents.state(artist.id).activity,'talking');
  run(`setArtistTalking('${artist.id}',false)`);for(let i=0;i<300;i++)run('moveResident(.05)');
  assert.equal(run(`artistResidentState('${artist.id}').near`),true,'A silent visitor still has their greeted host available after the initial pause.');
+ assert.equal(run('focusedTarget()')?.artistResidentId,artist.id,'The returning host remains in the camera direction once they arrive at the meeting point, even after an offscreen patrol.');
  assert.equal(visitor.visible,false);
 }
 
@@ -92,11 +93,11 @@ assert.ok(run('pickables()').includes(visitor));
 // Rotating only the desktop camera would be overwritten by tracked head pose.
 context.xr.presenting=true;
 for(const artist of ARTISTS){
- const point=artCity.entryFor(artist.id),position=artistResidents.state(artist.id).position;
+ const point=artCity.entryFor(artist.id),meeting=artistResidents.state(artist.id).meetingPoint;
  run(`enterArtistHouse('${artist.id}')`);
- const relocation=relocations.at(-1),expected=Math.atan2(point.x-position.x,point.z-position.z);
+ const relocation=relocations.at(-1),expected=Math.atan2(point.x-meeting.x,point.z-meeting.z);
  assert.equal(relocation.x,point.x);assert.equal(relocation.z,point.z);
- assert.ok(Math.abs(relocation.heading-expected)<1e-10,artist.name+' gallery entry directs the XR rig toward its actual resident.');
+ assert.ok(Math.abs(relocation.heading-expected)<1e-10,artist.name+' gallery entry directs the XR rig toward the stable meeting point rather than an old patrol position.');
  assert.equal(xrPose.x,point.x);assert.equal(xrPose.z,point.z);assert.equal(visitor.visible,false);
 }
 artistResidents.dispose();artCity.dispose();

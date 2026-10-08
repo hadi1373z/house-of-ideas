@@ -16,6 +16,9 @@ for(const artist of ARTISTS){
  assert.equal(city.insideAt(resident.position.x,resident.position.z),artist.id,'The artist starts in their own home.');
  assert.ok(city.canStand(resident.position.x,resident.position.z),'The artist starts clear of walls and furniture.');
  assert.ok(Math.hypot(resident.position.x-entrance.x,resident.position.z-entrance.z)<3.2,'Each host can be reached immediately upon entering their gallery.');
+ const greetingDistance=Math.hypot(resident.position.x-entrance.x,resident.position.z-entrance.z);assert.ok(greetingDistance>=1.5&&greetingDistance<=2,'Greeting distance leaves the resident’s head, name and held tool room in the first-person view.');
+ assert.deepEqual(resident.meetingPoint,resident.position,'The stable meeting point starts at the visible entrance position.');
+ resident.meetingPoint.x+=100;assert.deepEqual(hosts.state(artist.id).meetingPoint,hosts.state(artist.id).position,'Meeting-point snapshots cannot rewrite the actual resident entrance.');
  const origin=new THREE.Vector3(entrance.x,1.65,entrance.z),target=new THREE.Vector3(resident.position.x,1.53,resident.position.z),direction=target.clone().sub(origin).normalize();
  raycaster.set(origin,direction);const hit=raycaster.intersectObjects([city.group,hosts.group],true)[0];
  assert.equal(hit?.object.userData.artistResidentId,artist.id,artist.name+' is visible and selectable from the real doorway, rather than hidden behind the gallery bench or a wall.');
@@ -69,6 +72,32 @@ for(const artist of ARTISTS){
  assert.equal(hosts.state(artist.id).activity,'observing');
  let resumed=0,last=held;for(let tick=0;tick<500;tick++){hosts.update(.05,{player:city.spawn});const p=hosts.state(artist.id).position;resumed+=Math.hypot(p.x-last.x,p.z-last.z);last=p;}
  assert.ok(resumed>2,artist.name+' resumes their own art exploration after the guest leaves.');
+}
+// Walking through a doorway triggers the same welcome as choosing a gallery
+// from the guide. The host follows a real route and is never teleported.
+for(const artist of ARTISTS){
+ const entrance=hosts.state(artist.id).meetingPoint;
+ for(let tick=0;tick<1600&&Math.hypot(hosts.state(artist.id).position.x-entrance.x,hosts.state(artist.id).position.z-entrance.z)<1.3;tick++)hosts.update(.05,{player:city.spawn});
+ const before=hosts.state(artist.id).position;assert.ok(Math.hypot(before.x-entrance.x,before.z-entrance.z)>=1.3,'The walk-in test starts with the artist exploring their gallery.');
+ const player=city.entryFor(artist.id);hosts.update(.05,{player});const after=hosts.state(artist.id).position;
+ assert.ok(Math.hypot(after.x-before.x,after.z-before.z)<=.035001,'A natural guest arrival cannot teleport its resident.');
+ let arrived=false;for(let tick=0;tick<900;tick++){hosts.update(.05,{player});const position=hosts.state(artist.id).position;if(Math.hypot(position.x-entrance.x,position.z-entrance.z)<.08){arrived=true;break;}}
+ assert.ok(arrived,artist.name+' notices a natural walk-in visitor and returns to the meeting point.');
+ for(let tick=0;tick<20;tick++)hosts.update(.05,{player});const held=hosts.state(artist.id).position;
+ for(let tick=0;tick<700;tick++)hosts.update(.05,{player});assert.deepEqual(hosts.state(artist.id).position,held,'A walk-in guest is welcomed without reopening or repeatedly restarting the greeting path.');
+}
+// Every artwork is a possible place to find a resident when a new guest arrives.
+// Start the real visible avatar at each catalog approach and verify the return
+// with the guest occupying the actual doorway, including personal space.
+for(const house of city.houses)for(const anchor of house.approaches){
+ const root=hosts.group.children.find(resident=>resident.userData.artistResidentId===house.id),player=city.entryFor(house.id);
+ root.position.set(anchor.x,0,anchor.z);hosts.greet(house.id);const meeting=hosts.state(house.id).meetingPoint;
+ let arrived=false;for(let tick=0;tick<900;tick++){const before=hosts.state(house.id).position;hosts.update(.05,{player});const position=hosts.state(house.id).position;
+  assert.ok(Math.hypot(position.x-before.x,position.z-before.z)<=.035001,'Greeting an artist at an artwork uses a physical walking step.');
+  assert.ok(city.canStand(position.x,position.z));assert.equal(city.insideAt(position.x,position.z),house.id);
+  if(Math.hypot(position.x-meeting.x,position.z-meeting.z)<.08){arrived=true;break;}
+ }
+ assert.ok(arrived,house.name+' can greet from '+anchor.workId+' without becoming stuck beside its guest.');
 }
 const paused=hosts.states();hosts.update(NaN);hosts.update(-1);assert.deepEqual(hosts.states(),paused,'Invalid timing cannot move residents.');
 let geometryDisposals=0,materialDisposals=0;for(const g of geometry)g.addEventListener('dispose',()=>geometryDisposals++);for(const m of materials)m.addEventListener('dispose',()=>materialDisposals++);

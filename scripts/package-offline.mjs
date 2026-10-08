@@ -27,7 +27,7 @@ export async function packageOffline({sourceDir=SCRIPT_ROOT,outputDir,nodeExe=pr
  if(await exists(outputDir)){const entries=await fs.readdir(outputDir);if(entries.length&&!entries.includes('.house-offline-package.json'))throw Error('The output folder is not an existing House of Ideas package. Choose an empty folder.');}
  await fs.mkdir(outputDir,{recursive:true});const files=[];
  await copyTree(path.join(sourceDir,'web'),path.join(outputDir,'web'),WEB_EXT,files,'web');
- await fs.mkdir(path.join(outputDir,'server'),{recursive:true});for(const file of ['local.mjs','gpt.mjs','launch.mjs','design-assets.mjs','chatgpt-auth.mjs','chatgpt-plan.mjs']){await fs.copyFile(path.join(sourceDir,'server',file),path.join(outputDir,'server',file));files.push('server/'+file);}
+ await fs.mkdir(path.join(outputDir,'server'),{recursive:true});for(const file of ['local.mjs','gpt.mjs','launch.mjs','design-assets.mjs','chatgpt-auth.mjs','chatgpt-plan.mjs','artist-gpt.mjs']){await fs.copyFile(path.join(sourceDir,'server',file),path.join(outputDir,'server',file));files.push('server/'+file);}
  if(await exists(path.join(sourceDir,'docs')))await copyTree(path.join(sourceDir,'docs'),path.join(outputDir,'docs'),DOC_EXT,files,'docs');
  for(const file of ['README.md','OFFLINE.md','Start House.vbs','Stop House.vbs'])if(await exists(path.join(sourceDir,file))){await fs.copyFile(path.join(sourceDir,file),path.join(outputDir,file));files.push(file);}
  const htmlPath=path.join(outputDir,'web','index.html'),html=await fs.readFile(htmlPath,'utf8');await fs.writeFile(htmlPath,html.replace(/<body(?:\s[^>]*)?>/i,'<body data-mode="local">'));

@@ -127,6 +127,20 @@ export function createChatGPTPlanController({auth, fetchImpl = globalThis.fetch,
     reset() { ++generation; active?.abort(); catalog = []; selected = null; },
     async disconnect() { controller.reset(); return auth.disconnect(); },
     close() { controller.reset(); auth.close(); },
+    async artistChat(input, network, requestReply) {
+      if (!auth.status().connected) throw new GptError('Continue with ChatGPT in local settings, or choose Offline.', 409);
+      if (active) throw new GptError('Wait for the current ChatGPT reply to finish.', 409);
+      const operation=new AbortController(),version=generation,account=auth.status().account?.id;
+      active=operation;
+      try {
+        if(!selected||!catalog.length)await controller.models();
+        if(operation.signal.aborted||version!==generation||account!==auth.status().account?.id)throw new GptError('The ChatGPT account changed before this reply.',409);
+        if(!selected)throw new GptError('No eligible ChatGPT models are available for this account.',409);
+        const result=await requestReply({provider:'chatgpt',auth,model:selected,input,network,fetchImpl,timeoutMs,signal:operation.signal});
+        if(operation.signal.aborted||version!==generation||account!==auth.status().account?.id)throw new GptError('The ChatGPT account changed before this reply completed.',409);
+        return result;
+      }finally{if(active===operation)active=null;}
+    },
     async chat(input, house) {
       validateChatInput(input, house);
       if (!auth.status().connected) throw new GptError('Continue with ChatGPT in local settings, or use local Socrates.', 409);

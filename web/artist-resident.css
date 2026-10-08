@@ -6,6 +6,9 @@
 #artist-resident-dialog select,#artist-resident-dialog textarea{box-sizing:border-box;width:100%;font:inherit;border:1px solid #b8ae9b;border-radius:8px;padding:10px;background:#fffdf7;color:#29251f}
 #artist-resident-work-description{font-size:.85rem;line-height:1.5;white-space:pre-wrap;color:#655f53}
 #artist-resident-presence{font-size:.85rem;color:#655f53}
+.artist-resident-ai{border:1px solid #d7cdbb;border-radius:10px;padding:0 13px 11px;background:#eee7da}
+.artist-resident-ai p{font-size:.8rem;line-height:1.5;margin:8px 0}.artist-resident-ai-actions{display:flex;gap:8px;flex-wrap:wrap}
+#artist-resident-ai-privacy,#artist-resident-ai-procedure{color:#655f53}
 .artist-resident-questions{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}
 .artist-resident-questions button{flex:1 1 160px;text-align:left;font-size:.8rem;line-height:1.4;padding:9px}
 #artist-resident-dialog button{font:inherit;cursor:pointer;border:1px solid #b8ae9b;border-radius:8px;background:#fffdf7;color:#29251f;padding:9px 12px}
@@ -17,3 +20,8 @@
 #artist-resident-status{font-size:.86rem;line-height:1.45;white-space:pre-wrap}#artist-resident-status[data-error=true]{color:#8e312e}
 @media(max-width:600px){#artist-resident-dialog{padding:17px}.artist-resident-head{gap:10px}.artist-resident-head h2{font-size:1.15rem}.artist-resident-questions button{flex-basis:100%}#artist-resident-messages{max-height:25dvh}}
 @media(min-width:761px){body.journal-open .world-controls{top:94px;right:22px;max-width:calc(100vw - 394px)}body.journal-open .view-tools{top:196px}}
+.artist-homes-dialog{width:min(680px,calc(100vw - 32px));max-height:86dvh;overflow:auto;padding:24px;border:1px solid #bdb39d;border-radius:18px;background:#f6f0e4;color:#29251f}
+.artist-homes-dialog::backdrop{background:rgba(21,24,25,.54)}.artist-homes-dialog p{font-size:.91rem;line-height:1.6}.artist-homes-dialog label{display:block;margin:15px 0 6px;font-size:.86rem;font-weight:650}
+.artist-homes-dialog input,.artist-homes-dialog textarea,.artist-homes-dialog select{box-sizing:border-box;display:block;width:100%;margin-top:6px;padding:10px;font:inherit;background:#fffdf7;border:1px solid #b8ae9b;border-radius:8px;color:#29251f}
+.artist-homes-dialog button{font:inherit;cursor:pointer;padding:10px 13px;border:1px solid #b8ae9b;border-radius:8px;background:#fffdf7;color:#29251f}.artist-homes-dialog button:disabled{opacity:.55;cursor:default}.artist-homes-dialog .primary{background:#443c30;color:#fffdf7}
+#artist-house-status{white-space:pre-wrap;border-left:3px solid #74816a;padding-left:13px}#artist-house-editions{display:flex;gap:8px;flex-wrap:wrap}.artist-homes-dialog small{display:block;line-height:1.5;margin-top:18px;color:#655f53}

@@ -1,10 +1,11 @@
 import {ARTISTS} from './art-city-data.js';
-import {artistConversation, converseWithArtist, artistOpening, artistQuestions, ARTIST_RESIDENT_NOTE, ARTIST_DIALOGUE_LIMITS} from './artist-dialogue.js';
+import {artistConversation, converseWithArtist, appendArtistReply, artistOpening, artistQuestions, ARTIST_RESIDENT_NOTE, ARTIST_DIALOGUE_LIMITS} from './artist-dialogue.js';
 
 export function initArtistResidentUI({$, document, window, scene, getNetwork, saveNetwork,
-  isLoaded, isSaving, notify, reload, schedule = setInterval, cancel = clearInterval}) {
+  isLoaded, isSaving, notify, reload, getAIConfig, requestAIReply, openAISettings, stageSuggestion,
+  onReviewHouse, schedule = setInterval, cancel = clearInterval}) {
   const dialog = $('artist-resident-dialog'), drafts = new Map(), works = new Map();
-  let selected = null, busy = false, reloadNeeded = false, questionIndex = 0, transcriptKey = '', shownTurns = 24;
+  let selected = null, busy = false, reloadNeeded = false, questionIndex = 0, transcriptKey = '', shownTurns = 24, dialogueMode = 'offline';
   function node(tag, id, text) {
     const element = document.createElement(tag);
     if (id) element.id = id;
@@ -19,6 +20,23 @@ export function initArtistResidentUI({$, document, window, scene, getNetwork, sa
   const subtitle = node('p', 'artist-resident-subtitle', ARTIST_RESIDENT_NOTE);
   identity.append(title, subtitle); head.append(identity, button('artist-resident-close', 'Close', close));
   const presence = node('p', 'artist-resident-presence'); presence.setAttribute('aria-live', 'polite');
+  const ai = node('section'); ai.className = 'artist-resident-ai';
+  const mode = node('select', 'artist-resident-mode'), modeLabel = node('label');
+  modeLabel.htmlFor = mode.id; modeLabel.textContent = 'Conversation mode';
+  const modes = new Map();
+  for (const [value, text] of [['offline', 'Offline'], ['chatgpt', 'ChatGPT plan'], ['api', 'API key']]) {
+    const option = node('option', null, text); option.value = value; modes.set(value, option); mode.append(option);
+  }
+  const aiStatus = node('p', 'artist-resident-ai-status'), aiPrivacy = node('p', 'artist-resident-ai-privacy');
+  const procedure = node('p', 'artist-resident-ai-procedure', 'Sign in → choose a model → talk with the artist → review house ideas.');
+  const aiActions = node('div'); aiActions.className = 'artist-resident-ai-actions';
+  const connect = button('artist-resident-connect', 'Connect ChatGPT', () => {close(); openAISettings?.();});
+  const review = button('artist-resident-review', 'Review house ideas', () => {
+    if (!selected || busy || isSaving() || !isLoaded()) return;
+    const context = {artistId: selected, workId: currentWork()?.id}; close(); onReviewHouse?.(context);
+  });
+  connect.hidden = typeof openAISettings !== 'function'; review.hidden = typeof onReviewHouse !== 'function';
+  aiActions.append(connect, review); ai.append(modeLabel, mode, aiStatus, aiPrivacy, aiActions, procedure);
   const work = node('select', 'artist-resident-work'), workLabel = node('label');
   workLabel.htmlFor = work.id; workLabel.textContent = 'Artwork to discuss';
   const workDescription = node('p', 'artist-resident-work-description');
@@ -39,12 +57,33 @@ export function initArtistResidentUI({$, document, window, scene, getNetwork, sa
   const status = node('p', 'artist-resident-status'); status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
   const reloadButton = button('artist-resident-reload', 'Reload saved conversations', reloadSaved);
   reloadButton.hidden = true;
-  dialog.replaceChildren(head, presence, workLabel, work, workDescription, questions, earlier, messages, form, status, reloadButton);
+  dialog.replaceChildren(head, presence, ai, workLabel, work, workDescription, questions, earlier, messages, form, status, reloadButton);
   dialog.setAttribute('aria-labelledby', title.id);
 
   const artist = id => ARTISTS.find(item => item.id === id);
   const currentWork = () => artist(selected)?.works.find(item => item.id === work.value);
   const location = id => scene?.artistResidentState?.(id) || {available: false, near: false};
+  const aiConfig = () => getAIConfig?.() || {local: false, chatgptConnected: false, apiReady: false};
+  const providerName = provider => provider === 'chatgpt' ? 'ChatGPT' : provider === 'api' ? 'GPT API' : 'Offline art guide';
+  const providerModel = (provider, config = aiConfig()) => provider === 'chatgpt' ? config.chatgptModel || '' : provider === 'api' ? config.apiModel || '' : '';
+  function ready(provider, config = aiConfig()) {
+    return provider === 'offline' || Boolean(config.local && typeof requestAIReply === 'function' &&
+      (provider === 'chatgpt' ? config.chatgptConnected : provider === 'api' && config.apiReady));
+  }
+  function renderAI() {
+    const config = aiConfig(), model = providerModel(dialogueMode, config);
+    for (const [provider, option] of modes) option.disabled = !ready(provider, config);
+    mode.value = dialogueMode; mode.disabled = busy;
+    aiStatus.textContent = dialogueMode === 'offline' ? 'Offline art guide · no online request' :
+      ready(dialogueMode, config) ? providerName(dialogueMode) + ' connected' + (model ? ' · ' + model : '') :
+      providerName(dialogueMode) + ' is disconnected. Connect it or choose Offline.';
+    aiPrivacy.textContent = dialogueMode === 'offline' ? 'The offline guide uses this artist’s works and saved conversation.' :
+      'Sending a question shares your message, this artist’s persona, recent conversation, selected artwork and gallery editions with OpenAI. House ideas wait for your review.';
+    subtitle.textContent = dialogueMode === 'offline' ? ARTIST_RESIDENT_NOTE :
+      'Interpretive artist persona · replies generated through ' + providerName(dialogueMode) + '.';
+    connect.disabled = busy || isSaving(); review.disabled = busy || isSaving() || !isLoaded();
+    procedure.hidden = typeof openAISettings !== 'function';
+  }
   function remember() { if (selected) { drafts.set(selected, input.value); works.set(selected, work.value); } }
   function message(text, error = false) {
     status.textContent = text; status.dataset.error = String(error); if (error) notify?.(text, true);
@@ -87,7 +126,7 @@ export function initArtistResidentUI({$, document, window, scene, getNetwork, sa
     const intro = node('p', null, artistOpening(selected, currentWork()?.id)); intro.className = 'artist-resident-opening';
     const turns = conversation.slice(-shownTurns).map(turn => {
       const article = node('article'); article.className = 'artist-resident-turn ' + (turn.role === 'user' ? 'you' : 'artist');
-      const label = node('small', null, turn.role === 'user' ? 'YOU' : resident.name.toUpperCase() + ' · OFFLINE');
+      const label = node('small', null, turn.role === 'user' ? 'YOU' : resident.name.toUpperCase() + ' · ARTIST RESIDENT');
       const text = node('p', null, turn.text); article.append(label, text); return article;
     });
     messages.replaceChildren(...(conversation.length ? turns : [intro]));
@@ -100,7 +139,8 @@ export function initArtistResidentUI({$, document, window, scene, getNetwork, sa
     presence.textContent = state.near ? resident.name + ' is here with you in this house.' :
       'Wait here for ' + resident.name + ', or walk closer inside this house.';
     if (dialog.open) scene?.setArtistTalking?.(selected, Boolean(state.near));
-    send.disabled = busy || isSaving() || !isLoaded() || !state.near || !physicallyHere(selected);
+    renderAI();
+    send.disabled = busy || isSaving() || !isLoaded() || !state.near || !physicallyHere(selected) || !ready(dialogueMode);
     work.disabled = busy;
     reloadButton.hidden = !reloadNeeded || typeof reload !== 'function';
     reloadButton.disabled = busy || isSaving();
@@ -139,21 +179,36 @@ export function initArtistResidentUI({$, document, window, scene, getNetwork, sa
   form.onsubmit = async event => {
     event.preventDefault();
     if (!selected || busy || isSaving() || !isLoaded() || !location(selected).near || !physicallyHere(selected)) return;
-    const id = selected, draft = input.value, workId = currentWork()?.id;
+    const id = selected, draft = input.value, workId = currentWork()?.id, provider = dialogueMode, model = providerModel(provider);
     if (!draft.trim()) return;
-    remember(); busy = true; message('The artist is considering your observation…'); render();
+    if (!ready(provider)) {message('Connect ' + providerName(provider) + ' first, or choose Offline. Your question is kept.', true); return;}
+    remember(); busy = true; message(provider === 'offline' ? 'The artist is considering your observation…' :
+      artist(id).name + ' is thinking with ' + providerName(provider) + (model ? ' · ' + model : '') + '…'); render();
     try {
-      const next = converseWithArtist(getNetwork(), {artistId: id, text: draft, workId});
+      let next;
+      if (provider === 'offline') next = converseWithArtist(getNetwork(), {artistId: id, text: draft, workId});
+      else {
+        const result = await requestAIReply({artistId: id, message: draft, workId, provider});
+        if (!isLoaded() || isSaving()) throw Error('Wait for saved city state to finish loading before trying again.');
+        next = appendArtistReply(getNetwork(), {artistId: id, text: draft, workId, reply: result?.reply});
+        if (result?.suggestion) {
+          if (typeof stageSuggestion !== 'function') throw Error('The house idea could not be staged for review.');
+          next = stageSuggestion(next, result.suggestion, {artistId: id, message: draft, workId});
+        }
+      }
       await saveNetwork(next);
       if (drafts.get(id) === draft) drafts.set(id, '');
       if (selected === id && input.value === draft) input.value = '';
-      reloadNeeded = false; if (selected === id) message('Conversation saved in this artist’s house.');
+      reloadNeeded = false; if (selected === id) message('Conversation saved in this artist’s house.' +
+        (provider === 'offline' ? '' : ' ' + providerName(provider) + (model ? ' · ' + model : '') + '. Review house ideas when you are ready.'));
     } catch (error) {
       reloadNeeded = true;
-      message(error.message + ' Your question is kept. Reload saved conversations before retrying.', true);
+      message((selected === id ? '' : artist(id).name + ': ') + error.message +
+        ' Your question is kept. Reload saved conversations before retrying.', true);
     } finally { busy = false; render(); }
   };
   input.oninput = remember;
+  mode.onchange = () => {dialogueMode = ['offline', 'chatgpt', 'api'].includes(mode.value) ? mode.value : 'offline'; render();};
   work.onchange = () => { remember(); renderWork(); render(); };
   dialog.addEventListener('close', () => { remember(); if (selected) scene?.setArtistTalking?.(selected, false); });
   const presenceClock = schedule(() => { if (dialog.open) render(); }, 500); presenceClock?.unref?.();

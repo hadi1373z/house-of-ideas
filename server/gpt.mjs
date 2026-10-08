@@ -167,15 +167,25 @@ export function createGptController({env = process.env, fetchImpl = globalThis.f
       if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(name => !['apiKey', 'model'].includes(name))) throw new GptError('Use an API key and optional model name.', 400);
       const nextKey = cleanKey(input?.apiKey);
       const nextModel = cleanModel(input?.model || model);
-      key = nextKey; model = nextModel;
+      active?.abort(); key = nextKey; model = nextModel;
       return this.config();
     },
     disconnect() { key = null; active?.abort(); return this.config(); },
+    async artistChat(input, network, requestReply) {
+      if (!key) throw new GptError('Connect GPT in local settings, or choose Offline.', 409);
+      if (active) throw new GptError('Wait for the current GPT reply to finish.', 409);
+      const controller = new AbortController(); active = controller;
+      try {
+        const result=await requestReply({provider:'api',apiKey:key,model,input,network,fetchImpl,timeoutMs,signal:controller.signal});
+        if(controller.signal.aborted)throw new GptError('The GPT connection changed before this reply completed.',409);
+        return result;
+      } finally { if (active === controller) active = null; }
+    },
     async chat(input, house) {
       if (!key) throw new GptError('Connect GPT in local settings, or use local Socrates.', 409);
       if (active) throw new GptError('Wait for the current GPT reply to finish.', 409);
       const controller = new AbortController(); active = controller;
-      try { return await requestGptReply({apiKey: key, model, input, house, fetchImpl, timeoutMs, signal: controller.signal}); }
+      try { const result=await requestGptReply({apiKey: key, model, input, house, fetchImpl, timeoutMs, signal: controller.signal});if(controller.signal.aborted)throw new GptError('The GPT connection changed before this reply completed.',409);return result; }
       finally { if (active === controller) active = null; }
     },
   };

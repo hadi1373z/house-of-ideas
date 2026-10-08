@@ -9,7 +9,8 @@ export function findCityPath(city,from,to){
  const connectors=p=>{const center=cell(p),result=[];for(let dz=-2;dz<=2;dz++)for(let dx=-2;dx<=2;dx++){const c={x:center.x+dx,z:center.z+dz};if(c.x<0||c.x>=cols||c.z<0||c.z>=rows)continue;const world=point(c),distance=Math.hypot(world.x-p.x,world.z-p.z);if(distance<=step*2&&segmentClear(p,world,true))result.push({c,distance});}return result.sort((a,c)=>a.distance-c.distance).map(item=>item.c);};
  const starts=connectors(from),ends=new Set(connectors(to).map(key));if(!starts.length||!ends.size)return [];
  const queue=[...starts],parents=new Map(starts.map(c=>[key(c),null]));let found=null;
- for(let n=0;n<queue.length&&n<22000;n++){const c=queue[n];if(ends.has(key(c))){found=c;break;}for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const next={x:c.x+dx,z:c.z+dz},k=key(next);if(next.x<0||next.z<0||next.x>=cols||next.z>=rows||parents.has(k)||!segmentClear(point(c),point(next)))continue;parents.set(k,c);queue.push(next);}}
+ const searchLimit=Math.min(cols*rows,60000);
+ for(let n=0;n<queue.length&&n<searchLimit;n++){const c=queue[n];if(ends.has(key(c))){found=c;break;}for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){const next={x:c.x+dx,z:c.z+dz},k=key(next);if(next.x<0||next.z<0||next.x>=cols||next.z>=rows||parents.has(k)||!segmentClear(point(c),point(next)))continue;parents.set(k,c);queue.push(next);}}
  if(!found)return [];
  const result=[{x:to.x,z:to.z}];while(found){result.push(point(found));found=parents.get(key(found));}return result.reverse();
 }

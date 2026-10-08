@@ -1,6 +1,7 @@
 import {CUES, IDEA_ACTIONS, defaultIdeaAction} from './model.js';
 import {BOOKS} from './books.js';
 import {ARTISTS} from './art-city-data.js';
+import {validateArtistHomes} from './artist-home-data.js';
 
 export const CITY_LIMITS = Object.freeze({cargo:64, placements:128, placementsPerAnchor:8,
   notes:120, cargoText:6000, noteText:2000, visits:1000000, travelPackBytes:2*1024*1024,
@@ -44,7 +45,7 @@ export function initialCityNetwork(){
 
 export function validateCityNetwork(input){
   if(input===undefined)return initialCityNetwork();
-  keys(input,['version','cargo','placements','notes','visits','lastVisits','artistConversations'],'city network');
+  keys(input,['version','cargo','placements','notes','visits','lastVisits','artistConversations','artistHomes'],'city network');
   if(input.version!==1)throw Error('Choose a supported city network version.');
   const cargoIds=new Set(),placementIds=new Set(),noteIds=new Set();
   const cargo=array(input.cargo,CITY_LIMITS.cargo,'carried objects').map(item=>{
@@ -101,6 +102,10 @@ export function validateCityNetwork(input){
     if(new TextEncoder().encode(JSON.stringify(conversations)).byteLength>CITY_LIMITS.artistConversationBytes)throw Error('Artist conversations exceed the 512 KiB local history budget. Back them up before continuing; nothing was removed.');
     result.artistConversations=conversations;
   }
+  if(Object.hasOwn(input,'artistHomes')){
+    result.artistHomes=validateArtistHomes(input.artistHomes);
+    for(const p of result.artistHomes.proposals)if(p.sourceMessageId&&!result.artistConversations?.[p.artistId]?.some(m=>m.id===p.sourceMessageId&&m.role==='artist'))throw Error('Artist house ideas must refer to their own retained conversation.');
+  }
   return result;
 }
 
@@ -136,7 +141,7 @@ export function saveCityNote(network,cityId,value,options={}){
 }
 
 export function exportTravelPack(network){
-  const validated=validateCityNetwork(network),{artistConversations,...collection}=validated;
+  const validated=validateCityNetwork(network),{artistConversations,artistHomes,...collection}=validated;
   // A portable learning collection does not publish private conversations.
   const pack={format:'house-of-ideas-travel-pack',version:1,network:collection};
   if(new TextEncoder().encode(JSON.stringify(pack)).byteLength>CITY_LIMITS.travelPackBytes)throw Error('This collection exceeds the portable travel pack budget. Nothing was removed.');
@@ -152,7 +157,7 @@ export function importTravelPack(network,input){
   keys(input,['format','version','network'],'travel collection');
   if(input.format!=='house-of-ideas-travel-pack'||input.version!==1)throw Error('Choose a supported House of Ideas travel collection.');
   const incoming=validateCityNetwork(input.network),cargoMap=new Map();
-  if(Object.hasOwn(incoming,'artistConversations'))throw Error('A travel collection contains learning objects and city journals. Keep private artist conversations in the complete local backup; nothing was imported or removed.');
+  if(Object.hasOwn(incoming,'artistConversations')||Object.hasOwn(incoming,'artistHomes'))throw Error('A travel collection contains learning objects and city journals. Keep private artist conversations and house decisions in the complete local backup; nothing was imported or removed.');
   const originalCargo=new Map(result.cargo.map(item=>[item.id,item])),originalPlacements=new Map(result.placements.map(item=>[item.id,item])),originalNotes=new Map(result.notes.map(item=>[item.id,item]));
   const usedCargo=new Set(),usedPlacements=new Set(),usedNotes=new Set();
   const reservedCargo=new Set(incoming.cargo.map(item=>item.id)),reservedPlacements=new Set(incoming.placements.map(item=>item.id)),reservedNotes=new Set(incoming.notes.map(item=>item.id));

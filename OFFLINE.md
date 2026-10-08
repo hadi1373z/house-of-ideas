@@ -121,6 +121,18 @@ The key stays in the local server's memory and clears when it stops; it is not s
 
 Both online modes send your message, up to 12 recent conversation turns, and bounded context relevant to the current room: its purpose, idea notes/functions, designer object metadata, furnishings, preferences, saved aims/questions, reflections, observations and decisions. They send this to OpenAI using the same philosophical prompt. A model suggestion still goes through the same bounded feature validation and your recorded approval before any house change. OAuth, token renewal and model responses have been verified with mocked requests only.
 
+## Artist conversations and house editions
+
+In **Artists’ City**, enter one of the ten gallery houses and meet its artist resident. **Offline** uses a local art guide. For generated AI dialogue, choose **Connect ChatGPT**, complete OpenAI’s sign-in, choose a **Plan model**, return to the artist and select **ChatGPT plan**. You can also select **API key** after configuring that connection. Each artist has a distinct interpretive persona inspired by their catalogued works; replies are not historical statements or quotations.
+
+An explicit online message sends that artist’s persona, six work descriptions, up to 12 turns from their own conversation and bounded summaries of their own gallery editions. Other artists’ conversations and your personal Socrates house are excluded. Failed requests keep the exact draft and never silently substitute an offline answer. Opening the conversation, choosing a mode and signing in do not send conversation material to a model.
+
+Use **Review house ideas** after discussing the home. Generated design suggestions remain pending. The offline guide can also draft a study from the latest discussion. Edit the title, reason, exercise, learning object and atmosphere before choosing **Approve and build a new house**. Approval creates a separate gallery house in the new district; the original and earlier approved houses remain visitable. Select an edition to enter it and meet the artist there. Its learning object opens the saved exercise. Up to 20 new gallery houses and 40 retained decisions are supported; reaching a limit removes nothing.
+
+To make an approved design part of the public GitHub city, choose **Export approved GitHub update brief**. Attach that JSON to this Codex chat and ask to update `hadi1373z/house-of-ideas` from the approved designs. The brief contains approved design records and the artist’s approach, excluding the private transcript. Review the implementation and tests before publication. GitHub Pages runs a demonstration in memory; the offline app supplies your durable houses and local ChatGPT connection. Signing into ChatGPT does not automatically commit or publish.
+
+The model catalogue accepts bounded metadata responses up to 2 MiB while sign-in documents retain their smaller limit. If a catalogue cannot be loaded, the account remains connected; focus **Plan model** to retry. A server update clears memory-only tokens, so sign in again after restarting.
+
 ## Save, back up and update
 
 Your durable neighbourhood file is `data/house.json` beside the launcher or source checkout. Imported GLBs are in `data/designs`; optional ChatGPT registration metadata is in `data/chatgpt-registration.json`. Stop the server and copy the entire `data` folder to back up the neighbourhood and its models. Keep that folder when replacing application files; replacing it with another package's empty data would lose your saved house. The folder contains personal material and should stay out of GitHub.

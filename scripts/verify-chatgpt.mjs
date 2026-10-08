@@ -15,6 +15,8 @@ let clock = Date.UTC(2026, 9, 8, 12), authorization, issued = 'oaiapp_test_one',
 let expiresIn = 3600, granted = 'openid profile email offline_access resource.invoke chatgpt.tokens.use.direct';
 let mutateClaims = value => value, mutateToken = value => value, tokenWait = null, refreshWait = null, revokeFailed = false;
 let tokenRequests = 0, refreshRequests = 0, revokeRequests = 0, lastExchange;
+let catalogVariant = 'normal', catalogCancelled = 0, catalogBytesRead = 0, catalogStarted;
+let tokenExtraBytes = 0;
 const calls = [];
 const access = 'mock-access-secret', refresh = 'mock-refresh-secret';
 function jwt(claims) {
@@ -24,10 +26,23 @@ function jwt(claims) {
 }
 function tokenPayload() {
   return {token_type: 'Bearer', access_token: access, refresh_token: refresh, expires_in: expiresIn, scope: granted,
-    id_token: mutateToken(jwt(mutateClaims({iss: 'https://auth.openai.com', aud: issued, sub: subject, name: 'Test resident', nonce: authorization.searchParams.get('nonce'), iat: clock / 1000, exp: clock / 1000 + 3600})))};
+    id_token: mutateToken(jwt(mutateClaims({iss: 'https://auth.openai.com', aud: issued, sub: subject, name: 'Test resident', nonce: authorization.searchParams.get('nonce'), iat: clock / 1000, exp: clock / 1000 + 3600}))), ...(tokenExtraBytes ? {metadata: 'x'.repeat(tokenExtraBytes)} : {})};
 }
 function json(value, status = 200) { return new Response(JSON.stringify(value), {status, headers: {'Content-Type': 'application/json'}}); }
 function deferred() { let resolve; const promise = new Promise(done => { resolve = done; }); return {promise, resolve}; }
+const modelCatalog = {models: [{slug: 'plan-model-b', display_name: 'Available model B', visibility: 'list'}, {slug: 'hidden-model', display_name: 'Hidden', visibility: 'hide'}, {slug: 'plan-model-a', display_name: 'Available model A', visibility: 'list'}]};
+function catalogStream(text, {hold = false} = {}) {
+  const bytes = new TextEncoder().encode(text); let offset = 0;
+  return new Response(new ReadableStream({
+    pull(controller) {
+      catalogStarted?.resolve();
+      if (offset >= bytes.length) { if (!hold) controller.close(); return; }
+      const chunk = bytes.slice(offset, offset + 32768);
+      offset += chunk.length; catalogBytesRead += chunk.length; controller.enqueue(chunk);
+    },
+    cancel() { ++catalogCancelled; },
+  }), {headers: {'Content-Type': 'application/json'}});
+}
 async function fetchAuth(url, options = {}) {
   calls.push({url, method: options.method || 'GET'});
   assert.equal(options.redirect, 'error');
@@ -53,7 +68,12 @@ async function fetchAuth(url, options = {}) {
   }
   if (url === 'https://api.openai.com/v1/models') {
     assert.match(options.headers.Authorization, /^Bearer mock-(?:access|renewed)-secret$/);
-    return json({models: [{slug: 'plan-model-b', display_name: 'Available model B', visibility: 'list'}, {slug: 'hidden-model', display_name: 'Hidden', visibility: 'hide'}, {slug: 'plan-model-a', display_name: 'Available model A', visibility: 'list'}]});
+    if (catalogVariant === 'large') return json({...modelCatalog, metadata: 'x'.repeat(160000)});
+    if (catalogVariant === 'too-big') return catalogStream(JSON.stringify({...modelCatalog, metadata: 'x'.repeat(3 * 1024 * 1024)}));
+    if (catalogVariant === 'held') return catalogStream('{"models":[', {hold: true});
+    if (catalogVariant === 'too-many') return json({models: Array.from({length: 501}, (_, index) => ({slug: `model-${index}`, display_name: 'Model', visibility: 'list'}))});
+    if (catalogVariant === 'null') return json(null);
+    return json(modelCatalog);
   }
   if (url === 'https://auth.openai.com/.well-known/openid-configuration') return json({revocation_endpoint: 'https://auth.openai.com/api/accounts/oauth/revoke'});
   if (url === 'https://auth.openai.com/api/accounts/oauth/revoke') {
@@ -141,6 +161,50 @@ try {
   assert.equal(auth.status().accounts.length, 1);
   assert.equal(lastExchange.get('client_id'), issued);
   assert.deepEqual(await auth.models(), [{slug: 'plan-model-b', displayName: 'Available model B'}, {slug: 'plan-model-a', displayName: 'Available model A'}]);
+  // Real catalogs carry metadata that the house does not retain. A valid larger
+  // document must not fail the much smaller authentication-document bound.
+  catalogVariant = 'large';
+  assert.ok(Buffer.byteLength(JSON.stringify({...modelCatalog, metadata: 'x'.repeat(160000)})) > 128000);
+  assert.deepEqual(await auth.models(), [{slug: 'plan-model-b', displayName: 'Available model B'}, {slug: 'plan-model-a', displayName: 'Available model A'}]);
+  assert.equal(JSON.stringify(await auth.models()).includes('metadata'), false);
+  catalogVariant = 'too-big'; catalogBytesRead = 0;
+  await assert.rejects(auth.models(), /model catalog.*2 MiB/);
+  assert.equal(catalogCancelled, 1, 'An oversized catalog cancels the response body.');
+  assert.ok(catalogBytesRead <= 2 * 1024 * 1024 + 2 * 32768, 'The stream stops near the cap instead of buffering the whole response.');
+  assert.equal(auth.status().connected, true, 'A failed catalog request retains the signed-in account.');
+  for (const variant of ['too-many', 'null']) {
+    catalogVariant = variant;
+    await assert.rejects(auth.models(), /unreadable model catalog/);
+  }
+  // Abort after response headers have already arrived, while its body is held.
+  catalogVariant = 'held'; catalogStarted = deferred();
+  const heldCatalog = auth.models();
+  await catalogStarted.promise;
+  await new Promise(resolve => setTimeout(resolve, 0));
+  auth.cancel();
+  await assert.rejects(heldCatalog, error => error.status === 409 && /cancelled/.test(error.message));
+  assert.equal(catalogCancelled, 2, 'Cancellation reaches an in-progress catalog reader.');
+  assert.equal(auth.status().connected, true);
+  catalogVariant = 'normal'; catalogStarted = null;
+  // Authentication responses retain their original cap; this change is not an
+  // unrestricted relaxation for signed credentials or identity documents.
+  tokenExtraBytes = 160000;
+  await begin(auth); await assert.rejects(auth.complete(callback()), /sign-in response.*128 KB/);
+  assert.equal(auth.status().connected, true);
+  tokenExtraBytes = 0;
+
+  const timed = await createChatGPTAuth({dataDir: join(root, 'timeout-check'), fetchImpl: fetchAuth, now: () => clock, timeoutMs: 100});
+  await signIn(timed);
+  catalogVariant = 'held'; catalogStarted = deferred();
+  const timedCatalog = timed.models();
+  await catalogStarted.promise;
+  // Keep this mock process awake; AbortSignal.timeout deliberately uses an
+  // unreferenced timer and the mock stream has no real socket handle.
+  const alive = setTimeout(() => {}, 1000);
+  try { await assert.rejects(timedCatalog, error => error.status === 504 && /timed out/.test(error.message)); }
+  finally { clearTimeout(alive); timed.close(); }
+  assert.equal(catalogCancelled, 3, 'The connection timeout cancels a body that never finishes.');
+  catalogVariant = 'normal'; catalogStarted = null;
   const stored = await readFile(join(root, 'chatgpt-registration.json'), 'utf8');
   assert.equal(stored.includes(access), false);
   assert.equal(stored.includes(refresh), false);
@@ -269,5 +333,5 @@ try {
   assert.equal(plan.config().ready, false);
   assert.equal(plan.config().model, null);
   assert.equal(JSON.stringify(plan.config()).includes(access), false);
-  console.log('Verified optional ChatGPT OAuth, PKCE/JWKS identity, cancellation, RAM-only tokens, renewal, account models and bounded SSE resident replies (mock requests only).');
+  console.log('Verified optional ChatGPT OAuth, PKCE/JWKS identity, RAM-only tokens, renewal, bounded larger model catalogs, body cancellation/timeouts and bounded SSE resident replies (mock requests only).');
 } finally { await rm(root, {recursive: true, force: true}); }

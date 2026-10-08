@@ -11,6 +11,7 @@ import {createGptController, validateChatInput} from './gpt.mjs';
 import {createDesignAssetStore} from './design-assets.mjs';
 import {createChatGPTAuth} from './chatgpt-auth.mjs';
 import {createChatGPTPlanController} from './chatgpt-plan.mjs';
+import {requestArtistReply,validateArtistChatInput} from './artist-gpt.mjs';
 
 const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BODY_LIMIT = 1300000;
@@ -122,11 +123,21 @@ async function openStore(dataDir) {
   const mutate=(revision,change)=>{
     const operation=tail.then(async()=>{
       if(revision!==current.revision)throw new LocalError('This house changed in another tab. Your draft is still here. Reload before making further changes.',409);
-      let neighborhood;try{neighborhood=validateNeighborhood(change(clone(current.neighborhood)));}catch(error){throw new LocalError(error.message);}
+      let neighborhood;try{neighborhood=validateNeighborhood(change(clone(current.neighborhood)));}catch(error){if(error instanceof LocalError)throw error;throw new LocalError(error.message);}
       const next={version:2,revision:current.revision+1,neighborhood};await atomicJson(file,next);current=next;return read();
     });tail=operation.catch(()=>{});return operation;
   };
-  return {read,save(house,revision){return mutate(revision,n=>saveEdition(n,validateHouse(house)));},saveCities(cityNetwork,revision){return mutate(revision,n=>({...n,cityNetwork:validateCityNetwork(cityNetwork)}));},select(homeId,revision){return mutate(revision,n=>selectEdition(n,homeId));},create(revision){return mutate(revision,n=>createEdition(n));},import(neighborhood,revision){return mutate(revision,()=>neighborhood);},async idle(){await tail;}};
+  function retainArtistArchive(previous,next){
+    const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b),fail=()=>{throw new LocalError('Preserve the artist conversations, decisions and earlier gallery houses before saving. Nothing was removed.',409);};
+    for(const [artistId,messages] of Object.entries(previous?.artistConversations??{}))if(!same(messages,next.artistConversations?.[artistId]?.slice(0,messages.length)))fail();
+    const archive=previous?.artistHomes;if(!archive)return;
+    if(!same(archive.editions,next.artistHomes?.editions?.slice(0,archive.editions.length)))fail();
+    for(let i=0;i<archive.proposals.length;i++){
+      const before=archive.proposals[i],after=next.artistHomes?.proposals?.[i];
+      if(!after||['id','artistId','date','sourceMessageId'].some(k=>before[k]!==after[k])||(before.decision!=='pending'&&!same(before,after)))fail();
+    }
+  }
+  return {read,save(house,revision){return mutate(revision,n=>saveEdition(n,validateHouse(house)));},saveCities(cityNetwork,revision){return mutate(revision,n=>{const next=validateCityNetwork(cityNetwork);retainArtistArchive(n.cityNetwork,next);return {...n,cityNetwork:next};});},select(homeId,revision){return mutate(revision,n=>selectEdition(n,homeId));},create(revision){return mutate(revision,n=>createEdition(n));},import(neighborhood,revision){return mutate(revision,()=>neighborhood);},async idle(){await tail;}};
 }
 
 function cookieSession(request) {
@@ -250,6 +261,18 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
       if (url.pathname === '/api/gpt/disconnect' && request.method === 'POST') {
         requireMutation(request);
         return send(response, {gpt: gpt.disconnect()});
+      }
+      if (url.pathname==='/api/artists/chat'&&request.method==='POST') {
+        requireMutation(request);
+        const input=await readJson(request,12000);ensureRevision(input.revision);
+        if(Object.keys(input).some(k=>!['artistId','message','workId','provider','revision'].includes(k))||!['api','chatgpt'].includes(input.provider))throw new LocalError('Choose an artist, message and explicit online provider.');
+        const before=store.read();
+        if(input.revision!==before.revision)throw new LocalError('Your house changed. Reload before asking the artist.',409);
+        const network=before.neighborhood.cityNetwork??initialCityNetwork();
+        const checked=validateArtistChatInput({artistId:input.artistId,message:input.message,...(input.workId===undefined?{}:{workId:input.workId})},network);
+        const result=await (input.provider==='chatgpt'?chatgptPlan:gpt).artistChat({artistId:checked.artistId,message:checked.message,workId:checked.workId},network,requestArtistReply);
+        if(store.read().revision!==before.revision)throw new LocalError('Your house changed while the artist was answering. Your draft is preserved; reload before trying again.',409);
+        return send(response,{...result,revision:before.revision});
       }
       if (['/api/gpt/chat','/api/chatgpt/chat'].includes(url.pathname) && request.method === 'POST') {
         requireMutation(request);

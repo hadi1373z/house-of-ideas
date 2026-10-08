@@ -321,9 +321,15 @@
   },
   "artists_city": {
     "residents": "Ten distinct embodied artist residents, each living and exploring inside their own gallery house. Socrates remains in the personal neighbourhood and Makers City.",
-    "conversation": "Original interpretive offline voices grounded in sixty attributed works, with art exercises and room design studies; no historical quote claims or automatic building changes.",
-    "persistence": "Optional cityNetwork.artistConversations preserves independent artist histories without changing complete home documents or Socrates memory. Shared atomic revision checks protect all writes.",
-    "privacy": "Private artist histories are excluded from portable learning collections; complete data-folder backup retains them. No provider connection or paid request is made by artist conversation.",
-    "verification": "Thirty-six source suites, real gallery resident selection and wall LOS, artist-specific temp HTTP restart/CAS, unchanged personal and original gallery geometry, separate drafts and actual browser Monet/Morris conversations. Source publication and portable package outcomes are recorded separately in local release notes."
+    "conversation": "Ten distinct interpretive artist personas; explicit optional ChatGPT plan or API conversations grounded in their own works, recent private dialogue and gallery history. Offline art guides remain available.",
+    "persistence": "Optional artistConversations and artistHomes preserve separate chats and decisions, CAS across the whole store, immutable retained conversation prefixes and decided gallery history. Every complete personal home and Socrates memory is preserved.",
+    "privacy": "Online requests send only selected-artist context after explicit send. Learning collection exports exclude chats and gallery decisions. Approved GitHub briefs name included design fields and exclude transcripts; data-folder backup retains all private material.",
+    "verification": "Forty source suites and both builds passed. Mocked OAuth, catalogue, artist API/SSE, provider cancellation and actual temp HTTP restart/CAS; 20 new lots, 120 copied works, 20 exercises and 181 routes; browser approval and embodied resident arrival in the new Monet gallery. Live owner sign-in/inference remains unverified.",
+    "editions": "Owner edits and approves bounded design proposals; each approval makes a separate roofed gallery lot with an atmosphere and functional learning object. Originals and up to 20 approved editions remain walkable and inhabited."
+  },
+  "chatgpt_connection_fix": {
+    "catalog_limit_bytes": 2097152,
+    "authentication_limit_bytes": 128000,
+    "verification": "Large valid 160KB catalogue accepted; over-budget bodies, hidden records, malformed catalogues, body cancellation/timeouts and intact session checked using mocks. Public JWKS/discovery are small; protected catalogue is the likely cause of the reported error."
   }
 }

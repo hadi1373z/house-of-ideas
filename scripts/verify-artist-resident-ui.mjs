@@ -106,7 +106,7 @@ assert.equal(artistConversation(network, 'monet')[0].text, '<img src=x onerror=a
 assert.deepEqual(network.notes, oldNotes);
 assert.equal($('artist-resident-messages').children[0].children[1].textContent,
   '<img src=x onerror=alert(1)> I notice the changing light.');
-assert.match($('artist-resident-messages').children[1].children[0].textContent, /CLAUDE MONET · OFFLINE/);
+assert.match($('artist-resident-messages').children[1].children[0].textContent, /CLAUDE MONET · ARTIST RESIDENT/);
 assert.match($('artist-resident-status').textContent, /Conversation saved/);
 
 // Closing, native Escape, switching artists and world travel retain distinct drafts.
@@ -206,4 +206,102 @@ enter('klee'); restoredUI.show('klee'); enter('monet'); restoredUI.show('monet')
 assert.equal($('artist-resident-messages').children.length, 24, 'Switching residents restores the compact initial view');
 assert.equal($('artist-resident-earlier').hidden, false);
 assert.ok(notices.some(([text]) => text.includes('Revision conflict')));
-console.log('Artist resident UI checks passed: own-house presence, ten identities, artwork context, independent saved history, retained drafts, concurrent saves and explicit reload.');
+
+// Online personas require an explicit connected provider and an explicit send.
+let config = {local: true, chatgptConnected: false, chatgptModel: 'plan-model', apiReady: false, apiModel: 'api-model'};
+let onlineWait = null, onlineError = null, suggestion = null, rejectStage = false, settings = 0;
+const onlineRequests = [], stages = [], reviews = [];
+const aiUI = initArtistResidentUI({...options, getAIConfig: () => config,
+  async requestAIReply(request) {
+    onlineRequests.push(structuredClone(request));
+    if (onlineWait) await onlineWait.promise;
+    if (onlineError) throw Error(onlineError);
+    return {reply: 'An actual generated reply to ' + request.message, suggestion};
+  },
+  openAISettings() {assert.equal($('artist-resident-dialog').open, false); settings++;},
+  stageSuggestion(candidate, proposed, context) {
+    if (rejectStage) throw Error('House idea could not be staged.');
+    stages.push({suggestion: structuredClone(proposed), context: structuredClone(context)});
+    return saveCityNote(candidate, 'artists', 'Pending review: ' + proposed.title);
+  },
+  onReviewHouse(context) {assert.equal($('artist-resident-dialog').open, false); reviews.push(context);}
+});
+enter('monet'); aiUI.show('monet', workId);
+const onlineInput = $('artist-resident-input'), onlineForm = $('artist-resident-form');
+const onlineType = text => {onlineInput.value = text; onlineInput.oninput();};
+const onlineSubmit = () => onlineForm.onsubmit({preventDefault() {}});
+const selectMode = value => {$('artist-resident-mode').value = value; $('artist-resident-mode').onchange();};
+assert.equal($('artist-resident-mode').value, 'offline');
+assert.equal($('artist-resident-mode').children[1].disabled, true);
+assert.equal(onlineRequests.length, 0);
+onlineType('A draft kept during sign-in.'); $('artist-resident-connect').onclick();
+assert.equal(settings, 1); assert.equal(onlineRequests.length, 0);
+config.chatgptConnected = true; aiUI.show('monet', workId);
+assert.equal(onlineInput.value, 'A draft kept during sign-in.');
+assert.equal($('artist-resident-mode').children[1].disabled, false);
+selectMode('chatgpt');
+assert.equal(onlineRequests.length, 0, 'Choosing a provider never sends a message');
+assert.match($('artist-resident-ai-status').textContent, /ChatGPT connected · plan-model/);
+assert.match($('artist-resident-ai-privacy').textContent, /persona, recent conversation, selected artwork and gallery editions/);
+assert.match($('artist-resident-ai-procedure').textContent, /Sign in → choose a model/);
+
+// A generated reply is appended to the latest state, while a newer draft stays unsent.
+onlineWait = deferred(); onlineType('  My explicit online question.\n');
+const beforeOnlineSave = saved.length, beforeOnlineTurns = artistConversation(network, 'monet').length;
+const generated = onlineSubmit();
+assert.equal(onlineRequests.length, 1); assert.equal(saved.length, beforeOnlineSave);
+assert.equal(artistConversation(network, 'monet').length, beforeOnlineTurns);
+assert.deepEqual(onlineRequests[0], {artistId: 'monet', message: '  My explicit online question.\n', workId, provider: 'chatgpt'});
+onlineType('A newer online draft.');
+network = saveCityNote(network, 'makers', 'A separate note saved during generation.');
+onlineWait.resolve(); await generated; onlineWait = null;
+assert.equal(saved.length, beforeOnlineSave + 1);
+assert.equal(artistConversation(network, 'monet').at(-2).text, '  My explicit online question.\n');
+assert.equal(artistConversation(network, 'monet').at(-1).text, 'An actual generated reply to   My explicit online question.\n');
+assert.ok(network.notes.some(note => note.text === 'A separate note saved during generation.'));
+assert.equal(onlineInput.value, 'A newer online draft.');
+assert.match($('artist-resident-status').textContent, /ChatGPT · plan-model/);
+assert.match($('artist-resident-messages').children.at(-1).children[0].textContent, /ARTIST RESIDENT/);
+
+// A house idea is staged together with its conversation, then opened for review only on request.
+suggestion = {title: 'A window study', reason: 'Compare changing light.', exercise: 'Observe twice.', feature: 'window-study', atmosphere: 'quiet'};
+onlineType('Help improve this gallery.'); const beforeIdeaSave = saved.length; await onlineSubmit();
+assert.equal(saved.length, beforeIdeaSave + 1); assert.equal(stages.length, 1);
+assert.deepEqual(stages[0].context, {artistId: 'monet', message: 'Help improve this gallery.', workId});
+assert.equal(reviews.length, 0); assert.ok(network.notes.some(note => note.text === 'Pending review: A window study'));
+onlineType('Keep this while reviewing.'); $('artist-resident-review').onclick();
+assert.deepEqual(reviews[0], {artistId: 'monet', workId});
+aiUI.show('monet', workId); assert.equal(onlineInput.value, 'Keep this while reviewing.');
+
+// Online or review-staging errors preserve the question and never produce a fallback reply.
+rejectStage = true; const beforeRejectedIdea = structuredClone(network), beforeRejectedSave = saved.length;
+await onlineSubmit(); assert.deepEqual(network, beforeRejectedIdea); assert.equal(saved.length, beforeRejectedSave);
+assert.equal(onlineInput.value, 'Keep this while reviewing.');
+assert.match($('artist-resident-status').textContent, /could not be staged/);
+rejectStage = false; suggestion = null; onlineError = 'Sign-in expired.';
+const beforeOnlineFailure = structuredClone(network), beforeFailedSave = saved.length;
+await onlineSubmit(); assert.deepEqual(network, beforeOnlineFailure); assert.equal(saved.length, beforeFailedSave);
+assert.equal(onlineInput.value, 'Keep this while reviewing.');
+assert.equal($('artist-resident-mode').value, 'chatgpt');
+assert.match($('artist-resident-status').textContent, /Sign-in expired/);
+onlineError = null; config.chatgptConnected = false; aiUI.render();
+assert.equal($('artist-resident-send').disabled, true);
+const requestCount = onlineRequests.length; await onlineSubmit(); assert.equal(onlineRequests.length, requestCount);
+assert.equal($('artist-resident-mode').value, 'chatgpt', 'A lost connection does not silently choose Offline');
+
+// A switched artist keeps its own draft while the captured artist receives the generated pair.
+config.apiReady = true; selectMode('api'); onlineType('A Monet API question.'); onlineWait = deferred();
+const apiGeneration = onlineSubmit();
+enter('klee'); aiUI.show('klee'); onlineType('A Klee draft during Monet’s AI reply.');
+onlineWait.resolve(); await apiGeneration; onlineWait = null;
+assert.equal($('artist-resident-title').textContent, 'Conversation with Paul Klee');
+assert.equal(onlineInput.value, 'A Klee draft during Monet’s AI reply.');
+assert.equal(artistConversation(network, 'monet').at(-2).text, 'A Monet API question.');
+assert.equal(onlineRequests.at(-1).provider, 'api');
+near = false; await onlineSubmit(); assert.equal(onlineRequests.at(-1).artistId, 'monet');
+near = true; loaded = false; await onlineSubmit(); assert.equal(onlineRequests.at(-1).artistId, 'monet');
+loaded = true; saving = true; await onlineSubmit(); assert.equal(onlineRequests.at(-1).artistId, 'monet');
+saving = false; selectMode('offline'); await onlineSubmit();
+assert.equal(artistConversation(network, 'klee').at(-2).text, 'A Klee draft during Monet’s AI reply.');
+assert.equal(onlineRequests.at(-1).artistId, 'monet', 'The offline guide makes no network request');
+console.log('Artist resident UI checks passed: physical hosts, retained histories/drafts, explicit AI providers, latest-state saves, staged review and no silent fallback.');

@@ -76,6 +76,11 @@ export function artistQuestions(artistId,workId){
   return [`Help me look closely at ${work.title}.`,`Give me a small practice inspired by ${work.title}.`,`How could your approach help me design a room in my house?`];
 }
 
+export function artistPersona(artistId){
+  const artist=identity(artistId);
+  return {name:artist.name,description:artist.description,approach:artist.approach,...practices[artistId]};
+}
+
 export function artistConversation(network,artistId){
   identity(artistId);return validateCityNetwork(network).artistConversations?.[artistId]??[];
 }
@@ -87,6 +92,17 @@ export function converseWithArtist(network,options={}){
   const result=validateCityNetwork(network),artist=identity(artistId),work=selection(artist,workId);
   if(typeof text!=='string'||!text.trim()||text.length>CITY_LIMITS.artistMessageText)throw Error(`Your message needs 1–${CITY_LIMITS.artistMessageText} characters.`);
   const history=result.artistConversations?.[artistId]??[],response=reply(artist,work,text,history);
+  return appendArtistReply(result,{artistId,text,reply:response,workId:work.id,...(date===undefined?{}:{date})});
+}
+
+export function appendArtistReply(network,options={}){
+  if(!options||typeof options!=='object'||Array.isArray(options)||![Object.prototype,null].includes(Object.getPrototypeOf(options)))throw Error('Use a plain artist reply record.');
+  if(Object.keys(options).some(key=>!['artistId','text','reply','workId','date'].includes(key)))throw Error('The artist reply record contains an unsupported field.');
+  const {artistId,text,reply:response,workId,date}=options;
+  const result=validateCityNetwork(network),artist=identity(artistId),work=selection(artist,workId);
+  if(typeof text!=='string'||!text.trim()||text.length>CITY_LIMITS.artistMessageText)throw Error(`Your message needs 1–${CITY_LIMITS.artistMessageText} characters.`);
+  if(typeof response!=='string'||!response.trim()||response.length>CITY_LIMITS.artistMessageText)throw Error(`The artist reply needs 1–${CITY_LIMITS.artistMessageText} characters.`);
+  const history=result.artistConversations?.[artistId]??[];
   const dateValue=date instanceof Date?date.toISOString():date??new Date().toISOString();
   // IDs stay unique across all residents, including validated imported state.
   const used=new Set(Object.values(result.artistConversations??{}).flat().map(message=>message.id));

@@ -11,3 +11,5 @@ The offline edition and GitHub Pages preview are canonical here. Keep personal `
 Socrates can propose bounded room furnishings and learning activities. Changes require the owner's recorded approval. Offline dialogue stays available; optional GPT must remain an explicit connection without a bundled key.
 
 Read `PUBLISHING.md` before publication. Run meaningful persistence, interaction and geometry checks and inspect visual changes in a real browser.
+
+Artist gallery editions are approved, independent lots in `cityNetwork.artistHomes`. Keep every earlier lot, decision and conversation, including its order (which determines its street position). `web/art-city-scene.js` remains the original gallery renderer; `web/artist-city-editions.js` is the first study-house renderer. Before a later visual redesign, retain the renderer and furnishing helpers used by existing gallery editions and add an explicit renderer version for the new editions. AI replies cannot approve or publish designs. Provider requests use only the selected artist's bounded context; GitHub update briefs contain owner-approved designs and exclude transcripts.

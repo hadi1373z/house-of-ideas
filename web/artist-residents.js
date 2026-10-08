@@ -62,6 +62,13 @@ export function buildArtistResidents(THREE,artists,city){
    }
   }
  }
+ function houseNavigation(house){
+  const direction=house.row===0?1:-1,nav={bounds:{minX:house.minX+.34,maxX:house.maxX-.34,minZ:house.minZ+.34,maxZ:house.maxZ-.34},colliders:city.colliders||[],collisionRadius:.22,
+   canStand(x,z){return x>house.minX+.34&&x<house.maxX-.34&&z>house.minZ+.34&&z<house.maxZ-.34&&city.canStand(x,z);}};
+  const entrance={x:house.cx-1.85*direction,z:house.cz+1.4*direction};
+  if(!nav.canStand(entrance.x,entrance.z))throw Error('The resident entrance must be clear in '+house.artistId+'’s house.');
+  return {nav,entrance,direction};
+ }
  function avatar(artist,index){
   const look=LOOKS[artist.id],root=new THREE.Group();root.name=artist.name+' · resident';root.userData={artistResidentId:artist.id,label:'Talk with '+artist.name,appearance:artist.id};group.add(root);
   cylinder(root,.19,.235,.39,0,1.07,0,look.coat);box(root,.18,.28,.02,0,1.12,.188,look.shirt);
@@ -93,13 +100,9 @@ export function buildArtistResidents(THREE,artists,city){
   }
   tool(root,look);const label=nameplate(root,artist);
   root.traverse(object=>{if(object.isMesh)object.userData={artistResidentId:artist.id,label:'Talk with '+artist.name};});
-  const house=city.houses.find(h=>h.artistId===artist.id),direction=house.row===0?1:-1;
-  const nav={bounds:{minX:house.minX+.34,maxX:house.maxX-.34,minZ:house.minZ+.34,maxZ:house.maxZ-.34},colliders:city.colliders||[],collisionRadius:.22,
-   canStand(x,z){return x>house.minX+.34&&x<house.maxX-.34&&z>house.minZ+.34&&z<house.maxZ-.34&&city.canStand(x,z);}};
+  const house=city.houses.find(h=>h.artistId===artist.id),{nav,entrance,direction}=houseNavigation(house);
   // Leave enough space to see the resident's head, name and held tool from the
   // doorway. This spot stays on the clear side of the central gallery bench.
-  const entrance={x:house.cx-1.85*direction,z:house.cz+1.4*direction};
-  if(!nav.canStand(entrance.x,entrance.z))throw Error('The resident entrance must be clear in '+artist.id+'’s house.');
   root.position.set(entrance.x,0,entrance.z);root.rotation.y=direction===1?0:Math.PI;
   return {artist,root,head,legs,arms,label,house,nav,entrance,anchors:[entrance,...house.approaches],next:index%Math.max(1,house.approaches.length)+1,path:[],pause:2.5+index*.24,walkingTime:0,activity:'observing',focus:null,greeting:false};
  }
@@ -110,16 +113,24 @@ export function buildArtistResidents(THREE,artists,city){
  }
  function face(resident,target,dt){if(!target||![target.x,target.z].every(Number.isFinite))return;const angle=Math.atan2(target.x-resident.root.position.x,target.z-resident.root.position.z);let delta=angle-resident.root.rotation.y;delta=Math.atan2(Math.sin(delta),Math.cos(delta));resident.root.rotation.y+=delta*Math.min(1,dt*5);}
  function meet(resident){plan(resident,resident.entrance);resident.pause=6;resident.greeting=true;}
- function state(id){const resident=residents.get(id);return resident?{artistId:id,position:{x:resident.root.position.x,z:resident.root.position.z},meetingPoint:{...resident.entrance},activity:resident.activity}:null;}
- return {group,targets:[group],state,states(){return [...residents.keys()].map(state);},greet(id){
+ function rehome(id,house){
+  const resident=residents.get(id);if(disposed||!resident||!house||house.artistId!==id||typeof house.id!=='string'||![house.cx,house.cz,house.minX,house.maxX,house.minZ,house.maxZ].every(Number.isFinite)||!Array.isArray(house.approaches))return false;
+  const changed=resident.house.id!==house.id,{nav,entrance,direction}=houseNavigation(house);
+  resident.house=house;resident.nav=nav;resident.entrance=entrance;resident.anchors=[entrance,...house.approaches];
+  if(changed){resident.root.position.set(entrance.x,0,entrance.z);resident.root.rotation.y=direction===1?0:Math.PI;resident.path=[];resident.next=1;resident.focus=null;meet(resident);}
+  resident.root.traverse(object=>{object.userData={...object.userData,artistEditionId:house.editionId??null};});return true;
+ }
+ function state(id){const resident=residents.get(id);return resident?{artistId:id,houseId:resident.house.id,editionId:resident.house.editionId??null,position:{x:resident.root.position.x,z:resident.root.position.z},meetingPoint:{...resident.entrance},activity:resident.activity}:null;}
+ return {group,targets:[group],state,rehome,states(){return [...residents.keys()].map(state);},greet(id){
   if(disposed)return false;const resident=residents.get(id);if(!resident)return false;meet(resident);return true;
  },update(dt,{player,talkingId=null}={}){
   if(disposed||!Number.isFinite(dt)||dt<=0)return;dt=Math.min(dt,.1);
-  const playerHouse=player&&[player.x,player.z].every(Number.isFinite)?city.insideAt(player.x,player.z):null;
-  if(playerHouse!==lastPlayerHouse){const host=residents.get(playerHouse);if(host&&talkingId!==playerHouse)meet(host);lastPlayerHouse=playerHouse;}
+  const playerRecord=player&&[player.x,player.z].every(Number.isFinite)?(city.insideHouseAt?city.insideHouseAt(player.x,player.z):city.houses.find(h=>h.artistId===city.insideAt(player.x,player.z))):null;
+  const playerHouse=playerRecord?.id??null;
+  if(playerHouse!==lastPlayerHouse){const host=residents.get(playerRecord?.artistId);if(host){if(host.house.id!==playerHouse)rehome(host.artist.id,playerRecord);if(talkingId!==host.artist.id)meet(host);}lastPlayerHouse=playerHouse;}
   for(const resident of residents.values()){
    const position=resident.root.position,nearPlayer=player&&[player.x,player.z].every(Number.isFinite)&&Math.hypot(player.x-position.x,player.z-position.z)<4;
-   if(resident.greeting&&playerHouse!==resident.artist.id)resident.greeting=false;
+   if(resident.greeting&&playerHouse!==resident.house.id)resident.greeting=false;
    if(player&&[player.x,player.z].every(Number.isFinite))resident.label.rotation.y=Math.atan2(player.x-position.x,player.z-position.z)-resident.root.rotation.y;
    let moving=false;
    if(talkingId===resident.artist.id){resident.activity='talking';if(nearPlayer)face(resident,player,dt);}

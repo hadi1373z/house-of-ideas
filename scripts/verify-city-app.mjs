@@ -10,6 +10,8 @@ import {initialCityNetwork,validateCityNetwork,CITIES,saveCityNote} from '../web
 import {initCityTravelUI} from '../web/city-travel-ui.js';
 import {initResidentUI} from '../web/resident-ui.js';
 import {initArtistResidentUI} from '../web/artist-resident-ui.js';
+import {initArtistHomesUI} from '../web/artist-homes-ui.js';
+import {proposeArtistHome} from '../web/artist-homes.js';
 import {ARTISTS} from '../web/art-city-data.js';
 import {validateResident,formatCityDiscussion} from '../web/resident.js';
 import {initHomeUI} from '../web/home-ui.js';
@@ -113,7 +115,7 @@ try{
     initHomeUI,pragueDate,recordReflection,initCityTravelUI,formatCityDiscussion,
     initLearning:()=>({render(){},hideCritic(){},noteVisit(){},onHomeChange(){},async onLoad(){},includeVisits:house=>house}),
     initResidentUI:options=>initResidentUI({...options,schedule(callback,delay){timers.set('resident:'+delay,callback);return delay;},cancel(){}}),
-    initArtCityUI:optionalPanel,initArtistResidentUI:options=>initArtistResidentUI({...options,schedule(callback,delay){timers.set('artist:'+delay,callback);return delay;},cancel(){}}),initChatGPTUI:optionalPanel,initDesignerUI:optionalPanel,ARTISTS,
+    initArtCityUI:optionalPanel,initArtistResidentUI:options=>initArtistResidentUI({...options,schedule(callback,delay){timers.set('artist:'+delay,callback);return delay;},cancel(){}}),initArtistHomesUI,proposeArtistHome,initChatGPTUI:optionalPanel,initDesignerUI:optionalPanel,ARTISTS,
     document,window,console,crypto,AbortController,Blob,URL,setInterval(){},setTimeout(){},
     createScene(_,callback){pick=callback;return scene;},fetch:browserFetch});
   const source=(await fs.readFile(path.join(root,'web/app.js'),'utf8')).replace(/^import .*$/gm,'');

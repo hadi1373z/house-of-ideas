@@ -13,6 +13,11 @@ const DISCOVERY = `${ISSUER}/.well-known/openid-configuration`;
 const RESOURCE = 'https://api.openai.com/v1';
 const SCOPES = 'openid profile email offline_access resource.invoke chatgpt.tokens.use.direct';
 const ATTEMPT_MS = 10 * 60 * 1000;
+// Account catalogs include provider metadata for each model, although the house
+// retains only the available model's slug and display name. Keep authentication
+// documents small while allowing a bounded catalog to grow independently.
+const CONNECTION_BYTES = 128000;
+const MODEL_CATALOG_BYTES = 2 * 1024 * 1024;
 
 export class ChatGPTAuthError extends Error {
   constructor(message, status = 502) { super(message); this.status = status; }
@@ -37,21 +42,27 @@ function callbackOrigin(value) {
   return url.origin;
 }
 
-async function boundedJson(response, maxBytes = 128000) {
+async function boundedJson(response, {maxBytes = CONNECTION_BYTES, label = 'connection response', signal} = {}) {
   const reader = response.body?.getReader();
-  if (!reader) throw new ChatGPTAuthError('ChatGPT returned an empty connection response.');
+  if (!reader) throw new ChatGPTAuthError(`ChatGPT returned an empty ${label}.`);
   const chunks = []; let length = 0;
+  // Fetch aborts native response streams, but also explicitly cancel the reader
+  // so cancellation remains effective while an injected transport is reading.
+  const onAbort = () => { reader.cancel().catch(() => {}); };
+  signal?.addEventListener('abort', onAbort, {once: true});
   try {
     while (true) {
+      signal?.throwIfAborted();
       const {value, done} = await reader.read();
+      signal?.throwIfAborted();
       if (done) break;
       length += value.length;
-      if (length > maxBytes) { await reader.cancel(); throw new ChatGPTAuthError('ChatGPT returned a connection response that was too large.'); }
+      if (length > maxBytes) { await reader.cancel(); throw new ChatGPTAuthError(`ChatGPT returned a ${label} that exceeded the ${maxBytes === MODEL_CATALOG_BYTES ? '2 MiB' : '128 KB'} connection limit.`); }
       chunks.push(value);
     }
-  } finally { reader.releaseLock(); }
+  } finally { signal?.removeEventListener('abort', onAbort); reader.releaseLock(); }
   try { return JSON.parse(Buffer.concat(chunks, length).toString('utf8')); }
-  catch { throw new ChatGPTAuthError('ChatGPT returned an unreadable connection response.'); }
+  catch { throw new ChatGPTAuthError(`ChatGPT returned an unreadable ${label}.`); }
 }
 
 export async function createChatGPTAuth({dataDir, fetchImpl = globalThis.fetch, now = Date.now, timeoutMs = 15000} = {}) {
@@ -84,26 +95,40 @@ export async function createChatGPTAuth({dataDir, fetchImpl = globalThis.fetch, 
     if (version !== generation) throw new ChatGPTAuthError('This ChatGPT connection attempt was cancelled. Start again when you are ready.', 409);
   }
   function stopOperations() { for (const controller of operations) controller.abort(); }
-  async function request(url, options = {}) {
+  async function request(url, options = {}, consume = async response => response) {
     const controller = new AbortController(); operations.add(controller);
-    try { return await fetchImpl(url, {...options, redirect: 'error', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(timeoutMs)])}); }
-    catch { throw new ChatGPTAuthError('Could not reach ChatGPT. The offline house remains available.'); }
+    const signal = AbortSignal.any([controller.signal, AbortSignal.timeout(timeoutMs)]);
+    try {
+      const response = await fetchImpl(url, {...options, redirect: 'error', signal});
+      if (signal.aborted) {
+        await response.body?.cancel().catch(() => {});
+        signal.throwIfAborted();
+      }
+      return await consume(response, signal);
+    }
+    catch (error) {
+      if (error instanceof ChatGPTAuthError) throw error;
+      if (controller.signal.aborted) throw new ChatGPTAuthError('This ChatGPT connection attempt was cancelled. Start again when you are ready.', 409);
+      if (signal.aborted) throw new ChatGPTAuthError('The ChatGPT connection timed out. Try again; the offline house remains available.', 504);
+      throw new ChatGPTAuthError('Could not reach ChatGPT. The offline house remains available.');
+    }
     finally { operations.delete(controller); }
   }
-  async function jsonRequest(url, options = {}) {
-    const response = await request(url, options);
-    if (!response.ok) {
-      await response.body?.cancel().catch(() => {});
-      if ([400, 401, 403].includes(response.status)) throw new ChatGPTAuthError('ChatGPT did not accept this sign-in. Continue with ChatGPT again.', 401);
-      if (response.status === 429) throw new ChatGPTAuthError('ChatGPT is busy. Try again later.');
-      throw new ChatGPTAuthError('ChatGPT could not complete the connection. The offline house remains available.');
-    }
-    return boundedJson(response);
+  async function jsonRequest(url, options = {}, limits = {}) {
+    return request(url, options, async (response, signal) => {
+      if (!response.ok) {
+        await response.body?.cancel().catch(() => {});
+        if ([400, 401, 403].includes(response.status)) throw new ChatGPTAuthError('ChatGPT did not accept this sign-in. Continue with ChatGPT again.', 401);
+        if (response.status === 429) throw new ChatGPTAuthError('ChatGPT is busy. Try again later.');
+        throw new ChatGPTAuthError('ChatGPT could not complete the connection. The offline house remains available.');
+      }
+      return boundedJson(response, {...limits, signal});
+    });
   }
   async function keys(force = false) {
     if (!force && jwksCache && now() - jwksAt < 3600000) return jwksCache;
-    const document = await jsonRequest(JWKS);
-    if (!Array.isArray(document.keys) || document.keys.length > 100) throw new ChatGPTAuthError('ChatGPT signing keys could not be verified.');
+    const document = await jsonRequest(JWKS, {}, {label: 'signing-key document'});
+    if (!Array.isArray(document?.keys) || document.keys.length > 100) throw new ChatGPTAuthError('ChatGPT signing keys could not be verified.');
     jwksCache = document.keys; jwksAt = now(); return jwksCache;
   }
   async function validateIdentity(token, attempt, {refresh = false} = {}) {
@@ -171,7 +196,7 @@ export async function createChatGPTAuth({dataDir, fetchImpl = globalThis.fetch, 
       // Keep that registration's identity and stable label in that case too.
       attempt.subject ||= existing?.subject;
       attempt.label ||= existing?.label;
-      const payload = await jsonRequest(TOKEN, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({grant_type: 'authorization_code', client_id: clientId, code, code_verifier: attempt.verifier, redirect_uri: attempt.redirectUri, resource: RESOURCE}).toString()});
+      const payload = await jsonRequest(TOKEN, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({grant_type: 'authorization_code', client_id: clientId, code, code_verifier: attempt.verifier, redirect_uri: attempt.redirectUri, resource: RESOURCE}).toString()}, {label: 'sign-in response'});
       assertGeneration(attempt.generation);
       const identity = await validateIdentity(payload.id_token, attempt);
       assertGeneration(attempt.generation);
@@ -193,12 +218,13 @@ export async function createChatGPTAuth({dataDir, fetchImpl = globalThis.fetch, 
       api.close();
       if (!previous?.refreshToken) return status();
       try {
-        const discovery = await jsonRequest(DISCOVERY);
+        const discovery = await jsonRequest(DISCOVERY, {}, {label: 'discovery document'});
         const endpoint = new URL(discovery.revocation_endpoint);
         if (endpoint.protocol !== 'https:' || endpoint.hostname !== 'auth.openai.com' || endpoint.port || endpoint.username || endpoint.password) throw Error('Invalid revocation endpoint.');
-        const response = await request(endpoint.href, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({token: previous.refreshToken, token_type_hint: 'refresh_token', client_id: previous.clientId}).toString()});
-        await response.body?.cancel().catch(() => {});
-        if (response.status !== 200) throw Error('Revocation not confirmed.');
+        await request(endpoint.href, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({token: previous.refreshToken, token_type_hint: 'refresh_token', client_id: previous.clientId}).toString()}, async response => {
+          await response.body?.cancel().catch(() => {});
+          if (response.status !== 200) throw Error('Revocation not confirmed.');
+        });
         return status();
       } catch { return {...status(), revocationWarning: 'Signed out locally. Remote revocation was not confirmed; you can disconnect House of Ideas in ChatGPT Settings.'}; }
     },
@@ -209,7 +235,7 @@ export async function createChatGPTAuth({dataDir, fetchImpl = globalThis.fetch, 
       const previous = session, version = generation;
       if (!previous.refreshToken) { session = null; throw new ChatGPTAuthError('This ChatGPT session expired. Continue with ChatGPT again.', 401); }
       const operation = (async () => {
-        const payload = await jsonRequest(TOKEN, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({grant_type: 'refresh_token', client_id: previous.clientId, refresh_token: previous.refreshToken, resource: RESOURCE}).toString()});
+        const payload = await jsonRequest(TOKEN, {method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: new URLSearchParams({grant_type: 'refresh_token', client_id: previous.clientId, refresh_token: previous.refreshToken, resource: RESOURCE}).toString()}, {label: 'session-renewal response'});
         assertGeneration(version);
         const identity = payload.id_token ? await validateIdentity(payload.id_token, {clientId: previous.clientId, subject: previous.subject, label: previous.label, nonce: previous.nonce}, {refresh: true}) : {subject: previous.subject, label: previous.label};
         assertGeneration(version);
@@ -225,9 +251,9 @@ export async function createChatGPTAuth({dataDir, fetchImpl = globalThis.fetch, 
     async models() {
       const version = generation;
       const accessToken = await api.accessToken();
-      const payload = await jsonRequest(`${RESOURCE}/models`, {headers: {Authorization: `Bearer ${accessToken}`}});
+      const payload = await jsonRequest(`${RESOURCE}/models`, {headers: {Authorization: `Bearer ${accessToken}`}}, {maxBytes: MODEL_CATALOG_BYTES, label: 'model catalog'});
       assertGeneration(version);
-      if (!Array.isArray(payload.models) || payload.models.length > 500) throw new ChatGPTAuthError('ChatGPT returned an unreadable model catalog.');
+      if (!Array.isArray(payload?.models) || payload.models.length > 500) throw new ChatGPTAuthError('ChatGPT returned an unreadable model catalog.');
       const catalog = payload.models.filter(model => model?.visibility === 'list' && typeof model.slug === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(model.slug) && typeof model.display_name === 'string' && model.display_name.length > 0 && model.display_name.length <= 120).map(model => ({slug: model.slug, displayName: model.display_name}));
       return [...new Map(catalog.map(model => [model.slug, model])).values()];
     },

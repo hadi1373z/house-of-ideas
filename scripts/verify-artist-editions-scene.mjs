@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import fs from 'node:fs/promises';
+import vm from 'node:vm';
 import * as THREE from '../web/vendor/three.module.js';
 import {ARTISTS} from '../web/art-city-data.js';
 import {buildArtCity} from '../web/art-city-scene.js';
@@ -60,4 +62,35 @@ base.group.traverse(object=>{if(object.isMesh)object.geometry.addEventListener('
 assert.equal(overlay.group.children.length,0);assert.equal(geometryDisposals,geometry.size);assert.equal(materialDisposals,material.size);assert.equal(baseDisposals,0,'Removing an edition layer never disposes borrowed original-city geometry.');assert.equal(signature(base.group),frozen);assert.deepEqual(base.colliders,originalColliders);
 const empty=buildArtistCityEditions(THREE,ARTISTS,base,[]);assert.deepEqual(empty.bounds,originalBounds);assert.equal(empty.group.children.length,0);empty.dispose();
 assert.throws(()=>buildArtistCityEditions(THREE,ARTISTS,base,[editions[0],editions[0]]),/distinct edition/);assert.throws(()=>buildArtistCityEditions(THREE,ARTISTS,base,Array.from({length:21},()=>editions[0])),/bounded edition/);base.dispose();
+
+// The renderer-independent coordinator executes its shipped declarations with
+// real copied geometry, rather than testing a second implementation of entry.
+const sceneSource=await fs.readFile(new URL('../web/scene.js',import.meta.url),'utf8');
+function declaration(name){
+ const start=sceneSource.indexOf(' function '+name+'('),brace=sceneSource.indexOf('{',start);assert.ok(start>=0);let depth=0,quote=null;
+ for(let i=brace;i<sceneSource.length;i++){const c=sceneSource[i];if(quote){if(c==='\\')i++;else if(c===quote)quote=null;continue;}if(c==='"'||c==="'"||c==='`'){quote=c;continue;}if(c==='{')depth++;if(c==='}'&&--depth===0)return sceneSource.slice(start,i+1);}throw Error('Cannot extract '+name);
+}
+const physicalBase=buildArtCity(THREE,ARTISTS),scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(62,1,.08,250),visitor=new THREE.Group(),events=[],relocations=[],xrPoint=new THREE.Vector3();scene.add(physicalBase.group,camera,visitor);
+camera.position.set(24,1.65,0);visitor.position.set(0,0,0);
+const context=vm.createContext({THREE,ARTISTS,scene,camera,visitor,artCityBase:physicalBase,artCity:null,artistEditionLayer:null,artistResidents:null,artistTalkingId:null,artCityArtists:ARTISTS,cityNetwork:{artistHomes:{editions:editions.slice(0,3)}},cityId:'artists',artCityMode:true,cityLayers:new Map(),tourState:null,walk:true,built:{group:new THREE.Group()},house:{ideas:[]},designs:{group:new THREE.Group()},homeFacilities:null,neighborhoodGroup:new THREE.Group(),yaw:0,pitch:0,firstPersonPosition:null,residentTalking:false,path:[],pause:0,playerPath:[],seatTarget:null,landmarkLookAt:null,ray:new THREE.Raycaster(),
+ buildArtistCityEditions,buildArtistResidents,
+ xr:{presenting:false,relocate(x,z,heading){xrPoint.set(x,1.65,z);relocations.push({x,z,heading});}},
+ playerPoint:()=>context.xr.presenting?xrPoint:camera.position,remoteWorld:()=>context.artCity,canStand:(x,z)=>context.artCity.canStand(x,z),resetInput(){},refreshCargo(){},
+ onPick:data=>events.push(data),enterArtCity(){context.cityId='artists';context.artCityMode=true;visitor.visible=false;context.showCityLayers();}});
+const shipped=['refreshArtistEditions','setCityNetwork','showCityLayers','faceDirection','placeCityPlayer','enterArtistHouse','greetArtistResident','artistResidentState','lineOfSight','visibleObject','glassObject','targetData','focusedTarget','useTarget'].map(declaration).join('\n');
+const pickables=sceneSource.match(/^ const pickables=\(\)=>.*;$/m)?.[0];assert.ok(pickables);vm.runInContext(shipped+'\n'+pickables,context);const run=text=>vm.runInContext(text,context);run('refreshArtistEditions()');
+for(const edition of editions.slice(0,3)){
+ run(`enterArtistHouse('${edition.artistId}','${edition.id}')`);scene.updateMatrixWorld(true);
+ assert.equal(run('focusedTarget()')?.artistResidentId,edition.artistId,'The shipped camera and E target face the resident of the selected new edition.');
+ assert.equal(context.artistResidents.state(edition.artistId).editionId,edition.id);assert.equal(context.artCity.insideHouseAt(camera.position.x,camera.position.z)?.editionId,edition.id);assert.equal(visitor.visible,false);
+ const selected=context.artCity.houseFor(edition.artistId,edition.id),anchor=selected.study.anchor;
+ camera.position.set(anchor.x,1.65,anchor.z);const direction=new THREE.Vector3(selected.study.lookAt.x,selected.study.lookAt.y,selected.study.lookAt.z).sub(camera.position);context.yaw=Math.atan2(-direction.x,-direction.z);context.pitch=Math.atan2(direction.y,Math.hypot(direction.x,direction.z));run('faceDirection()');
+ const target=run('focusedTarget()');assert.equal(target?.artAction,'edition-study');assert.equal(target.artistEditionId,edition.id);events.length=0;run('useTarget(focusedTarget())');assert.equal(events.at(-1).artistEditionId,edition.id,'A physical exercise retains the selected edition in the app callback.');
+}
+run(`enterArtistHouse('${editions[0].artistId}','${editions[0].id}')`);const originalActor=context.artistResidents,originalPosition=context.artistResidents.state(editions[0].artistId).position;
+context.nextNetwork={...context.cityNetwork,artistConversations:{monet:[]}};run('setCityNetwork(nextNetwork)');assert.equal(context.artistResidents,originalActor,'Saving conversation data does not rebuild or relocate residents.');assert.deepEqual(context.artistResidents.state(editions[0].artistId).position,originalPosition);
+context.nextNetwork={artistHomes:{editions:editions.slice(0,4)}};run('setCityNetwork(nextNetwork)');assert.notEqual(context.artistResidents,originalActor);assert.equal(originalActor.group.children.length,0);assert.equal(context.artistResidents.state(editions[0].artistId).editionId,editions[0].id,'Building another approved home keeps the guest and artist in the currently occupied edition.');
+run(`enterArtistHouse('${editions[0].artistId}')`);assert.equal(context.artistResidents.state(editions[0].artistId).editionId,null);assert.equal(context.artCity.insideHouseAt(camera.position.x,camera.position.z)?.id,editions[0].artistId,'The preserved original remains enterable through the same shipped coordinator.');
+context.xr.presenting=true;for(const edition of editions.slice(0,3)){run(`enterArtistHouse('${edition.artistId}','${edition.id}')`);const point=context.artCity.entryFor(edition.artistId,edition.id),meeting=context.artistResidents.state(edition.artistId).meetingPoint;assert.equal(relocations.at(-1).x,point.x);assert.equal(relocations.at(-1).z,point.z);assert.equal(relocations.at(-1).heading,Math.atan2(point.x-meeting.x,point.z-meeting.z));}
+context.artistResidents.dispose();physicalBase.group.remove(context.artistEditionLayer.group);context.artistEditionLayer.dispose();physicalBase.dispose();
 console.log(`Artist edition geometry passed: 20 preserved new lots, 120 selectable copied artworks, 20 physical approved exercises, ${routes} shipped walking routes, natural resident rehoming, exact original geometry and independent disposal.`);

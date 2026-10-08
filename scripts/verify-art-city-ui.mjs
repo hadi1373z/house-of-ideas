@@ -236,4 +236,4 @@ physicalCityState = false;
 ui.render(); assert.equal($('art-city-return').hidden, true);
 assert.equal($('art-city-open').textContent, 'Artists’ City · 10 houses');
 assert.ok(notices.some(([text]) => text.includes('disk could not be written')));
-console.log('Artist City UI checks passed: ten houses, attributed journal observations, preserved drafts, offline sources and explicit Socrates discussion.');
+console.log('Artist City UI checks passed: ten houses, attributed journal observations, preserved drafts, offline sources and explicit artist resident discussion.');

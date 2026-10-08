@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "goal": "A durable offline House of Ideas shared with a persistent Socrates resident, contextual dialogue, learning and owner-approved physical improvements.",
-  "current_milestone": "designer-neighborhood-and-vr",
+  "current_milestone": "inhabited-artist-houses",
   "active_item": null,
   "canonical_source": {
     "edition": "offline",
@@ -318,5 +318,12 @@
     "verification": "Rig/head world transforms, collision axes, stable pivot, ground-only teleport and session races tested with mocks.",
     "hardware_verified": false,
     "scope": "Single-player ground-level exploration; no CAD/BIM editor, shared world, marketplace or arbitrary device connection."
+  },
+  "artists_city": {
+    "residents": "Ten distinct embodied artist residents, each living and exploring inside their own gallery house. Socrates remains in the personal neighbourhood and Makers City.",
+    "conversation": "Original interpretive offline voices grounded in sixty attributed works, with art exercises and room design studies; no historical quote claims or automatic building changes.",
+    "persistence": "Optional cityNetwork.artistConversations preserves independent artist histories without changing complete home documents or Socrates memory. Shared atomic revision checks protect all writes.",
+    "privacy": "Private artist histories are excluded from portable learning collections; complete data-folder backup retains them. No provider connection or paid request is made by artist conversation.",
+    "verification": "Thirty-six source suites, real gallery resident selection and wall LOS, artist-specific temp HTTP restart/CAS, unchanged personal and original gallery geometry, separate drafts and actual browser Monet/Morris conversations. Source publication and portable package outcomes are recorded separately in local release notes."
   }
 }

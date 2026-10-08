@@ -1,8 +1,10 @@
 import {CUES, IDEA_ACTIONS, defaultIdeaAction} from './model.js';
 import {BOOKS} from './books.js';
+import {ARTISTS} from './art-city-data.js';
 
 export const CITY_LIMITS = Object.freeze({cargo:64, placements:128, placementsPerAnchor:8,
-  notes:120, cargoText:6000, noteText:2000, visits:1000000, travelPackBytes:2*1024*1024});
+  notes:120, cargoText:6000, noteText:2000, visits:1000000, travelPackBytes:2*1024*1024,
+  artistMessages:80, artistMessageText:2000, artistConversationBytes:512*1024});
 export const CITY_ANCHORS = Object.freeze({home:Object.freeze(['library','table','plaza']),
   artists:Object.freeze(['library','table','plaza']), makers:Object.freeze(['library','workshop','plaza'])});
 const labels={library:'Library',table:'Learning table',plaza:'Plaza',workshop:'Workshop'};
@@ -42,7 +44,7 @@ export function initialCityNetwork(){
 
 export function validateCityNetwork(input){
   if(input===undefined)return initialCityNetwork();
-  keys(input,['version','cargo','placements','notes','visits','lastVisits'],'city network');
+  keys(input,['version','cargo','placements','notes','visits','lastVisits','artistConversations'],'city network');
   if(input.version!==1)throw Error('Choose a supported city network version.');
   const cargoIds=new Set(),placementIds=new Set(),noteIds=new Set();
   const cargo=array(input.cargo,CITY_LIMITS.cargo,'carried objects').map(item=>{
@@ -77,7 +79,29 @@ export function validateCityNetwork(input){
     const count=input.visits[id];if(!Number.isInteger(count)||count<0||count>CITY_LIMITS.visits)throw Error(`City visit counts must be between 0 and ${CITY_LIMITS.visits}.`);
     visits[id]=count;lastVisits[id]=input.lastVisits?.[id]==null?null:timestamp(input.lastVisits[id]);
   }
-  return {version:1,cargo,placements,notes,visits,lastVisits};
+  const result={version:1,cargo,placements,notes,visits,lastVisits};
+  // Artist conversations are independent of personal Socrates memory and city
+  // journals. Reading an older network must not manufacture a new saved field.
+  if(Object.hasOwn(input,'artistConversations')){
+    keys(input.artistConversations,ARTISTS.map(artist=>artist.id),'artist conversations');
+    const conversations={},messageIds=new Set();
+    for(const [artistId,history] of Object.entries(input.artistConversations)){
+      const artist=ARTISTS.find(item=>item.id===artistId);
+      if(!Array.isArray(history)||history.length>CITY_LIMITS.artistMessages)throw Error(`Your conversation with ${artist.name} holds at most ${CITY_LIMITS.artistMessages} messages. Back it up before continuing; nothing was removed.`);
+      if(history.length%2)throw Error('Store complete artist conversation exchanges.');
+      conversations[artistId]=history.map((message,index)=>{
+        keys(message,['id','role','date','text','workId'],'artist conversation message');
+        unique(message.id,messageIds,'artist conversation message');
+        if(message.role!==(index%2?'artist':'user'))throw Error('Artist conversation messages alternate between you and the artist.');
+        if(message.workId!==undefined&&!artist.works.some(work=>work.id===message.workId))throw Error('Choose a work from this artist’s own gallery.');
+        return {id:message.id,role:message.role,date:timestamp(message.date),text:text(message.text,CITY_LIMITS.artistMessageText,'Artist conversation message'),
+          ...(message.workId===undefined?{}:{workId:message.workId})};
+      });
+    }
+    if(new TextEncoder().encode(JSON.stringify(conversations)).byteLength>CITY_LIMITS.artistConversationBytes)throw Error('Artist conversations exceed the 512 KiB local history budget. Back them up before continuing; nothing was removed.');
+    result.artistConversations=conversations;
+  }
+  return result;
 }
 
 export function packIdea(network,idea){
@@ -112,7 +136,9 @@ export function saveCityNote(network,cityId,value,options={}){
 }
 
 export function exportTravelPack(network){
-  const pack={format:'house-of-ideas-travel-pack',version:1,network:validateCityNetwork(network)};
+  const validated=validateCityNetwork(network),{artistConversations,...collection}=validated;
+  // A portable learning collection does not publish private conversations.
+  const pack={format:'house-of-ideas-travel-pack',version:1,network:collection};
   if(new TextEncoder().encode(JSON.stringify(pack)).byteLength>CITY_LIMITS.travelPackBytes)throw Error('This collection exceeds the portable travel pack budget. Nothing was removed.');
   return pack;
 }
@@ -126,6 +152,7 @@ export function importTravelPack(network,input){
   keys(input,['format','version','network'],'travel collection');
   if(input.format!=='house-of-ideas-travel-pack'||input.version!==1)throw Error('Choose a supported House of Ideas travel collection.');
   const incoming=validateCityNetwork(input.network),cargoMap=new Map();
+  if(Object.hasOwn(incoming,'artistConversations'))throw Error('A travel collection contains learning objects and city journals. Keep private artist conversations in the complete local backup; nothing was imported or removed.');
   const originalCargo=new Map(result.cargo.map(item=>[item.id,item])),originalPlacements=new Map(result.placements.map(item=>[item.id,item])),originalNotes=new Map(result.notes.map(item=>[item.id,item]));
   const usedCargo=new Set(),usedPlacements=new Set(),usedNotes=new Set();
   const reservedCargo=new Set(incoming.cargo.map(item=>item.id)),reservedPlacements=new Set(incoming.placements.map(item=>item.id)),reservedNotes=new Set(incoming.notes.map(item=>item.id));

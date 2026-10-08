@@ -340,6 +340,7 @@ export function initCityTravelUI({$, document, window, scene, getNetwork, getHou
     renderSourceIdeas();
     bookPack.disabled = blocked; place.disabled = blocked || !network?.cargo?.length;
     journalSave.disabled = activitySave.disabled = exportButton.disabled = importButton.disabled = blocked;
+    discussion.textContent = city.id === 'artists' ? 'Discuss with an artist resident' : 'Discuss this with Socrates';
     discussion.disabled = pending || isSaving();
     homeSelect.disabled = !homes.length;
     fillSelect(cargoSelect, (network?.cargo || []).map(cargo => [cargo.id, cargo.title]));

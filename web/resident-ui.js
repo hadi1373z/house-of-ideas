@@ -7,7 +7,10 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
  const location=()=>scene?.residentState?.()||{roomId:getSelected(),near:true,activity:'examining the house'};
  const roomId=()=>{const state=location();return state.near&&!state.summoning&&getHouse().rooms.some(r=>r.id===state.roomId)?state.roomId:getSelected();};
  function renderSpatial() {
-  const state=location(),room=getHouse().rooms.find(r=>r.id===state.roomId);
+  const state=location(),unavailable=state.available===false||state.cityId==='artists',room=getHouse().rooms.find(r=>r.id===state.roomId);
+  if(unavailable&&open)close();
+  if(unavailable)$('resident-hud').hidden=true;
+  else if(!document.body?.classList?.contains('plan-mode'))$('resident-hud').hidden=false;
   $('resident-location').textContent=(state.artistCity||state.cityId==='makers')?'Socrates · '+state.locationLabel:room?'Socrates · '+room.name:'Socrates · Front door';
   $('resident-activity').textContent=state.talking?'Listening to you':state.activity||'Exploring the house';
   $('conversation-location').textContent=state.summoning?'Socrates is coming to meet you':state.near?((state.artistCity||state.cityId==='makers')?'Together in '+state.locationLabel:room?'Together in '+room.name:'Together by the front door'):(state.artistCity||state.cityId==='makers')?'Socrates is exploring '+state.locationLabel:room?'Socrates is in '+room.name:'Meet Socrates inside the house';
@@ -48,6 +51,7 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
   $('resident-pace').value=resident.preferences.pace;
  }
  function show(){
+  if(location().available===false||location().cityId==='artists')return false;
   openHouse?.();scene?.setWalk?.(true);
   open=true;$('resident-conversation').hidden=false;
   if(!location().near)scene?.summonResident?.();else if(!location().summoning)scene?.setResidentTalking?.(true);

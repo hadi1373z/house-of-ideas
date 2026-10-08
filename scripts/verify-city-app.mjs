@@ -9,6 +9,8 @@ import * as neighborhood from '../web/neighborhood.js';
 import {initialCityNetwork,validateCityNetwork,CITIES,saveCityNote} from '../web/city-network.js';
 import {initCityTravelUI} from '../web/city-travel-ui.js';
 import {initResidentUI} from '../web/resident-ui.js';
+import {initArtistResidentUI} from '../web/artist-resident-ui.js';
+import {ARTISTS} from '../web/art-city-data.js';
 import {validateResident,formatCityDiscussion} from '../web/resident.js';
 import {initHomeUI} from '../web/home-ui.js';
 import {pragueDate,reflect as recordReflection} from '../web/socrates.js';
@@ -33,7 +35,7 @@ const elements=new Map(),timers=new Map(),requests=[],physical=[];
 class Element {
   constructor(tag='div'){
     this.tagName=tag;this.children=[];this.value='';this.textContent='';this.hidden=false;
-    this.disabled=false;this.checked=false;this.open=false;this.style={};this.dataset={};
+    this.disabled=false;this.checked=false;this.open=false;this.style={setProperty(){}};this.dataset={};
     this.attributes={};this.listeners=new Map();this.files=[];
     const classes=new Set();this.classList={add(...items){items.forEach(item=>classes.add(item));},
       remove(...items){items.forEach(item=>classes.delete(item));},contains:item=>classes.has(item),
@@ -65,7 +67,7 @@ const document={body,getElementById:$,createElement:tag=>new Element(tag),create
 const optionalPanel=()=>({async onLoad(){},render(){},close(){},onHomeChange(){}});
 const window={addEventListener(){},setInterval(callback,delay){timers.set('home:'+delay,callback);return delay;},
   clearInterval(){},setTimeout(){},URL,open(){throw Error('No remote window is opened.');}};
-let city='home',pick,latestSceneHouse,physicalNetwork,cookie='',cityGate=null,houseGate=null,readGate=null,failCities=false,failReads=false;
+let city='home',artistId=null,pick,latestSceneHouse,physicalNetwork,cookie='',cityGate=null,houseGate=null,readGate=null,failCities=false,failReads=false;
 const scene={load(house){latestSceneHouse=model.clone(house);},setEdition(){},setNeighborhood(){},
   setCityNetwork(network){physicalNetwork=model.clone(network);},cityState:()=>CITIES.find(item=>item.id===city),
   prepareCity(id){assert.ok(CITIES.some(item=>item.id===id),'Prepare receives the destination city');physical.push('prepare:'+id);},
@@ -73,8 +75,10 @@ const scene={load(house){latestSceneHouse=model.clone(house);},setEdition(){},se
     physical.push('travel:'+id);pick({artAction:'city-state'});},
   leaveArtCity(){city='home';pick({artAction:'city-state'});},showNeighborhood(){city='home';pick({artAction:'city-state'});},
   playerState:()=>({cityId:city,cityName:CITIES.find(item=>item.id===city).name,cityLocation:city==='makers'?'Workshop hall':null,
-    artistCity:city==='artists',roomId:city==='home'?'math':null,outside:city!=='home',neighborhood:city==='home'}),
-  residentState:()=>({cityId:city,artistCity:city==='artists',roomId:city==='home'?'math':null,
+    artistCity:city==='artists',artistId:city==='artists'?artistId:null,roomId:city==='home'?'math':null,outside:city!=='home',neighborhood:city==='home'}),
+  artistResidentState:id=>({artistId:id,cityId:city,available:city==='artists',near:city==='artists'&&artistId===id,position:{x:0,z:0}}),
+  greetArtistResident(){},setArtistTalking(){},enterArtistHouse(id){city='artists';artistId=id;pick({artAction:'city-state'});},
+  residentState:()=>({available:city!=='artists',cityId:city,artistCity:city==='artists',roomId:city==='home'?'math':null,
     locationLabel:CITIES.find(item=>item.id===city).name,near:true,activity:'Exploring '+city}),
   seatAt(data){physical.push({seat:model.clone(data)});},stand(){},select(){},setWalk(){},setExterior(){},
   setResidentTalking(){},summonResident(){physical.push('summon:'+city);return true;},
@@ -109,7 +113,7 @@ try{
     initHomeUI,pragueDate,recordReflection,initCityTravelUI,formatCityDiscussion,
     initLearning:()=>({render(){},hideCritic(){},noteVisit(){},onHomeChange(){},async onLoad(){},includeVisits:house=>house}),
     initResidentUI:options=>initResidentUI({...options,schedule(callback,delay){timers.set('resident:'+delay,callback);return delay;},cancel(){}}),
-    initArtCityUI:optionalPanel,initChatGPTUI:optionalPanel,initDesignerUI:optionalPanel,ARTISTS:[],
+    initArtCityUI:optionalPanel,initArtistResidentUI:options=>initArtistResidentUI({...options,schedule(callback,delay){timers.set('artist:'+delay,callback);return delay;},cancel(){}}),initChatGPTUI:optionalPanel,initDesignerUI:optionalPanel,ARTISTS,
     document,window,console,crypto,AbortController,Blob,URL,setInterval(){},setTimeout(){},
     createScene(_,callback){pick=callback;return scene;},fetch:browserFetch});
   const source=(await fs.readFile(path.join(root,'web/app.js'),'utf8')).replace(/^import .*$/gm,'');
@@ -272,6 +276,38 @@ try{
   houseGate.resolve();await conversation;houseGate=null;
   assert.equal($('resident-input').value,'A second question typed while the first is saving.');
   assert.equal((await state()).house.resident.messages.at(-2).text,'How can I test an assumption here?');
+  const oldHomes=JSON.stringify((await state()).neighborhood.homes);
+  scene.enterArtistHouse('monet');$('socrates-tab').click();
+  assert.equal($('artist-resident-dialog').open,true);
+  assert.match($('artist-resident-title').textContent,/Monet/);
+  assert.equal($('resident-conversation').hidden,true);
+  assert.equal($('resident-hud').hidden,true);
+  assert.equal($('socrates-tab').textContent,'Meet the artist');
+  const beforeArtist=(await state()).revision;
+  $('artist-resident-input').value='Give me a practice inspired by light.';
+  await submit('artist-resident-form');saved=await state();
+  assert.equal(saved.revision,beforeArtist+1);
+  assert.equal(saved.neighborhood.cityNetwork.artistConversations.monet.at(-2).text,'Give me a practice inspired by light.');
+  assert.match(saved.neighborhood.cityNetwork.artistConversations.monet.at(-1).text,/light|colour/i);
+  assert.equal(JSON.stringify(saved.neighborhood.homes),oldHomes,'Artist chat leaves all personal homes and Socrates history unchanged');
+  scene.enterArtistHouse('morris');pick({artistResidentId:'morris'});
+  assert.match($('artist-resident-title').textContent,/Morris/);
+  assert.doesNotMatch($('artist-resident-messages').children.map(item=>item.children.map(child=>child.textContent).join(' ')).join(' '),/Give me a practice inspired by light/);
+  $('artist-resident-input').value='How can I make a repeating pattern?';
+  await submit('artist-resident-form');saved=await state();
+  assert.match(saved.neighborhood.cityNetwork.artistConversations.morris.at(-1).text,/motif|repeat|pattern/);
+  scene.enterArtistHouse('monet');$('socrates-tab').click();
+  assert.equal($('artist-resident-input').value,'');
+  assert.match($('artist-resident-messages').children.at(-2).children.at(-1).textContent,/Give me a practice/);
+  $('artist-resident-input').value='Unsent artist question';failCities=true;
+  await submit('artist-resident-form');failCities=false;
+  assert.equal($('artist-resident-input').value,'Unsent artist question');
+  assert.equal($('artist-resident-reload').hidden,false);
+  await $('artist-resident-reload').click();
+  assert.equal($('artist-resident-input').value,'Unsent artist question');
+  assert.equal((await state()).revision,saved.revision);
+  scene.leaveArtCity();assert.equal($('artist-resident-dialog').open,false);
+  assert.equal($('resident-hud').hidden,false);assert.equal($('socrates-tab').textContent,'Socrates');
   assert.equal(providerCalls,0);assert.ok(!requests.some(request=>/^\/api\/(?:gpt|chatgpt)\/.+/.test(request.route)));
   console.log('Actual app city transport, global revisions, archive copies, drafts, physical activities and explicit provider boundaries verified.');
 }finally{

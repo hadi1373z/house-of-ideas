@@ -1,0 +1,19 @@
+#artist-resident-dialog{width:min(650px,calc(100vw - 32px));max-height:86dvh;padding:24px;border:1px solid #bdb39d;border-radius:18px;background:#f6f0e4;color:#29251f}
+#artist-resident-dialog::backdrop{background:rgba(21,24,25,.54)}
+.artist-resident-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;border-top:4px solid var(--artist-resident-color,#786444);padding-top:15px}
+.artist-resident-head h2{margin:0 0 7px;font-size:1.35rem}.artist-resident-head p{margin:0;font-size:.82rem;line-height:1.5;color:#625c50}
+#artist-resident-dialog label{display:block;font-size:.86rem;font-weight:650;margin:16px 0 6px}
+#artist-resident-dialog select,#artist-resident-dialog textarea{box-sizing:border-box;width:100%;font:inherit;border:1px solid #b8ae9b;border-radius:8px;padding:10px;background:#fffdf7;color:#29251f}
+#artist-resident-work-description{font-size:.85rem;line-height:1.5;white-space:pre-wrap;color:#655f53}
+#artist-resident-presence{font-size:.85rem;color:#655f53}
+.artist-resident-questions{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}
+.artist-resident-questions button{flex:1 1 160px;text-align:left;font-size:.8rem;line-height:1.4;padding:9px}
+#artist-resident-dialog button{font:inherit;cursor:pointer;border:1px solid #b8ae9b;border-radius:8px;background:#fffdf7;color:#29251f;padding:9px 12px}
+#artist-resident-dialog button:disabled{cursor:default;opacity:.55}
+#artist-resident-messages{max-height:29dvh;overflow:auto;overscroll-behavior:contain;border-top:1px solid #d7cdbb;border-bottom:1px solid #d7cdbb;padding:12px 2px}
+.artist-resident-turn{border-radius:10px;padding:10px 13px;margin:8px 0;background:#e9e2d3}.artist-resident-turn.you{background:#fffdf7;margin-left:22px}
+.artist-resident-turn small{font-size:.68rem;letter-spacing:.06em;color:#6b6252}.artist-resident-turn p,.artist-resident-opening{font-size:.94rem;line-height:1.55;white-space:pre-wrap;margin:7px 0}
+#artist-resident-send{margin-top:10px;background:#443c30!important;color:#fffdf7!important}
+#artist-resident-status{font-size:.86rem;line-height:1.45;white-space:pre-wrap}#artist-resident-status[data-error=true]{color:#8e312e}
+@media(max-width:600px){#artist-resident-dialog{padding:17px}.artist-resident-head{gap:10px}.artist-resident-head h2{font-size:1.15rem}.artist-resident-questions button{flex-basis:100%}#artist-resident-messages{max-height:25dvh}}
+@media(min-width:761px){body.journal-open .world-controls{top:94px;right:22px;max-width:calc(100vw - 394px)}body.journal-open .view-tools{top:196px}}

@@ -108,7 +108,7 @@ export function initArtCityUI({$, document, window, scene, artists, getHouse, ge
   const save = button('art-city-save', 'Save observation to my home'); save.type = 'submit';
   form.append(label('Your observation or experiment', answer), reflectionRoom, save);
   const actions = node('div'); actions.className = 'art-city-actions';
-  const examine = button('art-city-examine', 'Discuss this work with Socrates', discuss);
+  const examine = button('art-city-examine', 'Discuss this work with the artist', discuss);
   const allHouses = button('art-city-all-houses', 'All artist houses', showOverview);
   actions.append(examine, allHouses);
   detail.append(artistDescription, approach, websites, controls, figure, onlineImage,
@@ -188,6 +188,7 @@ export function initArtCityUI({$, document, window, scene, artists, getHouse, ge
     $('art-city-return').hidden = !(inCity || scene?.playerState?.()?.cityId === 'makers');
     previous.disabled = next.disabled = (artist?.works?.length || 0) < 2;
     save.disabled = pending || isSaving() || isReadOnly() || !room || !work;
+    examine.textContent = selection().artist ? 'Discuss with ' + selection().artist.name : 'Discuss with the artist';
     examine.disabled = pending || isSaving();
     reflectionRoom.textContent = isReadOnly()
       ? 'This earlier home is preserved. You can explore every artist house; save your observation in a current home edition.'
@@ -242,5 +243,5 @@ export function initArtCityUI({$, document, window, scene, artists, getHouse, ge
   };
   function onHomeChange() { close(); context++; version++; inCity = false; render(); }
   render();
-  return {render, showArtist, close, onHomeChange};
+  return {render, show:showOverview, showArtist, close, onHomeChange};
 }

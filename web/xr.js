@@ -20,7 +20,7 @@ export function initXR({renderer,scene,camera,button,canStand,targets,useTarget,
  const ray=new THREE.Raycaster(),rotation=new THREE.Matrix4(),controllers=[],inputs=new Map();ray.far=12;let rigActive=false,turnCooldown=0,session=null,pending=false,available=false;
  const panel=new THREE.Group();panel.visible=false;scene.add(panel);let panelKey='',panelMap=null;
  const frame=new THREE.Mesh(new THREE.PlaneGeometry(1.55,1.2),new THREE.MeshBasicMaterial({color:'#e9e3d2',side:THREE.DoubleSide}));panel.add(frame);
- for(const [command,label,x] of [['close','Close',-.52],['next','Next page',0],['critic','Ask Socrates',.52]]){
+ for(const [command,label,x] of [['close','Close',-.52],['next','Next page',0],['critic','Ask a question',.52]]){
   const c=document.createElement('canvas');c.width=256;c.height=72;const context=c.getContext('2d');context.fillStyle='#526451';context.fillRect(0,0,256,72);context.fillStyle='#ffffff';context.font='24px sans-serif';context.textAlign='center';context.fillText(label,128,46);
   const texture=new THREE.CanvasTexture(c);texture.colorSpace=THREE.SRGBColorSpace;const key=new THREE.Mesh(new THREE.PlaneGeometry(.46,.13),new THREE.MeshBasicMaterial({map:texture}));key.position.set(x,-.5,.006);key.userData={xrCommand:command};panel.add(key);
  }

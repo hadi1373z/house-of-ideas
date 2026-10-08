@@ -1,5 +1,6 @@
 // A local, deterministic Socratic guide. These prompts are not historical quotes
 // or AI-generated judgments. No service is called and no house changes silently.
+import {FEATURES, CONCEPTS, MAX_RESIDENT_FEATURES, validateResident, dailyCritiquePractice, dailyFeatureDeclined} from './resident.js';
 const clone = value => JSON.parse(JSON.stringify(value));
 const LIMIT_DAYS = 366;
 const validId = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,60}$/.test(value);
@@ -91,10 +92,31 @@ export function validateLearning(input, house) {
         text: string(action.text, 1, 6000, 'The learning book notes'), cue: 'book',
       },
     };
+    // Historical book-only reviews keep their original schema. A new review can
+    // additionally propose one bounded furnishing, with its own daily approval.
+    if (review.furnishing !== undefined) {
+      const furnishing = review.furnishing;
+      if (!furnishing || typeof furnishing !== 'object' || Array.isArray(furnishing)
+        || Object.keys(furnishing).length !== 4
+        || !Object.keys(furnishing).every(key => ['feature', 'concept', 'practice', 'successTest'].includes(key))
+        || !FEATURES.includes(furnishing.feature) || !Object.hasOwn(CONCEPTS, furnishing.concept)) throw Error('A daily furnishing needs one safe feature and a supported Socratic concept.');
+      normalized.furnishing = {
+        feature: furnishing.feature, concept: furnishing.concept,
+        practice: string(furnishing.practice, 1, 500, 'The furnishing practice'),
+        successTest: string(furnishing.successTest, 1, 500, 'The next-visit success test'),
+      };
+    }
     if (review.status !== 'pending') {
       normalized.decidedOn = notFuture(review.decidedOn);
       if (normalized.decidedOn < review.forDate) throw Error('Confirm a proposal when you return on or after its next day.');
-    } else if (review.decidedOn !== undefined || review.appliedOn !== undefined) throw Error('A pending proposal cannot have a decision or application date.');
+      // Preserve older status-only records. New decisions distinguish an owner
+      // refusal from an approved installation that later failed a safety check.
+      if (review.decision !== undefined) {
+        if (!['approve', 'decline'].includes(review.decision)
+          || (review.status !== 'declined' && review.decision !== 'approve')) throw Error('A daily review needs a compatible explicit owner decision.');
+        normalized.decision = review.decision;
+      }
+    } else if (review.decision !== undefined || review.decidedOn !== undefined || review.appliedOn !== undefined) throw Error('A pending proposal cannot have a decision or application date.');
     if (review.status === 'applied') {
       normalized.appliedOn = notFuture(review.appliedOn);
       if (normalized.appliedOn < normalized.decidedOn) throw Error('An improvement must follow its approval.');
@@ -258,14 +280,26 @@ export function reviewDay(house, date = pragueDate()) {
     question = `What evidence would support or challenge your reflection: “${truncate(reflection, 400)}”?`;
     exercise = `${lesson(room).exercise} Compare the result with your previous reflection and record what changed.`;
   }
+  const physical = dailyCritiquePractice(result, room.id);
+  let furnishing;
+  if (physical) {
+    const {feature, concept, practice, successTest} = physical;
+    furnishing = {feature, concept, practice, successTest};
+    title = physical.title;
+    reason = truncate(`${reason}\n\nHouse critique: ${physical.reason}`, 1800);
+    question = truncate(`${question}\n\n${physical.question}`, 1000);
+    exercise = `${practice}\n\nNext visit: ${successTest}`;
+  }
   const bookTitle = truncate(`Socratic exercise: ${room.name}`, 100);
-  const bookText = `Observed on ${date}\n${reason}\n\nQuestion\n${question}\n\nNext learning exercise\n${exercise}\n\nThis exercise was proposed by the house's local Socratic guide. You chose whether to add it.`;
+  const method = furnishing ? `\n\nSocratic method\n${CONCEPTS[furnishing.concept].title}` : '';
+  const bookText = `Observed on ${date}\n${reason}${method}\n\nQuestion\n${question}\n\nNext learning exercise\n${exercise}\n\nThis exercise was proposed by the house's local Socratic guide. You chose whether to add it.`;
   day.review = {
     id: `socrates-${date}`, forDate: nextDate(date), status: 'pending',
     roomId: room.id, roomName: room.name,
     title: truncate(title, 100), reason, question, exercise,
     evidence: {ideaCount: notes.length, ideaTitles: notes.map(item => item.title), reflection},
     action: {type: 'add_learning_idea', ideaId: `socratic-${date}`, title: bookTitle, text: bookText, cue: 'book'},
+    ...(furnishing ? {furnishing} : {}),
   };
   return result;
 }
@@ -291,6 +325,7 @@ export function decideReview(house, id, decision, today = pragueDate()) {
     throw Error('This proposal already has a decision.');
   }
   review.status = status;
+  review.decision = status === 'approved' ? 'approve' : 'decline';
   review.decidedOn = today;
   if (status === 'declined') review.resolution = 'You declined this proposal. The house was not changed.';
   return result;
@@ -308,6 +343,16 @@ export function applyApproved(house, today = pragueDate()) {
     if (!room) problem = 'The reviewed room was removed. Choose a new exercise during your next room visit.';
     else if (existing) problem = 'An idea already uses this proposal’s identifier. The house was not changed.';
     else if (result.ideas.length >= 192 || result.ideas.filter(item => item.roomId === room.id).length >= 12) problem = 'The reviewed room has reached its idea capacity. Make space before a future exercise.';
+    const featureId = `socratic-feature-${day.date}`;
+    let installed = false;
+    if (!problem && review.furnishing) {
+      const resident = validateResident(result.resident, result);
+      const preservedFeatures = result.resident?.roomFeatures || resident.roomFeatures;
+      installed = resident.roomFeatures.some(item => item.roomId === room.id && item.type === review.furnishing.feature);
+      if (!installed && dailyFeatureDeclined(result, room.id, review.furnishing.feature)) problem = 'This furnishing has since been declined. The learning book and furniture were left unchanged; review a different practice next time.';
+      else if (!installed && (preservedFeatures.length >= MAX_RESIDENT_FEATURES
+        || preservedFeatures.some(item => item.id === featureId))) problem = 'The approved furnishing cannot be safely added because its capacity or identifier is occupied. The learning book and furniture were left unchanged.';
+    }
     if (problem) {
       review.status = 'declined';
       review.resolution = problem;
@@ -317,9 +362,18 @@ export function applyApproved(house, today = pragueDate()) {
       id: review.action.ideaId, roomId: room.id,
       title: review.action.title, text: review.action.text, cue: 'book',
     });
+    if (review.furnishing && !installed) {
+      // The date is the explicitly recorded owner decision, represented at noon
+      // UTC because a daily decision records a calendar day rather than a time.
+      result.resident ||= validateResident(undefined, result);
+      result.resident.roomFeatures ||= [];
+      result.resident.roomFeatures.push({id: featureId, roomId: room.id, type: review.furnishing.feature, installedAt: `${review.decidedOn}T12:00:00.000Z`});
+    }
     review.status = 'applied';
     review.appliedOn = today;
-    review.resolution = `Your approved learning book was added to ${room.name}.`;
+    review.resolution = review.furnishing
+      ? `Your approved learning book was added to ${room.name}. ${installed ? 'The selected furnishing was already there; no duplicate was added.' : `A ${review.furnishing.feature.replaceAll('_', ' ')} was added for the approved practice.`}`
+      : `Your approved learning book was added to ${room.name}.`;
   }
   return result;
 }

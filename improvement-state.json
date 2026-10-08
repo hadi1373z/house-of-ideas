@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "goal": "A durable offline House of Ideas shared with a persistent Socrates resident, contextual dialogue, learning and owner-approved physical improvements.",
-  "current_milestone": "inhabited-artist-houses",
+  "current_milestone": "daily-socratic-house-critique",
   "active_item": null,
   "canonical_source": {
     "edition": "offline",
@@ -19,7 +19,7 @@
     "packaged_distribution": "Separate Windows portable deliverable; no GitHub Release asset has been published.",
     "resident": "Persistent local philosopher using room purposes, actual activities, journal evidence and refusal memory; proposals include practice and next-visit tests. Offline dialogue is a rule-based guide.",
     "physical_approval": "Only an explicit owner approval installs a bounded additive furnishing or learning book. Declines preserve the room.",
-    "daily_review": "The open local page checks at 21:00 Europe/Prague; missed recorded activity can be reviewed on return. Its book requires next-day confirmation. Nothing runs while stopped.",
+    "daily_review": "The running local server checks from 21:00 Europe/Prague with the browser closed and catches up on missed recorded days at startup. A pending next-day critique connects the visited room to a learning book and, when justified, a bounded furnishing with concept, practice and next-visit test. Only recorded owner approval creates a neighbouring edition. Older book-only reviews remain valid. Stopping the server pauses checks; no unattended GPT or repository writes occur.",
     "optional_gpt": {
       "configured_default_model": "gpt-5.4-mini",
       "configured_key": false,
@@ -32,9 +32,10 @@
     "verification": {
       "resident_engine": "passed",
       "isolated_server_http_storage_restart_and_mocked_gpt": "passed",
-      "integrated_source_suite": "passed_all_nineteen_suites_and_both_builds",
-      "packaged_launch_and_saved_restart": "passed_actual_Windows_bundle_VBS_restart_complete_original_house_and_byte_exact_backup_preserved",
-      "browser_rendering": "passed_local_GLB_house_import_full_size_tour_saved_design_reflection_optional_connection_UI_and_no_headset_fallback"
+      "integrated_source_suite": "passed_all_forty_two_suites_and_both_builds",
+      "packaged_launch_and_saved_restart": "passed_actual_Windows_bundle_startup_pending_critique_explicit_next_day_physical_edition_approval_exact_archived_homes_cities_and_saved_restart; owner_data_byte_exact_during_program_replacement_and_pending_only_startup_preserved_existing_material",
+      "browser_rendering": "passed_local_GLB_house_import_full_size_tour_saved_design_reflection_optional_connection_UI_and_no_headset_fallback",
+      "daily_critique": "Prague/DST cutoff, enabled/activity gates, startup catch-up, latest-only pending reviews, exact archives/cities/decisions, no-op persistence, CAS, restart/shutdown, historical book compatibility, purpose-aware furnishing, explicit next-day atomic approval, declined/capacity/duplicate protection and derived-home reflection draft retention passed. Real browser review and approved Living room discussion circle/book in a separate edition verified in temporary data."
     },
     "optional_chatgpt": {
       "connection": "Separate, explicit Continue with ChatGPT OAuth for eligible plans; never reads Codex credentials.",

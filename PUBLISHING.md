@@ -22,4 +22,4 @@ Delivering a ZIP in a chat does not publish a release. Create or upload a GitHub
 
 `worker/`, D1 migrations, `.openai/hosting.json` and `NIGHTLY.md` describe the older cloud implementation. `npm run build` still builds those assets; running it does not deploy a Site. Do not schedule or deploy cloud changes as part of an offline update.
 
-The earlier hourly source-improvement task remains paused. The resident and exported improvement brief do not resume it or establish automatic repository writes. Existing cloud review operations remain separate from local-page reviews.
+The earlier hourly source-improvement task remains paused. The resident and exported improvement brief do not resume it or establish automatic repository writes. The offline server's local 21:00 Prague review creates pending proposals only while that server is running. Existing cloud review operations remain separate from local-server reviews.

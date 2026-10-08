@@ -26,7 +26,9 @@ Offline Socrates is a persistent character using local dialogue rules and your s
 
 Critiques can propose a question board, discussion circle, reflection lamp, experiment table or learning book. Each local proposal includes a philosophical concept, a practice to try and a next-visit test of whether it helped. **Build next edition** installs an approved addition in a new home next door. The previous edition stays available in the neighbourhood. **Decline** leaves the room intact; Socrates takes that refusal into account instead of repeatedly offering the same furnishing. Conversation, observations, preferences and decisions are saved with the house. His critique cannot overwrite your notes or change the building structure.
 
-The daily journal is a separate loop: the open page checks for a review at **21:00 Europe/Prague**, and missed recorded days can be reviewed when you return. Its proposed learning book requires confirmation on or after the next calendar day. No local review runs while the application is stopped.
+The daily journal is a separate loop: the **local server** checks from **21:00 Europe/Prague**, even with the browser closed, and catches up on missed recorded days when it starts. Socrates connects a visited room's purpose and learning evidence to a book and, when useful, a question board, discussion circle, reflection lamp or experiment table. The review names the philosophical concept, a practice and a next-visit test. Confirm or decline it on or after the next calendar day; approval builds an independent house next door. Earlier book-only reviews remain valid. The server never approves a critique, calls GPT or publishes code on its own. **Stop House.vbs** stops the reviews until you start the server again.
+
+If a nightly review is saved while you are editing, the journal offers **Reload saved house**. Reload explicitly to see it; a background review cannot replace an unsaved reflection or bypass the save conflict check. The public preview keeps its per-visit review and has no background server.
 
 ## Inhabit a home and keep its history
 

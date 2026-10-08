@@ -66,3 +66,9 @@ body.art-city-mode .view-tools{display:none}
 #city-travel-activity { background:#eee5cc; border-radius:10px; padding:18px; }
 #city-travel-book-page { min-width:110px; text-align:center; }
 @media(max-width:600px){ .city-travel-dialog { padding:16px; } .city-travel-actions button { flex:1 1 140px; } }
+
+/* Daily owner-approved furnishing critiques. */
+.review-furnishing{margin:18px 0;padding:16px 18px;background:#eee9da;border:1px solid #ddd8c7;border-radius:10px}.review-furnishing h4{margin:16px 0 5px;font-size:14px;color:#334c3d}.review-furnishing h4:first-child{margin-top:0}.review-furnishing p{margin:5px 0;font-size:14px;line-height:1.55}#daily-update-notice{padding:10px 12px;background:#eee1b9;border-radius:7px;color:#4e583a}#daily-reload{border-color:#ae8f51}#daily-dialog{max-height:calc(100dvh - 40px);overflow:auto}
+
+/* Keep the daily decision visible while its evidence and practice scroll. */
+#daily-dialog[open]{display:flex;flex-direction:column;overflow:hidden}#daily-dialog .dialog-head{flex-shrink:0;margin-bottom:12px}#daily-dialog .daily-review-body{overflow:auto;min-height:0;padding-right:6px}#daily-dialog .review-room{margin:0 0 8px}#daily-dialog #review-title{margin:8px 0 12px}#daily-dialog .review-summary{margin:0 0 12px;padding:10px 12px;background:#eee1b9;border-radius:7px;font-size:14px;line-height:1.45}#daily-dialog .review-furnishing{margin:12px 0;padding:12px 14px}#daily-dialog .daily-review-footer{flex-shrink:0;padding-top:12px;border-top:1px solid var(--line);background:#faf8f0}#daily-dialog .daily-review-footer .dialog-actions{margin-top:0}#daily-dialog #review-message:empty{display:none}#daily-dialog #review-message{margin:0 0 10px}

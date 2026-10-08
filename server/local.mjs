@@ -12,6 +12,7 @@ import {createDesignAssetStore} from './design-assets.mjs';
 import {createChatGPTAuth} from './chatgpt-auth.mjs';
 import {createChatGPTPlanController} from './chatgpt-plan.mjs';
 import {requestArtistReply,validateArtistChatInput} from './artist-gpt.mjs';
+import {createDailyReviewService,reviewDueDays} from './daily-review.mjs';
 
 const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BODY_LIMIT = 1300000;
@@ -120,10 +121,10 @@ async function openStore(dataDir) {
   }
   let tail = Promise.resolve();
   const read=()=>{const n=clone(current.neighborhood);return {house:clone(n.homes.find(h=>h.id===n.activeId).house),neighborhood:n,revision:current.revision};};
-  const mutate=(revision,change)=>{
+  const mutate=(revision,change,{background=false}={})=>{
     const operation=tail.then(async()=>{
-      if(revision!==current.revision)throw new LocalError('This house changed in another tab. Your draft is still here. Reload before making further changes.',409);
-      let neighborhood;try{neighborhood=validateNeighborhood(change(clone(current.neighborhood)));}catch(error){if(error instanceof LocalError)throw error;throw new LocalError(error.message);}
+      if(!background&&revision!==current.revision)throw new LocalError('This house changed in another tab. Your draft is still here. Reload before making further changes.',409);
+      let neighborhood;try{const candidate=change(clone(current.neighborhood));if(background&&JSON.stringify(candidate)===JSON.stringify(current.neighborhood))return read();neighborhood=validateNeighborhood(candidate);}catch(error){if(error instanceof LocalError)throw error;throw new LocalError(error.message);}
       const next={version:2,revision:current.revision+1,neighborhood};await atomicJson(file,next);current=next;return read();
     });tail=operation.catch(()=>{});return operation;
   };
@@ -137,7 +138,7 @@ async function openStore(dataDir) {
       if(!after||['id','artistId','date','sourceMessageId'].some(k=>before[k]!==after[k])||(before.decision!=='pending'&&!same(before,after)))fail();
     }
   }
-  return {read,save(house,revision){return mutate(revision,n=>saveEdition(n,validateHouse(house)));},saveCities(cityNetwork,revision){return mutate(revision,n=>{const next=validateCityNetwork(cityNetwork);retainArtistArchive(n.cityNetwork,next);return {...n,cityNetwork:next};});},select(homeId,revision){return mutate(revision,n=>selectEdition(n,homeId));},create(revision){return mutate(revision,n=>createEdition(n));},import(neighborhood,revision){return mutate(revision,()=>neighborhood);},async idle(){await tail;}};
+  return {read,review(instant){return mutate(undefined,n=>reviewDueDays(n,instant),{background:true});},save(house,revision){return mutate(revision,n=>saveEdition(n,validateHouse(house)));},saveCities(cityNetwork,revision){return mutate(revision,n=>{const next=validateCityNetwork(cityNetwork);retainArtistArchive(n.cityNetwork,next);return {...n,cityNetwork:next};});},select(homeId,revision){return mutate(revision,n=>selectEdition(n,homeId));},create(revision){return mutate(revision,n=>createEdition(n));},import(neighborhood,revision){return mutate(revision,()=>neighborhood);},async idle(){await tail;}};
 }
 
 function cookieSession(request) {
@@ -155,11 +156,12 @@ function ensureRevision(value) {
   if (!Number.isInteger(value) || value < 0) throw new LocalError('Use the current house revision.');
 }
 
-export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.join(APP_ROOT, 'data'), webDir = path.join(APP_ROOT, 'web'), port = 4317, maxPort = 4327, env = process.env, fetchImpl = globalThis.fetch, gptTimeoutMs = 30000} = {}) {
+export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.join(APP_ROOT, 'data'), webDir = path.join(APP_ROOT, 'web'), port = 4317, maxPort = 4327, env = process.env, fetchImpl = globalThis.fetch, gptTimeoutMs = 30000, now = () => new Date(), reviewIntervalMs = 60000, scheduleReview = setInterval, cancelReview = clearInterval} = {}) {
   if (!Number.isInteger(port) || port < 0 || port > 65535 || !Number.isInteger(maxPort) || maxPort < port || maxPort > 65535) throw Error('Use valid local port numbers.');
+  if(typeof now!=='function'||typeof scheduleReview!=='function'||typeof cancelReview!=='function'||!Number.isInteger(reviewIntervalMs)||reviewIntervalMs<1)throw Error('Use valid local daily-review settings.');
   dataDir = path.resolve(dataDir);
   const lock = await acquireDataLock(dataDir);
-  let store, gpt, assets, chatgptAuth, chatgptPlan;
+  let store, gpt, assets, chatgptAuth, chatgptPlan, dailyReviews;
   try {
     webDir = await fs.realpath(path.resolve(webDir));
     store = await openStore(dataDir);
@@ -167,6 +169,7 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
     assets=await createDesignAssetStore(dataDir);
     try{chatgptAuth=await createChatGPTAuth({dataDir,fetchImpl});}catch{const message='ChatGPT registration could not be read. Your existing registration file is preserved; the offline house remains available.';const unavailable=()=>{throw new LocalError(message,409);};chatgptAuth={status:()=>({connected:false,pending:false,planEnabled:false,account:null,accounts:[],sessionOnly:true,error:message}),begin:unavailable,complete:unavailable,models:unavailable,accessToken:unavailable,cancel(){},disconnect:async()=>{},close(){}};}
     chatgptPlan=createChatGPTPlanController({auth:chatgptAuth,fetchImpl,timeoutMs:gptTimeoutMs});
+    dailyReviews=createDailyReviewService({read:store.read,review:store.review,now,intervalMs:reviewIntervalMs,schedule:scheduleReview,cancel:cancelReview});
   } catch (error) { await lock.release(); throw error; }
   const sessions = new Map();
   let origin = '';
@@ -212,6 +215,10 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
         return;
       }
       if (url.pathname === '/api/health' && request.method === 'GET') return send(response, {ok: true, mode: 'local', offline: true, gpt: gpt.config()});
+      if (url.pathname === '/api/review/status') {
+        if(request.method!=='GET')throw new LocalError('Method not allowed.',405);
+        return send(response,dailyReviews.status());
+      }
       if (['/api/config', '/api/gpt/config'].includes(url.pathname) && request.method === 'GET') {
         const {session, headers} = headersForSession(request);
         return send(response, {mode: 'local', csrfToken: session.csrf, gpt: gpt.config(),chatgpt:chatgptPlan.config()}, 200, headers);
@@ -338,12 +345,15 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
       gpt.disconnect();
       chatgptPlan.close();
       try {
+        await dailyReviews.close();
         await new Promise(resolve => { server.close(resolve); server.closeIdleConnections(); });
         await store.idle();
       } finally { await lock.release(); }
     })();
     return closing;
   };
+  try { await dailyReviews.start(); }
+  catch { await closeServer(); throw Error('Could not start the local daily review. Your saved house is preserved.'); }
   return {server, url: origin, port: selected, dataDir, close: closeServer};
 }
 

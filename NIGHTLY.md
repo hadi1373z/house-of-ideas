@@ -1,6 +1,6 @@
 # Legacy private cloud runbook
 
-This file applies only to the older owner-private Sites edition. The offline edition uses the open local page and next-entry catch-up described in OFFLINE.md. Do not deploy or create a cloud schedule while updating the offline edition. The historical instructions below are retained for an explicitly requested cloud maintenance task.
+This file applies only to the older owner-private Sites edition. The offline edition uses the running local server and startup catch-up described in OFFLINE.md. Do not deploy or create a cloud schedule while updating the offline edition. The historical instructions below are retained for an explicitly requested cloud maintenance task.
 
 # Socrates evening review
 

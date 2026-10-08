@@ -6,6 +6,7 @@ import {CITIES} from './city-network.js';
 const clone = value => JSON.parse(JSON.stringify(value));
 const validId = value => typeof value === 'string' && /^[a-zA-Z0-9_-]{1,60}$/.test(value);
 const LIMITS = {messages: 80, observations: 40, proposals: 48, pending: 12, features: 64};
+export const MAX_RESIDENT_FEATURES = LIMITS.features;
 export const FEATURES = ['discussion_circle', 'question_board', 'reflection_lamp', 'experiment_table'];
 export const CONCEPTS = {
   clarify: {title: 'Clarify the claim', description: 'Ask what a word or claim means before deciding whether it is true.'},
@@ -345,7 +346,7 @@ function exerciseFor(feature, facts) {
   };
 }
 
-function critiquePlan(house, roomId) {
+function critiquePlan(house, roomId, excludedFeatures = []) {
   const facts = roomFacts(house, roomId), orientation = roomOrientation(facts);
   let preferred, reason;
   if (orientation === 'care') {
@@ -378,7 +379,7 @@ function critiquePlan(house, roomId) {
   const candidates = [preferred, ...FEATURES.filter(item => item !== preferred)].filter(item => !facts.features.includes(item));
   const decisions = house.resident.proposals.filter(item => item.roomId === roomId && item.status !== 'pending');
   const latestByFeature = new Map(decisions.filter(item => item.action.feature).map(item => [item.action.feature, item.decision]));
-  const declined = new Set([...latestByFeature].filter(([, decision]) => decision === 'decline').map(([feature]) => feature));
+  const declined = new Set([...latestByFeature].filter(([, decision]) => decision === 'decline').map(([feature]) => feature).concat(excludedFeatures));
   const feature = candidates.find(item => !declined.has(item));
   if (feature) {
     if (feature !== preferred) {
@@ -397,6 +398,35 @@ function critiquePlan(house, roomId) {
     practice: 'Choose one existing idea. State it in your own words, offer a counterexample, and decide what a fair test would show.',
     successTest: 'Next visit, explain whether the test strengthened or changed the idea. Record an honest result, including uncertainty.',
   };
+}
+
+// Daily reviews reuse the resident's purpose-aware practice without recording an
+// observation, consuming a proposal slot, or changing any conversation history.
+// A declined daily addition is also a request not to propose that furniture again.
+function declinedDailyFeatures(house, roomId) {
+  return (house.learning?.days || []).flatMap(day => {
+    const review = day.review;
+    return review?.roomId === roomId && review.status === 'declined' && review.furnishing
+      && (review.decision === 'decline' || review.decision === undefined)
+      ? [review.furnishing.feature] : [];
+  });
+}
+
+export function dailyFeatureDeclined(house, roomId, feature) {
+  const resident = validateResident(house.resident, house);
+  const lastDecision = [...resident.proposals].reverse().find(item => item.roomId === roomId
+    && item.status !== 'pending' && item.action.feature === feature);
+  return lastDecision?.decision === 'decline' || declinedDailyFeatures(house, roomId).includes(feature);
+}
+
+export function dailyCritiquePractice(house, roomId) {
+  const resident = validateResident(house.resident, house);
+  if ((house.resident?.roomFeatures || resident.roomFeatures).length >= LIMITS.features) return null;
+  const context = {...house, doors: house.doors || [], resident};
+  const plan = critiquePlan(context, roomId, declinedDailyFeatures(house, roomId));
+  if (!plan.feature) return null;
+  const {feature, concept, practice, successTest, title, reason, question} = plan;
+  return {feature, concept, practice, successTest, title, reason, question};
 }
 
 function putProposal(house, roomId, specification, source, at) {

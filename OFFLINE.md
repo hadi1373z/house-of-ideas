@@ -27,9 +27,13 @@ Try “What assumption does this idea depend on?”, “What would change my min
 
 ## Daily learning and physical changes
 
-Use **Journal · J** to open your ideas, learning activity and reflection. The daily review prepares a learning-book proposal at 21:00 Prague time when the page is open, or catches up from recorded prior activity when you return. Confirm or decline that proposal on or after its next day.
+Use **Journal · J** to open your ideas, learning activity and reflection. From **21:00 Europe/Prague**, the running local server prepares a critique from recorded visits, ideas and reflections. Closing the browser leaves this review running; **Stop House.vbs**, shutting down the computer or stopping the server pauses it. Startup catches up on missed recorded days, without inventing activity for days you did not visit.
 
-Resident furniture proposals can be approved when you review them. They use a separate approval flow from the daily next-day book. Neither flow silently applies a suggestion. Stopped local software does not run background reviews.
+The proposal includes a learning book and, when justified, a question board, discussion circle, reflection lamp or experiment table suited to the room's purpose. Read the concept, practice and next-visit test before confirming on or after the next day. **Build next edition** installs the approved additions in a separate neighbouring home; earlier homes remain complete. A furnishing already installed or declined is taken into account. Existing book-only proposals still work.
+
+If the server saves a new critique while your journal is open, choose **Reload saved house** when ready. Reflection drafts are retained, and stale saves are rejected instead of overwriting newer activity. The review status shows the running local schedule; it is an offline rule-based critique, with no unattended GPT request or GitHub publication.
+
+Resident furniture proposals can be approved when you review them. They use a separate approval flow from the daily next-day critique. Neither flow silently applies a suggestion. Stopped local software does not run background reviews.
 
 ## Objects you can use
 

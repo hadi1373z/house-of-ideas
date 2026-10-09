@@ -60,7 +60,7 @@ const read=expression=>vm.runInContext(expression,context),submit=id=>$(id).onsu
 async function until(predicate,label){const deadline=Date.now()+5000;while(Date.now()<deadline){if(predicate())return;await new Promise(resolve=>setTimeout(resolve,2));}throw Error('Timed out: '+label);}
 async function saved(){const response=await fetch(running.url+'/api/house');assert.equal(response.status,200);return response.json();}
 const source=(await fs.readFile(path.join(root,'web/app.js'),'utf8')).replace(/^import .*$/gm,'');
-function makeContext(){return vm.createContext({...model,...homes,...residence,initialCityNetwork,validateCityNetwork,CITIES,ARTISTS,initHomeUI,initResidenceUI,pragueDate,recordReflection,formatCityDiscussion,proposeArtistHome,
+function makeContext(){return vm.createContext({...model,...homes,...residence,initialCityNetwork,validateCityNetwork,CITIES,saveCityNote,ARTISTS,initHomeUI,initResidenceUI,initMathCityUI:panel,pragueDate,recordReflection,formatCityDiscussion,proposeArtistHome,
  initLearning:()=>({render(){},hideCritic(){},noteVisit(){},onHomeChange(){},onEditionCreated(){},async onLoad(){},includeVisits:house=>house}),initResidentUI:()=>({...panel(),show(){residentShows++;$('resident-conversation').hidden=false;},close(){$('resident-conversation').hidden=true;}}),initDesignerUI:panel,initChatGPTUI:panel,initArtCityUI:panel,initArtistResidentUI:panel,initArtistHomesUI:panel,initCityTravelUI:panel,
  document,window,console,crypto,AbortController,Blob,URL,setInterval(){},setTimeout(){},createScene(_,callback){pick=callback;return scene;},fetch:browserFetch});}
 try{

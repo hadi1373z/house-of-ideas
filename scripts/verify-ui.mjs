@@ -11,7 +11,7 @@ import {initHomeUI} from '../web/home-ui.js';
 import {initChatGPTUI} from '../web/chatgpt-ui.js';
 import * as neighborhood from '../web/neighborhood.js';
 import * as residenceData from '../web/residence-data.js';
-import {initialCityNetwork,validateCityNetwork,CITIES} from '../web/city-network.js';
+import {initialCityNetwork,validateCityNetwork,CITIES,saveCityNote} from '../web/city-network.js';
 import {pragueDate,reflect as recordReflection} from '../web/socrates.js';
 // DOM-action integration harness. This checks state flows; it is not a browser/GPU test.
 class Element{
@@ -29,7 +29,7 @@ const residentTimers=new Map();let residentVisit,pick;
 // These optional panels have dedicated interaction suites. Keep this revision-
 // aware house/learning harness focused on its real storage and resident flows.
 const optionalPanel=()=>({async onLoad(){},render(){},refreshConfig(){},show(){},close(){},onHomeChange(){}});
-const context=vm.createContext({...model,...neighborhood,...residenceData,initialCityNetwork,validateCityNetwork,CITIES,formatCityDiscussion,initHomeUI,pragueDate,recordReflection,initLearning,ARTISTS:[],initArtCityUI:optionalPanel,initArtistResidentUI:optionalPanel,initArtistHomesUI:optionalPanel,initCityTravelUI:optionalPanel,initChatGPTUI:optionalPanel,initDesignerUI:optionalPanel,initResidenceUI:optionalPanel,initResidentUI:options=>initResidentUI({...options,schedule(fn,delay){residentTimers.set(delay,fn);return delay;},cancel(){}}),document,console,crypto,window:{addEventListener(){}},setInterval(){},createScene(container,onPick){pick=onPick;return {load(h){lastHouse=model.clone(h);},select(id){selected=id;},setWalk(){},setExterior(){},setSocrates(){},onResidentVisit(callback){residentVisit=callback;},reset(){}};},async fetch(path,opts={}){if(failSave&&opts.method==='PUT')return Response.json({error:'Test save unavailable'},{status:503});return worker.fetch(new Request('https://house.test'+path,{...opts,headers:{...opts.headers,'oai-authenticated-user-id':'ui-user'}}),{DB});}});
+const context=vm.createContext({...model,...neighborhood,...residenceData,initialCityNetwork,validateCityNetwork,CITIES,saveCityNote,formatCityDiscussion,initHomeUI,pragueDate,recordReflection,initLearning,ARTISTS:[],initArtCityUI:optionalPanel,initArtistResidentUI:optionalPanel,initArtistHomesUI:optionalPanel,initCityTravelUI:optionalPanel,initChatGPTUI:optionalPanel,initDesignerUI:optionalPanel,initResidenceUI:optionalPanel,initMathCityUI:optionalPanel,initResidentUI:options=>initResidentUI({...options,schedule(fn,delay){residentTimers.set(delay,fn);return delay;},cancel(){}}),document,console,crypto,window:{addEventListener(){}},setInterval(){},createScene(container,onPick){pick=onPick;return {load(h){lastHouse=model.clone(h);},select(id){selected=id;},setWalk(){},setExterior(){},setSocrates(){},onResidentVisit(callback){residentVisit=callback;},reset(){}};},async fetch(path,opts={}){if(failSave&&opts.method==='PUT')return Response.json({error:'Test save unavailable'},{status:503});return worker.fetch(new Request('https://house.test'+path,{...opts,headers:{...opts.headers,'oai-authenticated-user-id':'ui-user'}}),{DB});}});
 context.AbortController=AbortController;
 const source=(await fs.readFile('web/app.js','utf8')).replace(/^import .*$/gm,'');vm.runInContext(source,context);const $=id=>elements.get(id);for(let n=0;n<8;n++)await new Promise(resolve=>setImmediate(resolve));assert.equal($('save-state').textContent,'All changes saved');assert.equal(lastHouse.rooms.length,6);
 const submit=()=>$('idea-form').onsubmit({preventDefault(){},submitter:new Element('button')});
@@ -131,7 +131,7 @@ function localStartup(configResponses){
  const requests=[];let configs=0;
  document.body.dataset={mode:'local'};
  const panel=()=>({...optionalPanel(),renderNeighborhood(){},notify(){}});
- const localContext=vm.createContext({...model,...neighborhood,...residenceData,initialCityNetwork,validateCityNetwork,CITIES,formatCityDiscussion,pragueDate,recordReflection,document,console,crypto,AbortController,window:{document,addEventListener(){},setInterval(){},clearInterval(){}},setInterval(){},initLearning:panel,initResidentUI:panel,initHomeUI:panel,ARTISTS:[],initArtCityUI:panel,initArtistResidentUI:panel,initArtistHomesUI:panel,initCityTravelUI:panel,initDesignerUI:panel,initResidenceUI:panel,initChatGPTUI,createScene(){return {load(){},setAssetResolver(){}};},async fetch(path,options={}){
+ const localContext=vm.createContext({...model,...neighborhood,...residenceData,initialCityNetwork,validateCityNetwork,CITIES,saveCityNote,formatCityDiscussion,pragueDate,recordReflection,document,console,crypto,AbortController,window:{document,addEventListener(){},setInterval(){},clearInterval(){}},setInterval(){},initLearning:panel,initResidentUI:panel,initHomeUI:panel,ARTISTS:[],initArtCityUI:panel,initArtistResidentUI:panel,initArtistHomesUI:panel,initCityTravelUI:panel,initDesignerUI:panel,initResidenceUI:panel,initMathCityUI:panel,initChatGPTUI,createScene(){return {load(){},setAssetResolver(){}};},async fetch(path,options={}){
   requests.push({path,options});
   if(path==='/api/config'){const response=configResponses[configs++];assert.ok(response,'Unexpected duplicate startup config request');return await response;}
   assert.equal(options.headers['X-Local-CSRF'],localConfig.csrfToken);

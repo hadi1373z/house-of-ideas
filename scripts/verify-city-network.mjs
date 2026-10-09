@@ -6,8 +6,8 @@ import {CITIES,CITY_ANCHORS,CITY_LIMITS,initialCityNetwork,validateCityNetwork,p
   exportCollection,importCollection} from '../web/city-network.js';
 
 const before=value=>JSON.stringify(value),date='2026-10-08T09:30:00.000Z';
-assert.deepEqual(CITIES.map(city=>city.id),['home','artists','makers']);
-assert.deepEqual(CITY_ANCHORS,{home:['library','table','plaza'],artists:['library','table','plaza'],makers:['library','workshop','plaza']});
+assert.deepEqual(CITIES.map(city=>city.id),['home','artists','makers','mathematics']);
+assert.deepEqual(CITY_ANCHORS,{home:['library','table','plaza'],artists:['library','table','plaza'],makers:['library','workshop','plaza'],mathematics:['library','table','plaza']});
 for(const city of CITIES){assert.ok(city.name&&city.description);assert.deepEqual(city.anchors.map(anchor=>anchor.id),CITY_ANCHORS[city.id]);assert.ok(city.anchors.every(anchor=>anchor.label));}
 assert.equal(CITY_LIMITS.travelPackBytes,2*1024*1024);
 let network=initialCityNetwork();
@@ -106,4 +106,4 @@ assert.throws(()=>importTravelPack(network,{format:'other-package',version:1,net
 assert.throws(()=>importTravelPack(network,{format:'house-of-ideas-travel-pack',version:1,network,externalUrl:'https://example.com'}),/unsupported field/);
 const executable=JSON.parse('{"format":"house-of-ideas-travel-pack","version":1,"__proto__":{"polluted":true}}');assert.throws(()=>importTravelPack(network,executable));assert.equal({}.polluted,undefined);
 assert.equal(before(house),savedHouse);
-console.log('City network: three validated destinations, independent cargo copies and city journals, immutable transports, placement capacity, lossless collision remapping, portable round trips, overflow preservation and defensive imports passed.');
+console.log('City network: four validated destinations, independent cargo copies and city journals, immutable transports, placement capacity, lossless collision remapping, portable round trips, overflow preservation and defensive imports passed.');

@@ -90,4 +90,4 @@ const gallery = converse(base(), roomId, 'We are visiting ' + artist.name + '’
 assert.equal(gallery.resident.messages.at(-1).concept, 'evidence');
 assert.match(gallery.resident.messages.at(-1).text, /saved gallery note|saved gallery catalog/);
 assert.equal(gallery.resident.proposals.length, 0);
-console.log('City Socrates passed: all eighteen city/library combinations, grounded methods and next-visit tests, bounded shared formatting, malformed-context clarification and unchanged home/gallery behaviour without autonomous changes.');
+console.log('City Socrates passed: all twenty-four city/library combinations, grounded methods and next-visit tests, bounded shared formatting, malformed-context clarification and unchanged home/gallery behaviour without autonomous changes.');

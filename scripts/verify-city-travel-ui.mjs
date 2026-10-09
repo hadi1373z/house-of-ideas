@@ -75,10 +75,10 @@ const submit = id => $(id).onsubmit({preventDefault() {}});
 const choose = (id, value) => { $(id).value = value; $(id).onchange?.(); };
 const file = (name, value) => ({name, size: new TextEncoder().encode(value).byteLength, text: async () => value});
 
-// The chooser presents three real cities, reads every source home, and has no network service.
+// The chooser presents every real city, reads every source home, and has no network service.
 $('city-travel-open').onclick();
 assert.equal($('city-travel-dialog').open, true);
-assert.equal($('city-travel-destinations').children.length, 3);
+assert.equal($('city-travel-destinations').children.length, CITIES.length);
 assert.equal($('city-travel-source-home').value, 'latest');
 assert.equal($('city-travel-source-home').children.length, 2);
 assert.match($('city-travel-location').textContent, /Home neighbourhood/);
@@ -284,4 +284,4 @@ saveWait.resolve(); await contextSave; saveWait = null;
 assert.equal($('city-travel-activity-answer').value, 'A draft after changing homes.');
 assert.equal(JSON.stringify(neighborhood), originals);
 assert.ok(notices.some(([text]) => text.includes('disk write failed')));
-console.log('City travel UI passed: three destinations, preserved-home copies, books and physical activities, landmark displays, independent journals, concurrent drafts and defensive local collection import/export.');
+console.log('City travel UI passed: all city destinations, preserved-home copies, books and physical activities, landmark displays, independent journals, concurrent drafts and defensive local collection import/export.');

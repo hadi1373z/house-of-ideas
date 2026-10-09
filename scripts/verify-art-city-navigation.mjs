@@ -97,7 +97,7 @@ function verifyReturn(presenting, fromNeighborhood, blockSaved = false) {
   const freeRoom = room => { const point = centerOf(room); return new THREE.Vector3(point.x, 0, point.z); };
   assert.equal(homeClear(saved.position.x, saved.position.z), !blockSaved);
   assert.equal(homeClear(saved.resident.x, saved.resident.z), !blockSaved);
-  const context = vm.createContext({THREE, camera, visitor, built, neighborhoodGroup, designs,
+  const context = vm.createContext({THREE, floorHeight:()=>0, camera, visitor, built, neighborhoodGroup, designs,
     artCity: city, makersCity: null, cityId: 'artists', artCityMode: true, artCitySaved: saved, house: privateHouse,
     neighborhoodMode: false, residentRoomId: null, path: [{x: 2, z: 4}], pause: 0,
     residentTalking: true, summoning: true, yaw: -1.8, pitch: .4, firstPersonPosition: null,

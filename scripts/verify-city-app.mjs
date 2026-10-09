@@ -15,6 +15,7 @@ import {proposeArtistHome} from '../web/artist-homes.js';
 import {ARTISTS} from '../web/art-city-data.js';
 import {validateResident,formatCityDiscussion} from '../web/resident.js';
 import {initHomeUI} from '../web/home-ui.js';
+import {initMathCityUI} from '../web/math-city-ui.js';
 import * as residenceData from '../web/residence-data.js';
 import {pragueDate,reflect as recordReflection} from '../web/socrates.js';
 import {BOOKS} from '../web/books.js';
@@ -70,13 +71,16 @@ const document={body,getElementById:id=>elements.get(id)||null,createElement:tag
 const optionalPanel=()=>({async onLoad(){},render(){},close(){},onHomeChange(){}});
 const window={addEventListener(){},setInterval(callback,delay){timers.set('home:'+delay,callback);return delay;},
   clearInterval(){},setTimeout(){},URL,open(){throw Error('No remote window is opened.');}};
-let city='home',artistId=null,pick,latestSceneHouse,physicalNetwork,cookie='',cityGate=null,houseGate=null,readGate=null,failCities=false,failReads=false;
+let city='home',artistId=null,pick,latestSceneHouse,physicalNetwork,cookie='',cityGate=null,houseGate=null,readGate=null,failCities=false,failReads=false,mathLevel=0;
 const scene={load(house){latestSceneHouse=model.clone(house);},setEdition(){},setNeighborhood(){},
   setCityNetwork(network){physicalNetwork=model.clone(network);},cityState:()=>CITIES.find(item=>item.id===city),
   prepareCity(id){assert.ok(CITIES.some(item=>item.id===id),'Prepare receives the destination city');physical.push('prepare:'+id);},
   travelToCity(id){assert.ok(physicalNetwork.visits[id]>0,'A visit is saved before scene transition');city=id;
     physical.push('travel:'+id);pick({artAction:'city-state'});},
   leaveArtCity(){city='home';pick({artAction:'city-state'});},showNeighborhood(){city='home';pick({artAction:'city-state'});},
+  mathState:()=>city==='mathematics'?{floor:mathLevel}:null,
+  enterMathCity(){assert.equal(city,'mathematics');mathLevel=0;physical.push('enter-mathematics');},
+  visitMathFloor(index){assert.equal(city,'mathematics');assert.ok(Number.isInteger(index)&&index>=0&&index<8);mathLevel=index;physical.push('math-floor:'+index);},
   playerState:()=>({cityId:city,cityName:CITIES.find(item=>item.id===city).name,cityLocation:city==='makers'?'Workshop hall':null,
     artistCity:city==='artists',artistId:city==='artists'?artistId:null,roomId:city==='home'?'math':null,outside:city!=='home',neighborhood:city==='home'}),
   artistResidentState:id=>({artistId:id,cityId:city,available:city==='artists',near:city==='artists'&&artistId===id,position:{x:0,z:0}}),
@@ -112,7 +116,7 @@ let context;
 try{
   running=await startServer({dataDir,webDir:path.join(root,'web'),port:0,maxPort:0,env:{},
     fetchImpl:async()=>{providerCalls++;throw Error('No unrequested provider request is allowed.');}});
-  context=vm.createContext({...model,...neighborhood,...residenceData,initialCityNetwork,validateCityNetwork,CITIES,
+  context=vm.createContext({...model,...neighborhood,...residenceData,initialCityNetwork,validateCityNetwork,CITIES,saveCityNote,initMathCityUI,
     initHomeUI,pragueDate,recordReflection,initCityTravelUI,formatCityDiscussion,
     initLearning:()=>({render(){},hideCritic(){},noteVisit(){},onHomeChange(){},async onLoad(){},includeVisits:house=>house}),
     initResidentUI:options=>initResidentUI({...options,schedule(callback,delay){timers.set('resident:'+delay,callback);return delay;},cancel(){}}),
@@ -311,8 +315,36 @@ try{
   assert.equal((await state()).revision,saved.revision);
   scene.leaveArtCity();assert.equal($('artist-resident-dialog').open,false);
   assert.equal($('resident-hud').hidden,false);assert.equal($('socrates-tab').textContent,'Socrates');
+
+  // The shipped Mathematics coordinator adds a separate destination while
+  // preserving every house. Its real guide dispatches floors, exercises and
+  // journal writes; neither reading nor preparing dialogue invokes GPT.
+  const beforeMathematics=await state(),mathematicsHomes=JSON.stringify(beforeMathematics.neighborhood.homes);
+  assert.equal($('math-city-atlas-frame').src,undefined);
+  await $('math-city-open').click();assert.equal(city,'mathematics');
+  assert.equal($('math-city-guide-open').hidden,false);assert.equal($('math-city-dialog').open,false,'Arrival leaves the building visible');
+  $('math-city-guide-open').click();assert.equal($('math-city-dialog').open,true);
+  await $('math-city-floor-7').click();assert.equal(mathLevel,7);assert.equal(physical.at(-1),'math-floor:7');
+  pick({mathAction:'concept',conceptId:'algorithms'});assert.match($('math-city-title').textContent,/Algorithms/);
+  assert.match($('math-city-exercise-text').textContent,/Euclid/);assert.equal($('math-city-atlas-frame').src,undefined);
+  const mathematicalDraft='  Euclid’s remainders decrease.\nI want to understand why termination follows.  ';
+  $('math-city-reflection').value=mathematicalDraft;$('math-city-reflection').oninput();
+  failCities=true;await $('math-city-save-reflection').click();failCities=false;
+  assert.equal($('math-city-reflection').value,mathematicalDraft);assert.match($('math-city-status').textContent,/kept for retry/);
+  assert.equal(JSON.stringify((await state()).neighborhood.homes),mathematicsHomes);
+  await $('math-city-save-reflection').click();saved=await state();
+  assert.equal(saved.neighborhood.cityNetwork.notes.at(-1).cityId,'mathematics');
+  assert.equal(saved.neighborhood.cityNetwork.notes.at(-1).text,'[Mathematics · Algorithms & termination]\n'+mathematicalDraft);
+  const mathematicsProviderBoundary=requests.length;await $('math-city-discuss').click();
+  assert.match($('resident-input').value,/Mathematics City/);assert.match($('resident-input').value,/Algorithms/);
+  assert.equal(requests.length,mathematicsProviderBoundary,'A mathematical question is prepared but not sent');
+  pick({mathAction:'atlas'});assert.equal($('math-city-atlas-frame').src,'./math-city/atlas/index.html#ideas');
+  assert.equal($('math-city-atlas-frame').attributes.sandbox,'allow-scripts allow-downloads');
+  $('city-travel-open').click();await $('city-travel-home').click();assert.equal(city,'home');
+  assert.equal($('math-city-guide-open').hidden,true);assert.equal($('math-city-dialog').open,false);
+  assert.equal(JSON.stringify((await state()).neighborhood.homes),mathematicsHomes,'Mathematical travel, exercises and notes retain every exact personal house');
   assert.equal(providerCalls,0);assert.ok(!requests.some(request=>/^\/api\/(?:gpt|chatgpt)\/.+/.test(request.route)));
-  console.log('Actual app city transport, global revisions, archive copies, drafts, physical activities and explicit provider boundaries verified.');
+  console.log('Actual app city transport, global revisions, archive copies, drafts, physical activities, Mathematics floors/journal/Atlas and explicit provider boundaries verified.');
 }finally{
   await running?.close();
   assert.equal(path.dirname(path.resolve(temporary)),path.resolve(os.tmpdir()));

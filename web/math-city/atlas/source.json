@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "title": "Atlas of Ideas — Reader’s edition",
+  "repository": "https://github.com/hadi1373z/atlas-of-ideas",
+  "site": "https://hadi1373z.github.io/atlas-of-ideas/",
+  "sourceCommit": "90a6dab9f7ae7b54bb34e0d7d8cabac155775e40",
+  "buildId": "b5913ba25e6334c676a48343612abb36f0d371388e41a21eedbd8c1e6b396b77",
+  "htmlSha256": "bd07240709cc2626f581556f1b272bc8e118a20a98da4ce2e3b711f3aa4d2da4",
+  "htmlBytes": 977348,
+  "profiles": 131,
+  "connections": 181,
+  "readingPaths": 8,
+  "ideaLenses": 13,
+  "publicUpdates": 20,
+  "entry": "./index.html#ideas",
+  "storageKey": "atlas-of-ideas-v1",
+  "runtimeDependencies": [],
+  "updatePolicy": "Pinned public snapshot; no automatic synchronization.",
+  "rights": "Source repository declares no license; no license is inferred. Bundled at the project owner’s request.",
+  "notebook": "The sandboxed miniature has session-only notes. The standalone local reader has browser-local notes; export a shelf backup to move notes.",
+  "concepts": [
+    {
+      "id": "computation",
+      "name": "Limits of computation",
+      "start": "turing"
+    },
+    {
+      "id": "verification",
+      "name": "Proof & verification",
+      "start": "goldwasser"
+    },
+    {
+      "id": "approximation",
+      "name": "Approximation & optimization",
+      "start": "goemans"
+    },
+    {
+      "id": "local-global",
+      "name": "Local views, global structure",
+      "start": "gaifman"
+    },
+    {
+      "id": "randomness",
+      "name": "Randomness & probability",
+      "start": "erdos"
+    },
+    {
+      "id": "algebra",
+      "name": "The polynomial viewpoint",
+      "start": "shamir"
+    },
+    {
+      "id": "symmetry",
+      "name": "Symmetry & sameness",
+      "start": "babai"
+    },
+    {
+      "id": "counting",
+      "name": "Counting & combinatorics",
+      "start": "valiant"
+    },
+    {
+      "id": "information",
+      "name": "Information & secrecy",
+      "start": "shannon"
+    },
+    {
+      "id": "learning",
+      "name": "Learning & intelligence",
+      "start": "valiant"
+    },
+    {
+      "id": "spaces",
+      "name": "Geometry & spaces",
+      "start": "riemann"
+    },
+    {
+      "id": "programs",
+      "name": "Programs & their meaning",
+      "start": "dijkstra"
+    },
+    {
+      "id": "data-structures",
+      "name": "Data structures",
+      "start": "tarjan"
+    }
+  ]
+}

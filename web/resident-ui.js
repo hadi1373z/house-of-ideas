@@ -11,9 +11,9 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
   if(unavailable&&open)close();
   if(unavailable)$('resident-hud').hidden=true;
   else if(!document.body?.classList?.contains('plan-mode'))$('resident-hud').hidden=false;
-  $('resident-location').textContent=(state.artistCity||state.cityId==='makers')?'Socrates · '+state.locationLabel:room?'Socrates · '+room.name:'Socrates · Front door';
+  $('resident-location').textContent=(state.artistCity||['makers','mathematics'].includes(state.cityId))?'Socrates · '+state.locationLabel:room?'Socrates · '+room.name:'Socrates · Front door';
   $('resident-activity').textContent=state.talking?'Listening to you':state.activity||'Exploring the house';
-  $('conversation-location').textContent=state.summoning?'Socrates is coming to meet you':state.near?((state.artistCity||state.cityId==='makers')?'Together in '+state.locationLabel:room?'Together in '+room.name:'Together by the front door'):(state.artistCity||state.cityId==='makers')?'Socrates is exploring '+state.locationLabel:room?'Socrates is in '+room.name:'Meet Socrates inside the house';
+  $('conversation-location').textContent=state.summoning?'Socrates is coming to meet you':state.near?((state.artistCity||['makers','mathematics'].includes(state.cityId))?'Together in '+state.locationLabel:room?'Together in '+room.name:'Together by the front door'):(state.artistCity||['makers','mathematics'].includes(state.cityId))?'Socrates is exploring '+state.locationLabel:room?'Socrates is in '+room.name:'Meet Socrates inside the house';
   if(open&&state.near&&!state.talking&&!state.summoning)scene?.setResidentTalking?.(true);
   $('resident-send').disabled=busy||isSaving()||!isLoaded()||!state.near||Boolean(state.summoning);
   $('resident-critic').disabled=busy||isSaving()||!isLoaded();

@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "goal": "A durable offline House of Ideas shared with a persistent Socrates resident, contextual dialogue, learning and owner-approved physical improvements.",
-  "current_milestone": "inhabitable-residence-and-idea-map",
+  "current_milestone": "mathematics-city-and-offline-atlas",
   "active_item": null,
   "canonical_source": {
     "edition": "offline",
@@ -32,9 +32,9 @@
     "verification": {
       "resident_engine": "passed",
       "isolated_server_http_storage_restart_and_mocked_gpt": "passed",
-      "integrated_source_suite": "passed_all_forty_six_suites_and_both_builds",
+      "integrated_source_suite": "passed_all_fifty_two_suites_and_both_builds",
       "packaged_launch_and_saved_restart": "passed_actual_Windows_bundle_three_floor_residence_import_lighting_entry_writing_paintings_exact_archived_homes_cities_and_saved_restart; owner_program_replacement_preserved_all_private_bytes_and_requested_new_residence_preserved_complete_previous_homes_ideas_memories_journals_cities",
-      "browser_rendering": "Passed actual temporary local residence guide, dedicated floor/object/idea map, explicit saved idea assignment, third floor, room lighting/writing/painting settings, clear exterior and wall painting inspection. Earlier GLB import and artist-city checks remain covered. No live GPT or headset hardware used.",
+      "browser_rendering": "Temporary local browser verified full eight-floor tower, top-floor central hall with embodied Socrates, subject guide, quantifier exercise, saved reflection and reload, explicit unsent resident discussion, sandboxed Atlas Geometry lens and Riemann profile. No live GPT or physical headset used.",
       "daily_critique": "Prague/DST cutoff, enabled/activity gates, startup catch-up, latest-only pending reviews, exact archives/cities/decisions, no-op persistence, CAS, restart/shutdown, historical book compatibility, purpose-aware furnishing, explicit next-day atomic approval, declined/capacity/duplicate protection and derived-home reflection draft retention passed. Real browser review and approved Living room discussion circle/book in a separate edition verified in temporary data."
     },
     "optional_chatgpt": {
@@ -301,6 +301,12 @@
       "item": "offline-resident-edition",
       "result": "Prepared the dependency-free local runtime, persistent resident, approval-only furnishings, optional session-key GPT adapter, Windows launcher packaging and offline-first documentation. GitHub becomes canonical for this edition; older private Sites v8 remains separate.",
       "verification": "All seven source suites and both builds passed. Real browser checks covered enclosed entrance, held WASD movement, embodied resident approach, offline conversation save, approved furnishing and reload, and return from floor plan. Actual Windows bundle Start/Stop VBS, server reuse and restart passed with saved bytes preserved. Four same-room furnishings fit separately even in 3 x 3 rooms with doors. No live API key or paid request; GPT transport is mocked. GitHub source/CI/Pages outcomes are recorded separately by the release task."
+    },
+    {
+      "date": "2026-10-09",
+      "item": "mathematics-city-and-offline-atlas",
+      "result": "Added a separate eight-floor mathematics city, 24 functional learning objects, independent mathematical reflections and explicit Socrates discussion, plus the actual pinned offline Atlas reader on selectable monitors. Every earlier home and city remains available.",
+      "verification": "All 52 source suites and both builds passed. Actual temporary local browser verified tower, top-floor interior, exercises, reflection save/reload and Geometry/Riemann reader navigation. Packaged launch/restart and publication results are recorded in the release task; no owner critique approval, live model request or physical headset test."
     }
   ],
   "designer_contributions": {
@@ -326,10 +332,10 @@
     "controls": "Trigger selection/ground teleport, left-stick movement, right-stick snap turn, in-world reading/critique panel.",
     "verification": "Rig/head world transforms, collision axes, stable pivot, selected-floor teleport, landing transfers, elevated seating/standing and desktop restoration tested with mocks; real headset hardware remains unverified.",
     "hardware_verified": false,
-    "scope": "Single-player exploration with floor-aware rig height and landing selection in residence editions; no continuous stair walking, CAD/BIM editor, shared world, marketplace or arbitrary device connection."
+    "scope": "Single-player exploration with floor-aware rig height and explicit landing selection in personal residences and the eight-floor Mathematics Institute; the full Atlas reader remains a browser interface. No continuous stair walking, CAD/BIM editor, shared world, marketplace or arbitrary device connection."
   },
   "artists_city": {
-    "residents": "Ten distinct embodied artist residents, each living and exploring inside their own gallery house. Socrates remains in the personal neighbourhood and Makers City.",
+    "residents": "Ten distinct embodied artist residents, each living and exploring inside their own gallery house. Socrates remains in the personal neighbourhood, Makers City and Mathematics City.",
     "conversation": "Ten distinct interpretive artist personas; explicit optional ChatGPT plan or API conversations grounded in their own works, recent private dialogue and gallery history. Offline art guides remain available.",
     "persistence": "Optional artistConversations and artistHomes preserve separate chats and decisions, CAS across the whole store, immutable retained conversation prefixes and decided gallery history. Every complete personal home and Socrates memory is preserved.",
     "privacy": "Online requests send only selected-artist context after explicit send. Learning collection exports exclude chats and gallery decisions. Approved GitHub briefs name included design fields and exclude transcripts; data-folder backup retains all private material.",
@@ -340,5 +346,32 @@
     "catalog_limit_bytes": 2097152,
     "authentication_limit_bytes": 128000,
     "verification": "Large valid 160KB catalogue accepted; over-budget bodies, hidden records, malformed catalogues, body cancellation/timeouts and intact session checked using mocks. Public JWKS/discovery are small; protected catalogue is the likely cause of the reported error."
+  },
+  "mathematics_city": {
+    "city_id": "mathematics",
+    "building": "Independent Mathematics Institute, eight physical floors at four-metre spacing, complete facade and roof, selected-floor study furniture, explicit lift/stair transfers and central-hall arrivals.",
+    "subjects": [
+      "Foundations",
+      "Algebra",
+      "Geometry",
+      "Calculus and analysis",
+      "Discrete mathematics",
+      "Probability and statistics",
+      "Topology",
+      "Logic and computation"
+    ],
+    "learning": "24 selectable books, diagram boards and idea objects with explanations, questions, exercises and source links. The guide lists subjects and floor destinations. Mathematical discussions prepare an unsent Socrates question; no automatic online request.",
+    "persistence": "Independent city journal and ground-floor cargo copies. Existing three-city records retain their exact shape until a mathematics visit is recorded. Saving city notes preserves all complete personal homes, resident memories, artist conversations and approved editions.",
+    "atlas": {
+      "repository": "https://github.com/hadi1373z/atlas-of-ideas",
+      "source_commit": "90a6dab9f7ae7b54bb34e0d7d8cabac155775e40",
+      "sha256": "bd07240709cc2626f581556f1b272bc8e118a20a98da4ce2e3b711f3aa4d2da4",
+      "content": "Actual deployed self-contained reader: 131 thinkers, 181 connections, eight trails and thirteen idea lenses.",
+      "loading": "Explicit monitor selection only. Opaque sandbox with scripts and downloads, no same-origin access. Only this exact local HTML path permits same-origin framing; no broad CSP relaxation.",
+      "notes": "Embedded reader notes and shelf are session-only; explicit JSON export retains them. City reflections persist separately in the offline house. No automatic Atlas synchronization."
+    },
+    "verification": "Six focused suites passed: bounded data, draft-preserving UI and explicit reader actions, physical geometry/ray selection/collision/resources, 20 actual coordinator desktop/mocked-XR transfers, exact Atlas HTTP/script/framing policy, and genuine legacy-data city-save/restart/conflict preservation. Browser checks are recorded separately.",
+    "limits": "Floor transfers are explicit, not continuous stair walking. Physical VR and live GPT remain unverified. Public preview uses in-memory state. Atlas external reading uses the explicit original-online link.",
+    "packaged_verification": "Passed actual bundled Windows Node launch, graceful CLI stop, saved mathematics journal and three cargo anchors, exact restart, old three-city shape and complete three-home/artist-history fixture preservation; no provider calls or owner data used."
   }
 }

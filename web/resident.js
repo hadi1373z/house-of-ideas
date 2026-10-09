@@ -555,9 +555,11 @@ function cityLearningReply(context, facts) {
   if (!context.valid) return `Which activity in ${city.name} are we examining: reading, questioning, an experiment or reflection? Choose a known library book or a copied idea, then describe one observation. We can turn that into a small learning test and keep the result in the city journal.`;
   const {title, concept, book} = context;
   const example = city.id === 'artists' ? 'a visible detail in an artwork'
-    : city.id === 'makers' ? 'one step in a workshop task' : 'a daily activity in your home';
+    : city.id === 'mathematics' ? 'a precise mathematical example, with its assumptions stated'
+      : city.id === 'makers' ? 'one step in a workshop task' : 'a daily activity in your home';
   const placeQuestion = city.id === 'artists' ? 'Which detail can you point to, and which part is your interpretation?'
-    : city.id === 'makers' ? 'Which workshop task does this place support, and how could you observe whether it helps?'
+    : city.id === 'mathematics' ? 'Which definition or assumption is doing the work? A few successful examples do not prove a universal claim; can you justify the general case or find a counterexample?'
+      : city.id === 'makers' ? 'Which workshop task does this place support, and how could you observe whether it helps?'
       : 'Which ordinary use makes this place useful to you, and what gets in its way?';
   const exercises = {
     clarify: [`What do you mean by a useful result for “${title}”? Which example would another person recognise?`,

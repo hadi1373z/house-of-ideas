@@ -7,12 +7,13 @@ export const CITY_LIMITS = Object.freeze({cargo:64, placements:128, placementsPe
   notes:120, cargoText:6000, noteText:2000, visits:1000000, travelPackBytes:2*1024*1024,
   artistMessages:80, artistMessageText:2000, artistConversationBytes:512*1024});
 export const CITY_ANCHORS = Object.freeze({home:Object.freeze(['library','table','plaza']),
-  artists:Object.freeze(['library','table','plaza']), makers:Object.freeze(['library','workshop','plaza'])});
+  artists:Object.freeze(['library','table','plaza']), makers:Object.freeze(['library','workshop','plaza']), mathematics:Object.freeze(['library','table','plaza'])});
 const labels={library:'Library',table:'Learning table',plaza:'Plaza',workshop:'Workshop'};
 export const CITIES = Object.freeze([
   {id:'home',name:'Home neighbourhood',description:'Return to your preserved homes, read in the library and bring a thought to the learning table.'},
   {id:'artists',name:'Artists’ City',description:'Explore ten artist houses, read, discuss their works and keep observations in the city journal.'},
   {id:'makers',name:'Makers’ City',description:'Visit workshops, try a small experiment and bring useful ideas back to another city.'},
+  {id:'mathematics',name:'Mathematics City',description:'Enter an eight-floor mathematical house, explore ideas and open the offline Atlas of Ideas on its screens.'},
 ].map(city=>Object.freeze({...city,anchors:Object.freeze(CITY_ANCHORS[city.id].map(id=>Object.freeze({id,label:labels[id]})))})));
 
 const cityIds=CITIES.map(city=>city.id), validId=value=>typeof value==='string'&&/^[a-zA-Z0-9_-]{1,60}$/.test(value);
@@ -40,7 +41,7 @@ const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const withoutId=record=>{const {id,...value}=record;return value;};
 
 export function initialCityNetwork(){
-  return {version:1,cargo:[],placements:[],notes:[],visits:{home:0,artists:0,makers:0},lastVisits:{home:null,artists:null,makers:null}};
+  return {version:1,cargo:[],placements:[],notes:[],visits:{home:0,artists:0,makers:0,mathematics:0},lastVisits:{home:null,artists:null,makers:null,mathematics:null}};
 }
 
 export function validateCityNetwork(input){
@@ -77,6 +78,9 @@ export function validateCityNetwork(input){
   keys(input.visits,cityIds,'city visit counts');keys(input.lastVisits??{},cityIds,'city visit dates');
   const visits={},lastVisits={};
   for(const id of cityIds){
+    // Older networks stay byte-equivalent in content until the owner actually
+    // visits the new city. Do not manufacture a saved mathematics visit.
+    if(id==='mathematics'&&!Object.hasOwn(input.visits,id)&&!Object.hasOwn(input.lastVisits??{},id))continue;
     const count=input.visits[id];if(!Number.isInteger(count)||count<0||count>CITY_LIMITS.visits)throw Error(`City visit counts must be between 0 and ${CITY_LIMITS.visits}.`);
     visits[id]=count;lastVisits[id]=input.lastVisits?.[id]==null?null:timestamp(input.lastVisits[id]);
   }
@@ -134,7 +138,7 @@ export function removePlacement(network,id){
   result.placements=result.placements.filter(item=>item.id!==id);return result;
 }
 export function recordCityVisit(network,cityId,options={}){
-  const result=validateCityNetwork(network),id=city(cityId);result.visits[id]++;result.lastVisits[id]=now(options);return validateCityNetwork(result);
+  const result=validateCityNetwork(network),id=city(cityId);result.visits[id]=(result.visits[id]??0)+1;result.lastVisits[id]=now(options);return validateCityNetwork(result);
 }
 export function saveCityNote(network,cityId,value,options={}){
   const result=validateCityNetwork(network);result.notes.push({id:freshId('note',result.notes),cityId:city(cityId),date:now(options),text:value});return validateCityNetwork(result);
@@ -184,7 +188,8 @@ export function importTravelPack(network,input){
     result.notes.push({...item,id:existing?freshId('note',result.notes,reservedNotes):item.id});
   }
   for(const id of cityIds){
-    result.visits[id]=Math.max(result.visits[id],incoming.visits[id]);
+    if(!Object.hasOwn(result.visits,id)&&!Object.hasOwn(incoming.visits,id))continue;
+    result.visits[id]=Math.max(result.visits[id]??0,incoming.visits[id]??0);
     const date=incoming.lastVisits[id];if(date&&(!result.lastVisits[id]||date>result.lastVisits[id]))result.lastVisits[id]=date;
   }
   return validateCityNetwork(result);

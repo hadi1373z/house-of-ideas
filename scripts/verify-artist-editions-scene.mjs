@@ -74,7 +74,7 @@ const physicalBase=buildArtCity(THREE,ARTISTS),scene=new THREE.Scene(),camera=ne
 camera.position.set(24,1.65,0);visitor.position.set(0,0,0);
 const context=vm.createContext({THREE,ARTISTS,scene,camera,visitor,artCityBase:physicalBase,artCity:null,artistEditionLayer:null,artistResidents:null,artistTalkingId:null,artCityArtists:ARTISTS,cityNetwork:{artistHomes:{editions:editions.slice(0,3)}},cityId:'artists',artCityMode:true,cityLayers:new Map(),tourState:null,walk:true,built:{group:new THREE.Group()},house:{ideas:[]},designs:{group:new THREE.Group()},homeFacilities:null,neighborhoodGroup:new THREE.Group(),yaw:0,pitch:0,firstPersonPosition:null,residentTalking:false,path:[],pause:0,playerPath:[],seatTarget:null,landmarkLookAt:null,ray:new THREE.Raycaster(),
  buildArtistCityEditions,buildArtistResidents,
- xr:{presenting:false,relocate(x,z,heading){xrPoint.set(x,1.65,z);relocations.push({x,z,heading});}},
+ xr:{setFloorHeight(){},presenting:false,relocate(x,z,heading){xrPoint.set(x,1.65,z);relocations.push({x,z,heading});}},
  playerPoint:()=>context.xr.presenting?xrPoint:camera.position,remoteWorld:()=>context.artCity,canStand:(x,z)=>context.artCity.canStand(x,z),resetInput(){},refreshCargo(){},
  onPick:data=>events.push(data),enterArtCity(){context.cityId='artists';context.artCityMode=true;visitor.visible=false;context.showCityLayers();}});
 const shipped=['refreshArtistEditions','setCityNetwork','showCityLayers','faceDirection','placeCityPlayer','enterArtistHouse','greetArtistResident','artistResidentState','lineOfSight','visibleObject','glassObject','targetData','focusedTarget','useTarget'].map(declaration).join('\n');

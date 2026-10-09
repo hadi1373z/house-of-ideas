@@ -15,6 +15,7 @@ import {proposeArtistHome} from '../web/artist-homes.js';
 import {ARTISTS} from '../web/art-city-data.js';
 import {validateResident,formatCityDiscussion} from '../web/resident.js';
 import {initHomeUI} from '../web/home-ui.js';
+import * as residenceData from '../web/residence-data.js';
 import {pragueDate,reflect as recordReflection} from '../web/socrates.js';
 import {BOOKS} from '../web/books.js';
 import {startServer} from '../server/local.mjs';
@@ -59,7 +60,7 @@ for(const match of html.matchAll(/<([^\s>]+)[^>]*\bid="([^"]+)"([^>]*)>/g)){
 const $=id=>{assert.ok(elements.has(id),'The real app contains '+id);return elements.get(id);};
 const radios=model.CUES.map(value=>{const radio=new Element('input');radio.value=value;radio.checked=value==='crystal';return radio;});
 const saveArea=new Element(),body=new Element('body');body.dataset.mode='local';
-const document={body,getElementById:$,createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag),
+const document={body,getElementById:id=>elements.get(id)||null,createElement:tag=>new Element(tag),createElementNS:(_,tag)=>new Element(tag),
   querySelectorAll:()=>[],querySelector(selector){
     if(selector==='.save-area')return saveArea;if(selector==='#scene canvas')return $('scene');
     if(selector==='dialog[open]')return [...elements.values()].find(element=>element.open);
@@ -111,11 +112,11 @@ let context;
 try{
   running=await startServer({dataDir,webDir:path.join(root,'web'),port:0,maxPort:0,env:{},
     fetchImpl:async()=>{providerCalls++;throw Error('No unrequested provider request is allowed.');}});
-  context=vm.createContext({...model,...neighborhood,initialCityNetwork,validateCityNetwork,CITIES,
+  context=vm.createContext({...model,...neighborhood,...residenceData,initialCityNetwork,validateCityNetwork,CITIES,
     initHomeUI,pragueDate,recordReflection,initCityTravelUI,formatCityDiscussion,
     initLearning:()=>({render(){},hideCritic(){},noteVisit(){},onHomeChange(){},async onLoad(){},includeVisits:house=>house}),
     initResidentUI:options=>initResidentUI({...options,schedule(callback,delay){timers.set('resident:'+delay,callback);return delay;},cancel(){}}),
-    initArtCityUI:optionalPanel,initArtistResidentUI:options=>initArtistResidentUI({...options,schedule(callback,delay){timers.set('artist:'+delay,callback);return delay;},cancel(){}}),initArtistHomesUI,proposeArtistHome,initChatGPTUI:optionalPanel,initDesignerUI:optionalPanel,ARTISTS,
+    initArtCityUI:optionalPanel,initArtistResidentUI:options=>initArtistResidentUI({...options,schedule(callback,delay){timers.set('artist:'+delay,callback);return delay;},cancel(){}}),initArtistHomesUI,proposeArtistHome,initChatGPTUI:optionalPanel,initDesignerUI:optionalPanel,initResidenceUI:optionalPanel,ARTISTS,
     document,window,console,crypto,AbortController,Blob,URL,setInterval(){},setTimeout(){},
     createScene(_,callback){pick=callback;return scene;},fetch:browserFetch});
   const source=(await fs.readFile(path.join(root,'web/app.js'),'utf8')).replace(/^import .*$/gm,'');

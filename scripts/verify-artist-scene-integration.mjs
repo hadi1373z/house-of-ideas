@@ -36,11 +36,11 @@ const visitor=new THREE.Group();visitor.userData={resident:true};visitor.positio
 const camera=new THREE.PerspectiveCamera(62,1,.08,250);scene.add(camera);
 const events=[],built={group:new THREE.Group()},makersCity={group:new THREE.Group(),insideAt:()=>null};
 const xrPose=new THREE.Vector3(),relocations=[];
-const context=vm.createContext({THREE,scene,camera,visitor,artCity,artistResidents,artCityArtists:ARTISTS,makersCity,
+const context=vm.createContext({THREE,currentFloor:0,floorHeight:()=>0,scene,camera,visitor,artCity,artistResidents,artCityArtists:ARTISTS,makersCity,
  house:starter(),built,designs:{group:new THREE.Group()},homeFacilities:null,cityLayers:new Map(),neighborhoodGroup:new THREE.Group(),
  cityId:'artists',artCityMode:true,artistTalkingId:null,tourState:null,walk:true,yaw:0,pitch:0,firstPersonPosition:null,ray:new THREE.Raycaster(),
  residentRoomId:null,targetRoomId:null,residentTalking:false,path:[],pause:4,summoning:false,
- xr:{presenting:false,relocate(x,z,heading){xrPose.set(x,1.65,z);relocations.push({x,z,heading});}},
+ xr:{setFloorHeight(){},presenting:false,relocate(x,z,heading){xrPose.set(x,1.65,z);relocations.push({x,z,heading});}},
  playerPoint:()=>context.xr.presenting?xrPose:camera.position,remoteWorld:()=>artCity,cityName:()=>context.cityId==='artists'?'Artists’ City':'Makers’ City',
  onPick:data=>events.push(data),resetInput(){},
  enterArtCity(){context.cityId='artists';context.artCityMode=true;visitor.visible=false;context.showCityLayers();},

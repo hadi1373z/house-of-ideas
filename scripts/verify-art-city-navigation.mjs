@@ -104,8 +104,8 @@ function verifyReturn(presenting, fromNeighborhood, blockSaved = false) {
     held: new Set(['up']), stick: {reset() { resets++; }}, look: {id: 1},
     playerPath: [{x: 1, z: 2}], seatTarget: {height: 1.1}, landmarkLookAt: {x: 4, z: 2},
     showCityLayers() {},
-    xr: {presenting, relocate(...args) { relocations.push(args); }},
-    canStand: homeClear, canNavigate: homeClear, freePoint: freeRoom, roomAtPoint, entranceFor,
+    xr: {setFloorHeight(){},presenting, relocate(...args) { relocations.push(args); }},
+    currentFloor:0,navigationHouse:()=>privateHouse,groundFloor(){},canStand: homeClear, canNavigate: homeClear, freePoint: freeRoom, roomAtPoint, entranceFor,
     onPick(data) { sceneEvents.push({data, cityMode: context.artCityMode, returnHidden: returnButton.hidden}); },
     document: {body: {classList: {remove(value) { bodyClasses.delete(value); }}},
       getElementById(id) { assert.equal(id, 'art-city-return'); return returnButton; }}
@@ -145,7 +145,7 @@ function verifyReturn(presenting, fromNeighborhood, blockSaved = false) {
     assert.equal(event.cityMode, false); assert.equal(event.returnHidden, true);
   }
   assert.equal(JSON.stringify(privateHouse), before, 'Returning preserves all personal house data');
-  if (presenting) assert.deepEqual(relocations, [[returned.x, returned.z, saved.yaw]]);
+  if (presenting) assert.deepEqual(relocations, [[returned.x, returned.z, saved.yaw, 0]]);
   else { assert.deepEqual(camera.position.toArray(), returned.toArray()); assert.equal(relocations.length, 0); }
   vm.runInContext('leaveArtCity()', context);
   assert.equal(resets, 1, 'Returning again is a harmless no-op');

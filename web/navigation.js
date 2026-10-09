@@ -2,7 +2,7 @@ import {sharedEdge} from './model.js';
 
 export const centerOf=r=>({x:r.x+r.w/2-10,z:r.y+r.h/2-8,roomId:r.id});
 export function houseBounds(house){const minX=Math.min(...house.rooms.map(r=>r.x))-10,maxX=Math.max(...house.rooms.map(r=>r.x+r.w))-10,minZ=Math.min(...house.rooms.map(r=>r.y))-8,maxZ=Math.max(...house.rooms.map(r=>r.y+r.h))-8;return {minX,maxX,minZ,maxZ,w:maxX-minX,d:maxZ-minZ,cx:(minX+maxX)/2,cz:(minZ+maxZ)/2};}
-export function entranceFor(house){const b=houseBounds(house),room=house.rooms.filter(r=>r.y+r.h-8===b.maxZ).sort((a,c)=>Math.abs(centerOf(a).x-b.cx)-Math.abs(centerOf(c).x-b.cx))[0];return {roomId:room.id,x:centerOf(room).x,z:b.maxZ,width:1.5};}
+export function entranceFor(house){const ground=house.rooms.filter(room=>(room.floor??0)===0),rooms=ground.length?ground:house.rooms,b=houseBounds({...house,rooms}),room=rooms.filter(r=>r.y+r.h-8===b.maxZ).sort((a,c)=>Math.abs(centerOf(a).x-b.cx)-Math.abs(centerOf(c).x-b.cx))[0];return {roomId:room.id,x:centerOf(room).x,z:b.maxZ,width:1.5};}
 export function roomAtPoint(house,x,z,padding=0){return house.rooms.find(r=>x+10>=r.x+padding&&x+10<=r.x+r.w-padding&&z+8>=r.y+padding&&z+8<=r.y+r.h-padding)?.id||null;}
 export function reachableIds(house,start){const seen=new Set([start]),queue=[start];while(queue.length){const id=queue.shift();for(const d of house.doors){const next=d.a===id?d.b:d.b===id?d.a:null;if(next&&!seen.has(next)){seen.add(next);queue.push(next);}}}return [...seen];}
 export function roomRoute(house,start,end){

@@ -1,6 +1,7 @@
 import {validateLearning} from './socrates.js';
 import {validateResident} from './resident.js';
 import {validateDesignObjects} from './design-objects.js';
+import {validateRoomResidence,validateResidence} from './residence-data.js';
 export const GRID={width:20,height:16};
 export const CUES=['crystal','ring','sphere','book'];
 export const IDEA_ACTIONS=['read','question','experiment','reflect'];
@@ -23,6 +24,7 @@ export function starter(){
  return {...house,rooms:house.rooms.map(room=>({...room,...HOME_ROLES[room.id]}))};
 }
 export function sharedEdge(a,b){
+ if((a.floor??0)!==(b.floor??0))return null;
  const lowX=Math.max(a.x,b.x),highX=Math.min(a.x+a.w,b.x+b.w),lowY=Math.max(a.y,b.y),highY=Math.min(a.y+a.h,b.y+b.h);
  if(highY-lowY>=2&&(a.x+a.w===b.x||b.x+b.w===a.x))return {axis:'z',fixed:a.x+a.w===b.x?b.x:a.x,lo:lowY,hi:highY};
  if(highX-lowX>=2&&(a.y+a.h===b.y||b.y+b.h===a.y))return {axis:'x',fixed:a.y+a.h===b.y?b.y:a.y,lo:lowX,hi:highX};
@@ -37,9 +39,9 @@ export function validateHouse(input){
   if(typeof r.purpose!=='string'||r.purpose.length>400)throw Error('Room descriptions must be under 400 characters.');
   if(!/^#[a-f0-9]{6}$/i.test(r.color))throw Error('Choose a valid room color.');
   if(![r.x,r.y,r.w,r.h].every(Number.isInteger)||r.x<0||r.y<0||r.w<3||r.h<3||r.x+r.w>GRID.width||r.y+r.h>GRID.height)throw Error('Rooms must be at least 3 × 3 cells and fit inside the grid.');
-  return {id:r.id,name:r.name.trim(),purpose:r.purpose,color:r.color,x:r.x,y:r.y,w:r.w,h:r.h};
+  return {...clone(r),id:r.id,name:r.name.trim(),purpose:r.purpose,color:r.color,x:r.x,y:r.y,w:r.w,h:r.h,...validateRoomResidence(r)};
  });
- for(let i=0;i<rooms.length;i++)for(let j=i+1;j<rooms.length;j++){const a=rooms[i],b=rooms[j];if(a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y)throw Error('Rooms cannot overlap.');}
+ for(let i=0;i<rooms.length;i++)for(let j=i+1;j<rooms.length;j++){const a=rooms[i],b=rooms[j];if((a.floor??0)===(b.floor??0)&&a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y)throw Error('Rooms cannot overlap on the same floor.');}
  if(!Array.isArray(input.doors)||input.doors.length>40)throw Error('Use up to 40 doors.');
  const doors=[],pairs=new Set();for(const d of input.doors){const a=rooms.find(r=>r.id===d.a),b=rooms.find(r=>r.id===d.b);if(!a||!b||a===b||!sharedEdge(a,b))throw Error('A door needs two rooms sharing at least two cells of wall.');const key=[d.a,d.b].sort().join('|');if(pairs.has(key))throw Error('Those rooms already have a door.');pairs.add(key);doors.push({a:d.a,b:d.b});}
  if(!Array.isArray(input.ideas)||input.ideas.length>192)throw Error('The house can hold up to 192 ideas.');
@@ -49,7 +51,7 @@ export function validateHouse(input){
   if(typeof i.title!=='string'||!i.title.trim()||i.title.length>100||typeof i.text!=='string'||i.text.length>6000)throw Error('Ideas need a title (up to 100 characters) and notes (up to 6,000).');
   if(!CUES.includes(i.cue))throw Error('Choose a memory object.');
   if(i.action!==undefined&&!IDEA_ACTIONS.includes(i.action))throw Error('Choose reading, questioning, experimenting or reflection for the object.');
-  return {id:i.id,roomId:i.roomId,title:i.title.trim(),text:i.text,cue:i.cue,...(i.action!==undefined?{action:i.action}:{})};
- });const result={rooms,doors,ideas};if(input.designObjects!==undefined)result.designObjects=validateDesignObjects(input.designObjects,rooms);if(input.learning!==undefined)result.learning=validateLearning(input.learning,result);if(input.resident!==undefined)result.resident=validateResident(input.resident,result);return result;
+  return {...clone(i),id:i.id,roomId:i.roomId,title:i.title.trim(),text:i.text,cue:i.cue,...(i.action!==undefined?{action:i.action}:{})};
+ });const result={...clone(input),rooms,doors,ideas,...validateResidence(input,rooms,doors)};if(input.designObjects!==undefined)result.designObjects=validateDesignObjects(input.designObjects,rooms);if(input.learning!==undefined)result.learning=validateLearning(input.learning,result);if(input.resident!==undefined)result.resident=validateResident(input.resident,result);return result;
 }
-export function reachableRooms(house,start){const seen=new Set([start]);let changed=true;while(changed){changed=false;for(const d of house.doors){if(seen.has(d.a)&&!seen.has(d.b)){seen.add(d.b);changed=true;}if(seen.has(d.b)&&!seen.has(d.a)){seen.add(d.a);changed=true;}}}return seen;}
+export function reachableRooms(house,start){const seen=new Set([start]);let changed=true;while(changed){changed=false;for(const d of [...house.doors,...(house.stairs||[])]){if(seen.has(d.a)&&!seen.has(d.b)){seen.add(d.b);changed=true;}if(seen.has(d.b)&&!seen.has(d.a)){seen.add(d.a);changed=true;}}}return seen;}

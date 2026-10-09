@@ -17,13 +17,32 @@ The server binds to `127.0.0.1`, normally port 4317, and can try the next ports 
 
 ## Walk and converse
 
-Click the 3D view to focus it. WASD or arrow keys move; drag to look; the joystick also moves you. **Open the front door** takes you through the entrance. The house fills the screen; **J** opens or closes your journal. The journal contains room notes, the floor plan, **Dollhouse**, and the button to call Socrates.
+Click the 3D view to focus it. WASD or arrow keys move; drag to look; the joystick also moves you. **Open the front door** takes you through the entrance. The house fills the screen; **J** opens or closes your journal. **Map & ideas** opens room notes and the floor-plan tools; **Dollhouse** shows the building from above. **Your home · Socrates** opens a guide to your homes, rooms and objects.
 
 Socrates lives in the house and walks through its connected rooms. Go near him and press **E**, or choose **Talk to Socrates**. Use **Call Socrates** when he is elsewhere. Sending a message becomes available when he is close enough. **Gentle / Direct** changes the conversational pace he remembers.
 
 Try “What assumption does this idea depend on?”, “What would change my mind?” or “Please add an experiment table.” The offline guide uses local rules and your actual saved material. It draws on a room's purpose, objects and assigned functions, reflections, previous observations, your expressed aims and recorded refusals. It can compare a design's purpose with how you actually use it. Its answers may help you investigate, but it is not a language model or a collection of historical quotations.
 
 **Critique this room** prepares a concrete proposal with its reason, philosophical concept, practice and next-visit success test. For example, a discussion circle asks you to make the strongest alternative case, then record what changed your mind. Read it before choosing **Build next edition** or **Decline**. Approved additions become physical learning furnishings or a book in a new house next door; pending proposals do not change the room. Socrates remembers refusals and avoids offering the same declined furnishing again unless you explicitly request it. Decisions and conversation survive a restart.
+
+## Find and shape your residence
+
+Open **Your home · Socrates** to see each neighbouring home, every room's floor and purpose, and an inventory of its objects and activities. Choose **Go there** for a room, a floor button for an upper level, or **Meet Socrates** to find him. Your personal house is his residence; the ten artists inhabit their separate houses in Artists’ City.
+
+An earlier home can be copied with **Build a home with paintings and upper floors**. The new residence keeps the source home's ideas, notes, journal, Socrates conversation and decisions. It adds an upper gallery, marked stair landings and a selection of locally bundled paintings. The earlier complete home remains visitable.
+
+Choose **Assign room & objects** in a current room to configure it:
+
+- Set its name, purpose or idea, and color.
+- Set **Room brightness** between 0 and 100.
+- Write up to 1,000 characters to display when you enter that room. Dismiss the writing while you explore; entering again shows it again.
+- Choose up to three different paintings from the sixty attributed local works. Inspect a wall painting with **E**, or choose it from the inventory, to read its description, credit and looking exercise. The image and description work offline; source and reuse-record links are deliberate online actions.
+- Use **Assign ideas to rooms** to choose a destination for each saved idea. Its complete note and reading, question, experiment or reflection function stay attached. Each room holds up to twelve ideas.
+- Choose one, two or three floors. Adding a floor creates a connected upper room. A floor with existing rooms cannot be removed until those rooms have been moved; invalid overlaps or stair connections are rejected without discarding the draft.
+
+**Build this room in a new home** records these settings in an independent house next door. The prior home's rooms and objects stay intact. A save conflict keeps your room settings, painting selection, entry writing and idea destinations for retry; use **Reload saved house**, review the retained draft, then build again. Older homes remain read-only until copied into a new edition.
+
+The floors physically stack at 3.4-metre intervals. Approach a staircase landing and press **E** for **Go upstairs** or **Go downstairs**, or use the guide's floor and room buttons. Landings transfer you between connected floors; they do not provide continuous stair climbing. The room guide lists household furnishings, saved ideas, paintings, approved learning features and imported room designs, with available activities beside them.
 
 ## Daily learning and physical changes
 
@@ -93,13 +112,13 @@ Connect a headset supported by your browser's WebXR implementation and open the 
 
 When the page detects compatible immersive VR, the button becomes **Enter VR**. Approve the browser's headset permission when you choose to enter. **VR unavailable** means the current browser/device connection cannot start that mode; you can continue walking on the monitor.
 
-Point a controller and press its trigger to select a nearby object or teleport onto a clear floor. The left stick moves forward/back in your looking direction; the right stick turns in 30-degree steps. Opened book text or the latest artist or Socrates reply appears on an in-world panel with **Close**, **Next page** and **Ask a question** controls. Typed answers, model imports and connection settings still use the desktop interface. **Exit VR** returns to desktop viewing. Physical headset and controller operation has not been tested live for this release.
+Point a controller and press its trigger to select a nearby object or teleport onto a clear floor. The left stick moves forward/back in your looking direction; the right stick turns in 30-degree steps. Opened book text or the latest artist or Socrates reply appears on an in-world panel with **Close**, **Next page** and **Ask a question** controls. Residence navigation and floor changes preserve the selected floor's 3.4-metre height offset in mocked WebXR checks. Typed answers, model imports and connection settings still use the desktop interface. **Exit VR** returns to desktop viewing. Physical headset and controller operation has not been tested live for this release.
 
 ## Visit earlier houses
 
-**Neighbourhood** takes you to the street. Each preserved edition has its own house; approach its entrance and press **E**, or select an edition from the journal. The original house retains its previous visual style. Earlier inhabited homes also keep their renderer: `web/inhabited-scene-v1.js` is preserved while the new designer edition adds its import layer.
+**Neighbourhood** takes you to the street. Each preserved edition has its own house; approach its entrance and press **E**, or select an edition from **Your home · Socrates** or the journal. The original house retains its previous visual style. Earlier inhabited homes keep `web/inhabited-scene-v1.js`, and designer-enabled `atelier` homes retain their import layer. The new `residence` edition uses `web/residence-scene-v1.js` and `web/residence-interior-v1.js` for paintings, configurable lighting and multiple floors.
 
-Older houses are read-only. Their rooms, objects, notes and conversations remain available to inspect. **Build a new edition next door** makes an independent copy that you can develop. Changing a layout, installing approved furnishings, or adding/moving/changing an assigned object also preserves the previous edition before creating the next one. Writing notes and talking to Socrates save in the current house.
+Older houses are read-only. Their complete rooms, objects, notes, journal, conversations, decisions and custom metadata remain available to inspect. **Build a new edition next door** makes an independent copy that you can develop. Changing a layout, installing approved furnishings, or adding/moving/changing an assigned object preserves the previous edition before creating the next one. Building changes through the room guide also creates a new home for brightness, paintings, writing on arrival, purposes and assignments. Ordinary idea-note edits and conversations with Socrates save in the current house.
 
 On first upgrade, the previous saved house is retained in the neighbourhood and its original storage envelope is copied to `data/house-before-neighborhood.json`. The new home keeps your notes and history. Back up the entire `data` folder to preserve all editions. Up to 128 editions are kept; reaching the limit stops new editions without removing an old house.
 

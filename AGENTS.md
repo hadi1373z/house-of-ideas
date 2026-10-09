@@ -6,6 +6,12 @@ For a future visual redesign, retain the current renderer in a versioned local m
 
 `web/inhabited-scene-v1.js` retains the inhabited renderer and `atelier` identifies designer-enabled homes. Before changing shared furnishing, book-display or style helpers, retain the versions needed by older renderers and point those renderers to the retained helpers too.
 
+`residence` identifies the first personal home with attributed wall paintings, configurable room brightness and arrival writing, idea assignments and one to three physical floors. Preserve `web/residence-scene-v1.js` and `web/residence-interior-v1.js` when adding a later visual edition. Keep `legacy`, `inhabited` and `atelier` mapped to their retained appearances; do not promote an old saved edition's tag in place. Owner room-guide and map changes build independent neighbouring editions and retain the complete prior home, including unknown custom JSON metadata alongside validated notes, journal, conversation and decisions.
+
+`web/residence-data.js` validates room floors 0–2, brightness 0–100, entry writing up to 1,000 characters and up to three existing local painting IDs per room. Doors join rooms on the same floor; stairs join adjacent floors sharing a landing of at least 2 × 2 cells. All rooms in a configured residence must stay connected. Floor construction preserves existing room IDs and idea assignments; reducing the count must not discard upper rooms or their content. `floorHouse` is a renderer/navigation projection and must never replace the full persisted home. The guide is **Your home · Socrates**; **Map & ideas** opens the editor.
+
+Residence floors stack at 3.4 metres. Marked landings use an explicit **E** action to transfer between connected levels; continuous stair climbing is not implemented. Keep player, resident, object selection, imported room designs and WebXR navigation on the selected floor. Verify desktop geometry and mocked XR floor heights; describe physical headset/controller operation as unverified until it is tested with hardware.
+
 The offline edition and GitHub Pages preview are canonical here. Keep personal `data/` out of commits and portable ZIPs. Preserve an existing data folder during a program update. Use temporary data for tests. Do not deploy the separate legacy Sites edition as part of local work.
 
 Socrates can propose bounded room furnishings and learning activities. Changes require the owner's recorded approval. Offline dialogue stays available; optional GPT must remain an explicit connection without a bundled key.

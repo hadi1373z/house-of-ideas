@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "goal": "A durable offline House of Ideas shared with a persistent Socrates resident, contextual dialogue, learning and owner-approved physical improvements.",
-  "current_milestone": "daily-socratic-house-critique",
+  "current_milestone": "inhabitable-residence-and-idea-map",
   "active_item": null,
   "canonical_source": {
     "edition": "offline",
@@ -32,9 +32,9 @@
     "verification": {
       "resident_engine": "passed",
       "isolated_server_http_storage_restart_and_mocked_gpt": "passed",
-      "integrated_source_suite": "passed_all_forty_two_suites_and_both_builds",
-      "packaged_launch_and_saved_restart": "passed_actual_Windows_bundle_startup_pending_critique_explicit_next_day_physical_edition_approval_exact_archived_homes_cities_and_saved_restart; owner_data_byte_exact_during_program_replacement_and_pending_only_startup_preserved_existing_material",
-      "browser_rendering": "passed_local_GLB_house_import_full_size_tour_saved_design_reflection_optional_connection_UI_and_no_headset_fallback",
+      "integrated_source_suite": "passed_all_forty_six_suites_and_both_builds",
+      "packaged_launch_and_saved_restart": "passed_actual_Windows_bundle_three_floor_residence_import_lighting_entry_writing_paintings_exact_archived_homes_cities_and_saved_restart; owner_program_replacement_preserved_all_private_bytes_and_requested_new_residence_preserved_complete_previous_homes_ideas_memories_journals_cities",
+      "browser_rendering": "Passed actual temporary local residence guide, dedicated floor/object/idea map, explicit saved idea assignment, third floor, room lighting/writing/painting settings, clear exterior and wall painting inspection. Earlier GLB import and artist-city checks remain covered. No live GPT or headset hardware used.",
       "daily_critique": "Prague/DST cutoff, enabled/activity gates, startup catch-up, latest-only pending reviews, exact archives/cities/decisions, no-op persistence, CAS, restart/shutdown, historical book compatibility, purpose-aware furnishing, explicit next-day atomic approval, declined/capacity/duplicate protection and derived-home reflection draft retention passed. Real browser review and approved Living room discussion circle/book in a separate edition verified in temporary data."
     },
     "optional_chatgpt": {
@@ -51,9 +51,17 @@
     "storage_version": 2,
     "migration_backup": "data/house-before-neighborhood.json preserves the original storage envelope byte for byte.",
     "editions": "Complete independent house documents. Spatial or object-function changes create another home; older homes remain read-only and visitable.",
-    "appearance": "Legacy houses retain legacy-scene.js; inhabited houses retain inhabited-scene-v1.js; designer editions use the atelier tag.",
+    "appearance": "Legacy houses retain legacy-scene.js; inhabited houses retain inhabited-scene-v1.js; atelier remains the designer renderer. New residence editions use residence-scene-v1.js and residence-interior-v1.js, with physical floors, paintings and independent room atmosphere.",
     "object_functions": "Selectable offline books have pages and reflection questions. Assigned idea objects support reading, questioning, experiments and reflection.",
-    "verification": "Atomic migration, full-history isolation, selected-home restart, furniture-aware paths, dense object placement, usable book spines, activity save races and assistant edits preserving object functions passed. Exact publication results are recorded separately in the release notes."
+    "verification": "Atomic migration, full-history isolation, selected-home restart, furniture-aware paths, dense object placement, usable book spines, activity save races and assistant edits preserving object functions passed. Exact publication results are recorded separately in the release notes.",
+    "room_guide": "Your home · Socrates identifies personal editions separately from Artists’ City. Map & ideas shows selectable floor plans, room purposes, actual object functions, painting descriptions and full idea notes; explicit destination assignments build an independent neighbouring residence.",
+    "residence": {
+      "floors": "One to three connected physical floors, spaced 3.4 metres apart. Stair landing selection transfers to the actual paired elevated floor; continuous stair walking is not implemented.",
+      "room_controls": "Names and purposes, per-room brightness from 0–100, entry writing up to 1,000 characters, up to three local attributed paintings, and complete idea reassignment.",
+      "history": "Room-guide and map commits explicitly build a new whole house. Older editions, notes, conversations, decisions and custom JSON metadata remain available. No pending AI proposal is approved by a design edit.",
+      "limits": "Up to 16 rooms, 12 ideas per room, 8 adjacent-floor stairs and 128 preserved personal houses. Reducing occupied floors requires moving their rooms first.",
+      "verification": "Actual temporary HTTP app/room/map saves, failure/reload draft retention, CAS and restart; whole archived documents and cities exact; physical stairs, painting/window/door clearance, lower-roof separation, room lighting, floor collision and GLB placement; browser map assignment, saved third floor, paintings and entry writing passed."
+    }
   },
   "legacy_cloud_edition": {
     "url": "https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site",
@@ -316,9 +324,9 @@
   "virtual_reality": {
     "interface": "WebXR immersive-vr on a compatible headset/browser and secure origin.",
     "controls": "Trigger selection/ground teleport, left-stick movement, right-stick snap turn, in-world reading/critique panel.",
-    "verification": "Rig/head world transforms, collision axes, stable pivot, ground-only teleport and session races tested with mocks.",
+    "verification": "Rig/head world transforms, collision axes, stable pivot, selected-floor teleport, landing transfers, elevated seating/standing and desktop restoration tested with mocks; real headset hardware remains unverified.",
     "hardware_verified": false,
-    "scope": "Single-player ground-level exploration; no CAD/BIM editor, shared world, marketplace or arbitrary device connection."
+    "scope": "Single-player exploration with floor-aware rig height and landing selection in residence editions; no continuous stair walking, CAD/BIM editor, shared world, marketplace or arbitrary device connection."
   },
   "artists_city": {
     "residents": "Ten distinct embodied artist residents, each living and exploring inside their own gallery house. Socrates remains in the personal neighbourhood and Makers City.",

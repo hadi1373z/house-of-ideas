@@ -20,7 +20,9 @@ Open the local address printed in the terminal, normally `http://127.0.0.1:4317`
 
 ## Share the house with Socrates
 
-Enter in first person, walk with WASD or the joystick, and drag to look around. Socrates walks between connected rooms, observes the house and stops to converse nearby. Press **E** near him, choose **Talk to Socrates**, or **Call Socrates** over. **Journal · J** opens ideas and reflections; **Floor plan** edits the architecture; **Dollhouse** shows the interior from above.
+Open **Your home · Socrates** to find your home, enter a named room and see its objects and activities. **Meet Socrates** helps you find the resident in your personal home; the artists inhabit their own gallery houses in Artists’ City. If you are visiting an earlier edition, **Build a home with paintings and upper floors** creates a separate residence with your existing notes and history.
+
+Enter in first person, walk with WASD or the joystick, and drag to look around. Socrates walks between connected rooms, observes the house and stops to converse nearby. Press **E** near him, choose **Talk to Socrates**, or **Call Socrates** over. **Journal · J** opens reflections; **Map & ideas** opens the room and idea editor; **Floor plan** edits the architecture; **Dollhouse** shows the interior from above.
 
 Offline Socrates is a persistent character using local dialogue rules and your saved material. He asks about definitions, assumptions, evidence, counterexamples, other perspectives and an examined life. His critique now connects a room's stated purpose, its objects and functions, reflections, earlier visits and your decisions. He remembers expressed goals and declined suggestions. He can ask whether a bedroom supports rest, whether a discussion space helps people listen, or whether an experiment has an observable result. He is not an LLM, and his dialogue is not historical quotation.
 
@@ -34,7 +36,11 @@ If a nightly review is saved while you are editing, the journal offers **Reload 
 
 The entrance hall, living room, kitchen, bedroom, study and library have domestic furnishings and solid furniture you can use. Choose a book from a shelf, turn its pages, sit, rest, make tea, or keep a thought in a notebook. Assigned idea objects have selectable reading, questioning, experiment or reflection functions.
 
-The house fills the screen while you walk. Open **Journal · J** for notes and tools. **Neighbourhood** lets you walk to preserved editions and enter them. Older editions retain their documents and visual style; develop them by building an independent new edition. The earlier inhabited renderer is retained in `web/inhabited-scene-v1.js`, alongside the original house's renderer. Layout, furniture, assigned object and imported design changes create another home rather than replacing the old one. Your previous local file is backed up automatically during the first neighbourhood upgrade.
+The residence edition adds visible paintings and one to three physical floors. **Your home · Socrates → Assign room & objects** lets you change a room's name, purpose, color, brightness (0–100), writing shown on entry and up to three paintings from the sixty locally bundled works. Choose a destination room for each saved idea; its notes and function stay attached. Each room holds up to twelve ideas. Painting selection opens its image, description, attribution and a looking exercise.
+
+Floors are spaced 3.4 metres apart. Use the guide's floor/room buttons, or approach a marked staircase landing and press **E** to go upstairs or downstairs. The landing transfers you to the connected floor; continuous stair climbing is not implemented. Adding a floor creates a connected upper room without moving your existing ideas. Rooms must remain connected by doors or valid adjacent-floor landings, and an occupied upper floor cannot be silently removed.
+
+The house fills the screen while you walk. **Neighbourhood** lets you walk to preserved editions and enter them. Older editions retain their complete documents and visual style; develop them by building an independent new edition. Room-guide changes build a new home next door, including room purposes and entry writing. Layout, furniture, assigned object and imported design changes also preserve the previous home. `web/legacy-scene.js`, `web/inhabited-scene-v1.js` and the new `web/residence-scene-v1.js` retain their respective visual editions; the residence furnishing helper is versioned separately. Your previous local file is backed up automatically during the first neighbourhood upgrade.
 
 ## Bring designs into the neighbourhood
 
@@ -66,7 +72,7 @@ Export a **collection JSON** to carry copied learning objects and city journals 
 
 **Enter VR** uses WebXR when your browser and connected headset support immersive VR. The page needs a secure origin: HTTPS or the same computer's trusted loopback page. Browser and hardware compatibility varies; see [WebXR permissions and security](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API/Permissions_and_security).
 
-Point a controller and press its trigger to select nearby objects or teleport to a clear floor. The left stick moves forward/back; the right stick turns in steps. Book text and the current artist or Socrates reply can appear on an in-world panel. VR also works with a design tour; ordinary desktop walking remains available. Hardware headset/controller operation has not been verified live for this release.
+Point a controller and press its trigger to select nearby objects or teleport to a clear floor. The left stick moves forward/back; the right stick turns in steps. Book text and the current artist or Socrates reply can appear on an in-world panel. Residence floor changes retain the selected floor's height in desktop and WebXR navigation; this behavior is checked with mocked XR sessions. VR also works with a design tour; ordinary desktop walking remains available. Hardware headset/controller operation has not been verified live for this release.
 
 ## Optional online conversation
 

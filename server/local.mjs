@@ -19,6 +19,7 @@ const BODY_LIMIT = 1300000;
 const MIME = {'.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.ico': 'image/x-icon', '.json': 'application/json; charset=utf-8', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8'};
 const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'";
 class LocalError extends Error { constructor(message, status = 400) { super(message); this.status = status; } }
+function checkedHouse(input){try{return validateHouse(input);}catch(error){throw new LocalError(error.message);}}
 
 function htmlPolicy(html, artistGallery = false) {
   const hashes = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
@@ -238,7 +239,7 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
           requireMutation(request);
           const input = await readJson(request);
           ensureRevision(input.revision);
-          const known=new Set((store.read().house.designObjects||[]).map(o=>o.assetId));for(const object of validateHouse(input.house).designObjects||[])if(!known.has(object.assetId)&&!await assets.has(object.assetId))throw new LocalError('Import this design’s GLB file before placing it in the house.');
+          const known=new Set((store.read().house.designObjects||[]).map(o=>o.assetId));for(const object of checkedHouse(input.house).designObjects||[])if(!known.has(object.assetId)&&!await assets.has(object.assetId))throw new LocalError('Import this design’s GLB file before placing it in the house.');
           const saved = await store.save(input.house, input.revision);
           return send(response, {revision:saved.revision,neighborhood:saved.neighborhood});
         }
@@ -249,7 +250,7 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
         const saved=url.pathname.endsWith('/select')?await store.select(input.homeId,input.revision):await store.create(input.revision);
         return send(response,saved);
       }
-      if(url.pathname==='/api/neighborhood/import'&&request.method==='POST'){requireMutation(request);const input=await readJson(request);ensureRevision(input.revision);const next=validateHouse(input.house);for(const object of next.designObjects||[])if(!await assets.has(object.assetId))throw new LocalError('Import the template’s GLB files before building it.');const current=store.read();if(input.revision!==current.revision)throw new LocalError('This house changed. Reload before importing a design.',409);const neighborhood=createEdition(current.neighborhood,next,{edition:'atelier',title:'Imported designer home'});const saved=await store.import(neighborhood,input.revision);return send(response,saved);}
+      if(url.pathname==='/api/neighborhood/import'&&request.method==='POST'){requireMutation(request);const input=await readJson(request);ensureRevision(input.revision);const next=checkedHouse(input.house);for(const object of next.designObjects||[])if(!await assets.has(object.assetId))throw new LocalError('Import the template’s GLB files before building it.');const current=store.read();if(input.revision!==current.revision)throw new LocalError('This house changed. Reload before importing a design.',409);const neighborhood=createEdition(current.neighborhood,next,{edition:'atelier',title:next.residence?'Socrates’ residence · '+(current.neighborhood.homes.length+1):'Imported designer home'});const saved=await store.import(neighborhood,input.revision);return send(response,saved);}
       if(url.pathname==='/api/design-assets'&&request.method==='POST'){requireMutation(request);if(request.headers['content-type']!=='application/octet-stream')throw new LocalError('Send a GLB file.');const bytes=await readBinary(request,12*1024*1024);try{return send(response,await assets.import(bytes));}catch(error){if(error.status)throw error;throw new LocalError(error.message);}}
       if(/^\/assets\/[a-f0-9]{64}\.glb$/.test(url.pathname)&&['GET','HEAD'].includes(request.method)){const bytes=await assets.read(url.pathname.slice(8,-4));response.writeHead(200,{'Content-Type':'model/gltf-binary','Content-Length':bytes.length,'Cache-Control':'private, max-age=3600','X-Content-Type-Options':'nosniff','Content-Security-Policy':CSP});response.end(request.method==='HEAD'?undefined:bytes);return;}
       if(url.pathname==='/api/chatgpt/status'&&request.method==='GET')return send(response,chatgptPlan.config());

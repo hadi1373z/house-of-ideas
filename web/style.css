@@ -79,7 +79,7 @@ body.art-city-mode .view-tools{display:none}
    actions remain available through the guide's House tools. */
 #residence-open,#residence-map-open,.world-controls #neighborhood-toggle,.world-controls #city-travel-open,.world-controls #art-city-open,.world-controls #math-city-open,.world-controls #math-city-guide-open,.world-controls #journal-toggle,.world-controls #conversations-open,.world-controls #design-open{display:none!important}
 header nav #plan-tab,header nav #conversations-tab{display:none}
-#world-guide-dialog{width:min(1100px,94vw);max-height:90vh;padding:24px;background:#f3eddf;color:#283c37}
+#world-guide-dialog{width:min(1100px,94vw);max-width:1100px;max-height:90vh;padding:24px;background:#f3eddf;color:#283c37}
 .world-guide-filters,.world-guide-tools{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
 .world-guide-filters input{flex:1;min-width:190px}
 .world-guide-layout{display:grid;grid-template-columns:minmax(260px,1fr) minmax(250px,1fr);gap:18px}
@@ -88,7 +88,7 @@ header nav #plan-tab,header nav #conversations-tab{display:none}
 .world-guide-map g{cursor:pointer}.world-guide-map g:focus circle{stroke:#f5ae41;stroke-width:.35}
 .world-guide-map>button{display:block;width:100%;margin:6px 0;text-align:left}
 .world-guide-list{max-height:380px;overflow:auto;display:flex;flex-direction:column;gap:7px}
-.world-guide-list>button{text-align:left;display:block;padding:12px;background:#fffaf0;color:#283c37;border:1px solid #d4c9b7;border-radius:8px}
+.world-guide-list>button{flex-shrink:0;overflow-wrap:anywhere;text-align:left;display:block;padding:12px;background:#fffaf0;color:#283c37;border:1px solid #d4c9b7;border-radius:8px}
 .world-guide-list small{display:block;font-weight:400;margin-top:5px;color:#5d695f}
 .world-guide-detail{margin:18px 0;padding:16px;border-left:4px solid #ba965d;background:#e8e0d0}.world-guide-detail:empty{display:none}
 .world-guide-detail button{margin-right:10px;margin-top:8px}

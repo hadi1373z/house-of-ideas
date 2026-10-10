@@ -100,13 +100,13 @@ export function createOnlineWorker() {
         return json(saved);
       }
       if (['/api/neighborhood/select', '/api/neighborhood/create', '/api/neighborhood/import'].includes(url.pathname) && request.method === 'POST') {
-        const input = await readJson(request); plain(input, url.pathname.endsWith('/select') ? ['homeId', 'revision'] : url.pathname.endsWith('/import') ? ['house', 'revision'] : ['revision'], 'neighbourhood action');
+        const input = await readJson(request); plain(input, url.pathname.endsWith('/select') ? ['homeId', 'revision'] : url.pathname.endsWith('/import') ? ['house', 'revision', 'title'] : ['revision'], 'neighbourhood action');
         const before = await loadOnlineHouse(env.DB, user); current(input, before);
         let candidate;
         if (url.pathname.endsWith('/select')) candidate = checked(() => selectEdition(before.neighborhood, input.homeId));
         else if (url.pathname.endsWith('/import')) {
           const house = checked(() => validateHouse(input.house)); noNewAssets(before, house);
-          candidate = checked(() => createEdition(before.neighborhood, house, {edition: 'atelier', title: 'Imported designer home'}));
+          candidate = checked(() => createEdition(before.neighborhood, house, {edition: 'atelier', title: input.title ?? 'Imported designer home'}));
         } else candidate = checked(() => createEdition(before.neighborhood));
         return json(await commitOnlineHouse(env.DB, user, before, candidate));
       }

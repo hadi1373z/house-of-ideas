@@ -39,6 +39,7 @@ export function retainArtistArchive(previous, next) {
   for (const [artist, messages] of Object.entries(previous?.artistConversations ?? {})) {
     if (!same(messages, next.artistConversations?.[artist]?.slice(0, messages.length))) fail();
   }
+  if (previous?.learningTrail && !same(previous.learningTrail.records, next.learningTrail?.records?.slice(0,previous.learningTrail.records.length))) throw new OnlineError('Preserve earlier learning attempts before saving. Nothing was removed.',409);
   const archive = previous?.artistHomes;
   if (!archive) return;
   if (!same(archive.editions, next.artistHomes?.editions?.slice(0, archive.editions.length))) fail();

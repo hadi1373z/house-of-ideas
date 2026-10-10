@@ -1,0 +1,48 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import {startServer} from '../server/local.mjs';
+import {createPatternHouse} from '../web/pattern-house.js';
+import {buildHouse} from '../web/residence-scene-v1.js';
+import {TRAIL_QUESTS,recordTrail,trailProgress,trailPoints,validateTrail} from '../web/learning-trail.js';
+import {initialCityNetwork,validateCityNetwork,exportTravelPack,importTravelPack} from '../web/city-network.js';
+const house=createPatternHouse();
+assert.equal(house.rooms.length,8);assert.equal(house.ideas.length,12);assert.equal(house.residence.floors,3);
+for(const q of TRAIL_QUESTS)assert.ok(house.ideas.some(i=>i.id==='trail-'+q.id&&i.roomId===q.roomId&&i.action==='experiment'));
+const builtGeometry=buildHouse(house,true,true);assert.equal(builtGeometry.levels.length,3);
+for(const idea of house.ideas){const floor=house.rooms.find(r=>r.id===idea.roomId).floor;assert.ok(builtGeometry.levels[floor].objects.some(o=>o.userData.ideaId===idea.id),'Each learning object is physically selectable on its assigned floor.');}
+const old=initialCityNetwork();assert.ok(!Object.hasOwn(validateCityNetwork(old),'learningTrail'));
+let network=recordTrail(old,'code','discovery',{date:'2026-10-07'});
+assert.ok(!Object.hasOwn(old,'learningTrail'));
+assert.throws(()=>recordTrail(network,'code','practice',{answer:'24',explanation:'Every term doubles the one before it.',date:'2026-10-07'}),/Not yet/);
+assert.equal(trailPoints(network.learningTrail),0);
+network=recordTrail(network,'code','practice',{answer:'32',explanation:'Sixteen doubled is thirty-two; I assume the same rule continues.',date:'2026-10-07'});
+assert.equal(trailPoints(network.learningTrail),25);
+assert.throws(()=>recordTrail(network,'code','practice',{answer:'32',date:'2026-10-07'}),/already/);
+assert.throws(()=>recordTrail(network,'code','recall',{date:'2026-10-07',explanation:'My example starts at three and doubles to six and twelve.'}),/due/);
+network=recordTrail(network,'code','recall',{date:'2026-10-08',explanation:'My example starts at three and doubles to six and twelve; many other rules fit finite data.'});
+assert.equal(trailPoints(network.learningTrail),35);assert.equal(trailProgress(network.learningTrail,'code','2026-10-10').due,'2026-10-11');
+assert.throws(()=>recordTrail(network,'code','recall',{date:'2026-10-10',explanation:'Another new explanation about a pattern in the books.'}),/due/);
+const forged=structuredClone(network.learningTrail);forged.records[0].date='2099-01-01';assert.throws(()=>validateTrail(forged));
+assert.deepEqual(validateCityNetwork(network),network);
+const pack=exportTravelPack(network);assert.ok(!Object.hasOwn(pack.network,'learningTrail'));
+assert.throws(()=>importTravelPack(old,{...pack,network}),/private/);
+assert.deepEqual(importTravelPack(network,pack).learningTrail,network.learningTrail);
+const temporary=await fs.mkdtemp(path.join(os.tmpdir(),'house-learning-trail-'));
+let running;
+try{
+ const dataDir=path.join(temporary,'data');running=await startServer({webDir:path.resolve('web'),dataDir,port:0,maxPort:0,env:{},fetchImpl:async()=>{throw Error('No provider needed.');}});
+ const cfg=await fetch(running.url+'/api/config'),config=await cfg.json(),cookie=cfg.headers.get('set-cookie').split(';')[0];
+ const get=async()=>{const r=await fetch(running.url+'/api/house');return r.json();};
+ const request=async(route,input,method)=>fetch(running.url+route,{method,headers:{Origin:running.url,Cookie:cookie,'X-Local-CSRF':config.csrfToken,'Content-Type':'application/json'},body:JSON.stringify(input)});
+ const before=await get(),homes=structuredClone(before.neighborhood.homes);
+ const imported=await request('/api/neighborhood/import',{house,title:'House of Hidden Patterns',revision:before.revision},'POST');assert.equal(imported.status,200);
+ const built=await imported.json();assert.deepEqual(built.neighborhood.homes.slice(0,-1),homes);assert.equal(built.neighborhood.homes.at(-1).title,'House of Hidden Patterns');
+ const saved=await request('/api/cities',{cityNetwork:network,revision:built.revision},'PUT');assert.equal(saved.status,200);const savedState=await saved.json();
+ const removal=await request('/api/cities',{cityNetwork:old,revision:savedState.revision},'PUT');assert.equal(removal.status,409,'A current client cannot discard learning attempts.');
+ const stale=await request('/api/cities',{cityNetwork:old,revision:built.revision},'PUT');assert.equal(stale.status,409);
+ await running.close();running=await startServer({webDir:path.resolve('web'),dataDir,port:0,maxPort:0,env:{}});
+ const reopened=await get();assert.deepEqual(reopened.neighborhood.cityNetwork.learningTrail,network.learningTrail);assert.deepEqual(reopened.neighborhood.homes.slice(0,-1),homes);
+ console.log('Learning trail verified: six puzzles, retained homes, wrong-answer retry, spaced recall, private export, revision conflict and durable restart.');
+}finally{await running?.close();await fs.rm(temporary,{recursive:true,force:true});}

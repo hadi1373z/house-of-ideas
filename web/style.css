@@ -93,3 +93,4 @@ header nav #plan-tab,header nav #conversations-tab{display:none}
 .world-guide-detail{margin:18px 0;padding:16px;border-left:4px solid #ba965d;background:#e8e0d0}.world-guide-detail:empty{display:none}
 .world-guide-detail button{margin-right:10px;margin-top:8px}
 @media(max-width:700px){.world-guide-layout{grid-template-columns:1fr}.world-guide-map svg{height:260px}.world-guide-list{max-height:250px}}
+#world-guide-dialog .dialog-head{position:sticky;top:-24px;padding:12px 0;background:#f3eddf;z-index:2}.world-guide-map g:focus{outline:none}

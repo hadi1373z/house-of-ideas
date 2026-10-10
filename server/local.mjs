@@ -13,6 +13,7 @@ import {createChatGPTAuth} from './chatgpt-auth.mjs';
 import {createChatGPTPlanController} from './chatgpt-plan.mjs';
 import {requestArtistReply,validateArtistChatInput} from './artist-gpt.mjs';
 import {createDailyReviewService,reviewDueDays} from './daily-review.mjs';
+import {validateConversationArchive,mergeConversationArchive,conversationFile} from './conversation-archive.mjs';
 
 const APP_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BODY_LIMIT = 1300000;
@@ -115,12 +116,18 @@ async function openStore(dataDir) {
       validateHouse(data.house);const oldHouse=data.house;
       // Preserve the exact prior envelope as well as the visible old house before the upgrade.
       await fs.copyFile(file,path.join(dataDir,'house-before-neighborhood.json'),fs.constants.COPYFILE_EXCL).catch(error=>{if(error.code!=='EEXIST')throw error;});
-      current={version:2,revision:data.revision+1,neighborhood:initialNeighborhood(oldHouse)};
+      current={...clone(data),version:2,revision:data.revision+1,neighborhood:initialNeighborhood(oldHouse)};
+      current.conversationArchive=await mergeConversationArchive(await validateConversationArchive(data.conversationArchive),current.neighborhood);
       await atomicJson(file,current);
-    }else current={version:2,revision:data.revision,neighborhood:validateNeighborhood(data.neighborhood)};
+    }else{
+      current={...clone(data),version:2,revision:data.revision,neighborhood:validateNeighborhood(data.neighborhood)};
+      // Older version 2 envelopes remain untouched until a real save. A GET
+      // export can backfill their retained conversation without a write.
+      if(Object.hasOwn(data,'conversationArchive'))current.conversationArchive=await validateConversationArchive(data.conversationArchive);
+    }
   } catch (error) {
     if (error.code !== 'ENOENT') throw new Error('The saved local neighbourhood could not be read. Preserve data/house.json before repairing it.');
-    current={version:2,revision:0,neighborhood:initialNeighborhood()};
+    current={version:2,revision:0,neighborhood:initialNeighborhood(),conversationArchive:{version:1,messages:[]}};
     await atomicJson(file,current);
   }
   let tail = Promise.resolve();
@@ -129,7 +136,11 @@ async function openStore(dataDir) {
     const operation=tail.then(async()=>{
       if(!background&&revision!==current.revision)throw new LocalError('This house changed in another tab. Your draft is still here. Reload before making further changes.',409);
       let neighborhood;try{const candidate=change(clone(current.neighborhood));if(background&&JSON.stringify(candidate)===JSON.stringify(current.neighborhood))return read();neighborhood=validateNeighborhood(candidate);}catch(error){if(error instanceof LocalError)throw error;throw new LocalError(error.message);}
-      const next={version:2,revision:current.revision+1,neighborhood};await atomicJson(file,next);current=next;return read();
+      // Capture both sides of the save: advancing the resident's bounded
+      // working memory must not erase the previous retained window. The house
+      // and its durable archive either commit together or remain unchanged.
+      const conversationArchive=await mergeConversationArchive(current.conversationArchive,current.neighborhood,neighborhood);
+      const next={...current,version:2,revision:current.revision+1,neighborhood,conversationArchive};await atomicJson(file,next);current=next;return read();
     });tail=operation.catch(()=>{});return operation;
   };
   function retainArtistArchive(previous,next){
@@ -142,7 +153,7 @@ async function openStore(dataDir) {
       if(!after||['id','artistId','date','sourceMessageId'].some(k=>before[k]!==after[k])||(before.decision!=='pending'&&!same(before,after)))fail();
     }
   }
-  return {read,review(instant){return mutate(undefined,n=>reviewDueDays(n,instant),{background:true});},save(house,revision){return mutate(revision,n=>saveEdition(n,validateHouse(house)));},saveCities(cityNetwork,revision){return mutate(revision,n=>{const next=validateCityNetwork(cityNetwork);retainArtistArchive(n.cityNetwork,next);return {...n,cityNetwork:next};});},select(homeId,revision){return mutate(revision,n=>selectEdition(n,homeId));},create(revision){return mutate(revision,n=>createEdition(n));},import(neighborhood,revision){return mutate(revision,()=>neighborhood);},async idle(){await tail;}};
+  return {read,async archive(){const snapshot=clone(current);return conversationFile(await mergeConversationArchive(snapshot.conversationArchive,snapshot.neighborhood),snapshot.revision);},review(instant){return mutate(undefined,n=>reviewDueDays(n,instant),{background:true});},save(house,revision){return mutate(revision,n=>saveEdition(n,validateHouse(house)));},saveCities(cityNetwork,revision){return mutate(revision,n=>{const next=validateCityNetwork(cityNetwork);retainArtistArchive(n.cityNetwork,next);return {...n,cityNetwork:next};});},select(homeId,revision){return mutate(revision,n=>selectEdition(n,homeId));},create(revision){return mutate(revision,n=>createEdition(n));},import(neighborhood,revision){return mutate(revision,()=>neighborhood);},async idle(){await tail;}};
 }
 
 function cookieSession(request) {
@@ -263,6 +274,14 @@ export async function startServer({dataDir = process.env.HOUSE_DATA_DIR || path.
         const session = sessions.get(cookieSession(request));
         if (!session || Date.now() - session.seen > 12 * 60 * 60 * 1000) throw new LocalError('Open your local house before exporting it.', 403);
         return send(response, {...store.read(), exportedAt: new Date().toISOString()}, 200, {'Content-Disposition': 'attachment; filename="house-of-ideas.json"'});
+      }
+      if (['/api/conversations','/api/conversations/file'].includes(url.pathname) && request.method === 'GET') {
+        const session = sessions.get(cookieSession(request));
+        if (!session || Date.now() - session.seen > 12 * 60 * 60 * 1000) throw new LocalError('Open your local house before exporting its private conversations.', 403);
+        const archive = await store.archive();
+        return url.pathname.endsWith('/file')
+          ? send(response, archive, 200, {'Content-Disposition': 'attachment; filename="house-of-ideas-private-conversations.json"'})
+          : send(response, {...archive, count:archive.messages.length});
       }
       if (url.pathname === '/api/gpt/connect' && request.method === 'POST') {
         requireMutation(request);

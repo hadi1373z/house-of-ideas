@@ -9,6 +9,16 @@
 
 The portable package is delivered separately from repository source. No GitHub Release binary is implied by these instructions.
 
+## Carry conversations to your private online house
+
+Open **Your home · Socrates → Meet Socrates → Conversation settings**, choose **Continue with ChatGPT**, then explicitly send a message after connecting. This uses an eligible ChatGPT plan on localhost. The connection is kept only in memory; sign in again after stopping the house. A ChatGPT login on the hosted website identifies you but does not provide hosted model inference.
+
+Choose **Download private conversation file** to keep a JSON copy of the durable local dialogue archive. New successful saves preserve messages beyond the resident's recent 80-message window, including artist conversations. A copied home does not duplicate the same exchange. Previously discarded messages cannot be recovered. Exporting an old installation backfills its retained messages in memory without rewriting the saved house.
+
+Open [the private online house](https://house-of-ideas-online.nutmeg-ibex-4408.chatgpt.site), then **Conversations**. Select that JSON file and choose **Import conversations**. File selection alone sends nothing. Import copies dialogue for private review, preserves both neighbourhoods, ignores imported approval authority and skips exact duplicates. The archive holds up to 10,000 messages; reaching capacity refuses new records without pruning. Full files up to 192 MiB are uploaded in bounded chunks. If an import stops partway through, keep the original file and retry; already imported messages remain saved.
+
+Select conversation evidence, write your own problem, proposed change and observable check, then **Save development draft**. Read it before approving it. The approved JSON contains your design summary, conversation references and source-place labels; the full transcript stays in the private archive. Approval does not edit GitHub or publish a site. Give the approved brief to Codex for a reviewed source change, tests and a new publication. Online residents currently use rule-based dialogue; no separately billed hosted API is enabled.
+
 ## Run from source
 
 Use Node.js 22.14 or newer. From the repository folder, run `node server/local.mjs` and open the printed local address. Press Ctrl+C in that terminal to stop it. No dependency installation is needed to play; `npm install` is for development tests and builds.

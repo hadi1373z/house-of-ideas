@@ -2,7 +2,7 @@
 
 By Hadi Zamani. A house you can walk through, learn in, and develop with Socrates as a fellow resident.
 
-The [GitHub repository](https://github.com/hadi1373z/house-of-ideas) is the source of truth for this offline edition. Use the supplied Windows portable package, or run the source locally. The [public browser preview](https://hadi1373z.github.io/house-of-ideas/) is a demonstration; the older [private cloud edition](https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site) remains separate.
+The [GitHub repository](https://github.com/hadi1373z/house-of-ideas) is the source of truth. Use the supplied Windows portable package, or run the source locally. The [public browser preview](https://hadi1373z.github.io/house-of-ideas/) is a temporary demonstration. The new [private online house](https://house-of-ideas-online.nutmeg-ibex-4408.chatgpt.site) has its own saved neighbourhood and conversation archive; the [legacy cloud edition](https://house-of-ideas.nutmeg-ibex-4408.chatgpt.site) remains separate.
 
 ## Run offline
 
@@ -17,6 +17,22 @@ node server/local.mjs
 ```
 
 Open the local address printed in the terminal, normally `http://127.0.0.1:4317`. Runtime startup needs no npm installation and no internet connection.
+
+## Private online house and reviewed development
+
+Open the private online house and sign in with ChatGPT to access your cloud neighbourhood. This sign-in protects the house; it does not grant GPT inference. The owner chose ChatGPT-plan usage and declined separately billed API inference, so the new hosted edition has no paid API transport. Use **Open local ChatGPT connection** to open the house on your computer, then **Continue with ChatGPT** and send a message explicitly. This uses the existing localhost plan integration, subject to account eligibility and usage limits. Remotely hosted plan inference requires a separate approved integration and is not implemented here. **House guide** uses the rule-based resident; the hosted house itself needs an internet connection. The online and local houses keep separate memories and do not upload or synchronize your existing local data automatically.
+
+The shared Socrates prompt asks an interpretive resident to examine assumptions, reasons, counterexamples and your goals. It uses bounded room context, functional objects, remembered preferences, observations, reflections, recent conversation and approval/refusal history. It cannot inspect imported geometry, impersonate the historical philosopher, approve its own proposals or publish source. The local server validates the reply and commits a successful exchange with the house revision. Provider failure or a revision conflict leaves the conversation draft available. No hosted GPT request or automatic paid call is made.
+
+Use **Download private conversation file** in the local Socrates panel to export retained conversations, including future committed exchanges beyond the resident’s rolling 80-message memory. In the private online **Conversations** tab, select that file and choose **Import conversations**. This explicit upload copies dialogue for review; it does not replace either house or transfer connection credentials. Re-importing the same messages does not duplicate them. Older conversations already removed before this archive was introduced cannot be recovered from the short memory alone.
+
+The online archive also keeps conversations with its rule-based residents. Browse it and download `house-of-ideas-private-conversations.json`. Select up to 20 evidence messages, edit the observed problem and proposed change, and write an observable acceptance criterion. **Save development draft** records a draft. A separate **Approve this development brief** decision makes a development JSON file available. The exported brief contains your approved text, house context and evidence references; it does not include the transcript. Keep private transcripts outside GitHub.
+
+The development procedure is: conversation → observation → critique → proposed design → owner review → new neighbouring house → comparison and evaluation → approved development brief → source update and verification. A bounded furnishing can use **Build next edition** in Socrates’ panel. Website changes require a developer to implement the approved brief, preserve the earlier homes, run relevant checks and the full suite, compare the result, and publish the tested source. Download a brief and give it to Codex when you want that work done. Neither a conversation nor a brief approval silently edits GitHub, resumes the paused hourly task or schedules paid GPT calls.
+
+The online edition retains the Mathematics City institute, its isolated Atlas monitor, Artists’ City and neighbouring homes. GLB uploads remain available in the offline installation. The first cloud storage budget is 1.3 MB per complete neighbourhood, 10,000 archived messages and 1,000 development briefs. Capacity errors preserve existing records and the current draft instead of deleting old material. Download backups before arranging larger storage. Cloud daily scheduled critiques are not implemented in this new edition; the local 21:00 Prague review remains a separate process.
+
+For maintainers, `npm run build:online` builds the new Worker without publishing or replacing the legacy manifest. `online/hosting.json` identifies this private edition; `.openai/hosting.json` continues to identify legacy v8. The online runtime requires the `DB` binding and does not read `OPENAI_API_KEY`. Register and publish through Sites using a separate sanitized checkout and its own `.openai/hosting.json`. Tests use temporary SQLite databases and mocked local plan/provider replies. Real local ChatGPT-plan sign-in and inference remain unverified until the owner signs in and sends a message. Never reuse Codex credentials or relax the localhost callback restriction to claim remote plan support.
 
 ## Share the house with Socrates
 

@@ -1,6 +1,7 @@
 import {normalizeGptResult, residentContext, CONCEPTS as RESIDENT_CONCEPTS, FEATURES} from '../web/resident.js';
 
 export const DEFAULT_MODEL = 'gpt-5.4-mini';
+export const SOCRATES_PROMPT_VERSION = 'socrates-house-2026-10-10';
 const API_URL = 'https://api.openai.com/v1/responses';
 const CONCEPTS = Object.keys(RESIDENT_CONCEPTS);
 export const GPT_INSTRUCTIONS = [
@@ -126,7 +127,7 @@ export async function requestGptReply({apiKey, model = DEFAULT_MODEL, input, hou
   };
   let response;
   try {
-    response = await fetchImpl(API_URL, {method: 'POST', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${key}`}, body: JSON.stringify(body), signal: abort});
+    response = await fetchImpl(API_URL, {method: 'POST', redirect: 'error', headers: {'Content-Type': 'application/json', Authorization: `Bearer ${key}`}, body: JSON.stringify(body), signal: abort});
   } catch {
     throw new GptError(abort.aborted ? 'GPT did not finish in time. You can try again or use local Socrates.' : 'Could not reach GPT. You can continue with local Socrates.');
   }

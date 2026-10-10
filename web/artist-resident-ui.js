@@ -64,21 +64,25 @@ export function initArtistResidentUI({$, document, window, scene, getNetwork, sa
   const currentWork = () => artist(selected)?.works.find(item => item.id === work.value);
   const location = id => scene?.artistResidentState?.(id) || {available: false, near: false};
   const aiConfig = () => getAIConfig?.() || {local: false, chatgptConnected: false, apiReady: false};
-  const providerName = provider => provider === 'chatgpt' ? 'ChatGPT' : provider === 'api' ? 'GPT API' : 'Offline art guide';
+  const providerName = provider => provider === 'chatgpt' ? 'ChatGPT' : provider === 'api' ? 'GPT API' : aiConfig().hosted ? 'Artist guide' : 'Offline art guide';
   const providerModel = (provider, config = aiConfig()) => provider === 'chatgpt' ? config.chatgptModel || '' : provider === 'api' ? config.apiModel || '' : '';
   function ready(provider, config = aiConfig()) {
     return provider === 'offline' || Boolean(config.local && typeof requestAIReply === 'function' &&
-      (provider === 'chatgpt' ? config.chatgptConnected : provider === 'api' && config.apiReady));
+      (provider === 'chatgpt' ? config.local && config.chatgptConnected : provider === 'api' && config.apiReady));
   }
   function renderAI() {
     const config = aiConfig(), model = providerModel(dialogueMode, config);
-    for (const [provider, option] of modes) option.disabled = !ready(provider, config);
+    for (const [provider, option] of modes) {option.disabled = !ready(provider, config);option.hidden = Boolean(config.hosted && provider !== 'offline');}
+    modes.get('offline').textContent = config.hosted ? 'Artist guide · rules' : 'Offline';
+    modes.get('api').textContent = 'API key';
+    connect.textContent = config.hosted ? 'ChatGPT plan · local house' : 'Connect ChatGPT';
+    procedure.textContent = config.hosted ? 'Open the local house → Continue with ChatGPT → talk with the artist → export private conversations for review here.' : 'Sign in → choose a model → talk with the artist → review house ideas.';
     mode.value = dialogueMode; mode.disabled = busy;
-    aiStatus.textContent = dialogueMode === 'offline' ? 'Offline art guide · no online request' :
+    aiStatus.textContent = dialogueMode === 'offline' ? (config.hosted ? 'Artist guide · rule-based · no GPT request' : 'Offline art guide · no online request') :
       ready(dialogueMode, config) ? providerName(dialogueMode) + ' connected' + (model ? ' · ' + model : '') :
-      providerName(dialogueMode) + ' is disconnected. Connect it or choose Offline.';
-    aiPrivacy.textContent = dialogueMode === 'offline' ? 'The offline guide uses this artist’s works and saved conversation.' :
-      'Sending a question shares your message, this artist’s persona, recent conversation, selected artwork and gallery editions with OpenAI. House ideas wait for your review.';
+      (config.hosted ? 'ChatGPT-plan conversations run in the local house. Choose the artist guide here.' : providerName(dialogueMode) + ' is disconnected. Connect it or choose Offline.');
+    aiPrivacy.textContent = dialogueMode === 'offline' ? (config.hosted ? 'The rule-based guide uses this artist’s works and saved conversation. New exchanges are saved in your signed-in private online house; internet is required.' : 'The offline guide uses this artist’s works and saved conversation.') :
+      'Sending a question shares your message, this artist’s persona, recent conversation, selected artwork and gallery editions with OpenAI.' + (config.hosted ? ' The saved exchange is kept in your private online archive.' : '') + ' House ideas wait for your review.';
     subtitle.textContent = dialogueMode === 'offline' ? ARTIST_RESIDENT_NOTE :
       'Interpretive artist persona · replies generated through ' + providerName(dialogueMode) + '.';
     connect.disabled = busy || isSaving(); review.disabled = busy || isSaving() || !isLoaded();

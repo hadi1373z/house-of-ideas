@@ -1,9 +1,16 @@
 import {validateResident,observeRoom,converse,proposeCritique,pendingProposals,decideProposal,buildHandoff,setResidentPreferences} from './resident.js';
 
-export function initResidentUI({$,document,window,scene,getHouse,getSelected,isLoaded,isSaving,saveHouse,openHouse,local=false,preview=false,gptConfig,gptConnect,gptDisconnect,gptChat,schedule=setInterval,cancel=clearInterval}) {
+export function initResidentUI({$,document,window,scene,getHouse,getSelected,isLoaded,isSaving,saveHouse,openHouse,local=false,hosted=false,preview=false,gptConfig,gptConnect,gptDisconnect,gptChat,exportConversation,schedule=setInterval,cancel=clearInterval}) {
  let open=false,busy=false,gptReady=false,chatgptReady=false,chatgptAccount='',dialogueMode='offline';
  const visits=new Set();
  const note=$('resident-message');
+ let hostedSettingsNote=null,archiveExport=null,exporting=false;
+ if(hosted){
+  const settings=document.createElement('section');settings.id='hosted-gpt-settings';const header=document.createElement('div');header.className='dialog-head';const title=document.createElement('h2');title.textContent='Use your ChatGPT plan in the local house';const close=document.createElement('button');close.type='button';close.textContent='Close';close.onclick=()=>$('gpt-dialog').close();header.append(title,close);hostedSettingsNote=document.createElement('p');hostedSettingsNote.id='hosted-gpt-status';hostedSettingsNote.setAttribute('role','status');const link=document.createElement('a');link.id='hosted-chatgpt-local';link.href='http://127.0.0.1:4317/#chatgpt';link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open local ChatGPT connection';const instructions=document.createElement('p');instructions.textContent='Start House of Ideas on this computer before opening the link. Signing into this private site is separate from connecting your ChatGPT plan. Local conversations can be exported and deliberately imported here; the houses do not synchronize automatically.';settings.append(header,hostedSettingsNote,link,instructions);$('gpt-dialog').append(settings);
+  const guide=document.createElement('option');guide.value='offline';guide.textContent='House guide · rules';$('conversation-mode').replaceChildren(guide);$('gpt-settings').textContent='ChatGPT plan';
+  $('gpt-form').hidden=true;$('chatgpt-settings').hidden=true;$('gpt-key').disabled=true;$('gpt-model').disabled=true;
+ }
+ if(local&&typeof exportConversation==='function'){archiveExport=document.createElement('button');archiveExport.id='resident-archive-export';archiveExport.type='button';archiveExport.className='full';archiveExport.textContent='Download full private conversation file';archiveExport.onclick=async()=>{if(exporting||isSaving())return;exporting=true;render();try{const data=await exportConversation(),blob=new Blob([JSON.stringify(data,null,2)+'\n'],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='house-of-ideas-private-conversations.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);note.textContent='Full private conversation file downloaded. It includes the durable archive; keep it private and import it into your online house only when you choose.';}catch(error){note.textContent=error.message;}finally{exporting=false;render();}};$('resident-conversation').append(archiveExport);$('resident-export').textContent='Export recent game improvement brief';}
  const location=()=>scene?.residentState?.()||{roomId:getSelected(),near:true,activity:'examining the house'};
  const roomId=()=>{const state=location();return state.near&&!state.summoning&&getHouse().rooms.some(r=>r.id===state.roomId)?state.roomId:getSelected();};
  function renderSpatial() {
@@ -27,7 +34,7 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
   if(!resident.messages.length){const intro=document.createElement('p');intro.className='conversation-intro';intro.textContent='I live in this house with you. We can examine an idea, question the purpose of a room, or test an assumption. What would you like to understand?';messages.append(intro);}
   for(const turn of resident.messages.slice(-24)){
    const article=document.createElement('article');article.className='conversation-turn '+(turn.role==='user'?'you':'socrates');
-   const label=document.createElement('small');label.textContent=turn.role==='user'?'YOU':'SOCRATES · '+(turn.source==='gpt'?'GPT':'OFFLINE');
+   const label=document.createElement('small');label.textContent=turn.role==='user'?'YOU':'SOCRATES · '+(turn.source==='gpt'?'GPT':hosted?'HOUSE GUIDE':'OFFLINE');
    const text=document.createElement('p');text.textContent=turn.text;article.append(label,text);messages.append(article);
   }
   messages.scrollTop=messages.scrollHeight;
@@ -45,9 +52,11 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
    const actions=document.createElement('div');actions.className='proposal-actions';actions.append(decline,approve);card.append(concept,title,reason,question);if(practice)card.append(practice);if(success)card.append(success);card.append(actions);$('resident-proposals').append(card);
   }
   $('conversation-mode').value=dialogueMode;
-  $('gpt-status').textContent=local?(chatgptReady?'ChatGPT plan connected · online'+(chatgptAccount?' · '+chatgptAccount:''):gptReady?'GPT API key configured · optional online':'Offline · optional GPT is disconnected'):'Browser preview · offline dialogue';
+  $('gpt-status').textContent=hosted?'House guide · rules. ChatGPT-plan conversations run in the local house.':local?(chatgptReady?'ChatGPT plan connected · online'+(chatgptAccount?' · '+chatgptAccount:''):gptReady?'GPT API key configured · optional online':'Offline · optional GPT is disconnected'):'Browser preview · offline dialogue';
   $('conversation-privacy').textContent=['gpt','chatgpt'].includes(dialogueMode)?'Online GPT sends your message, recent conversation, the selected room and its objects, and relevant saved memories, reflections and decisions to OpenAI. Suggestions still need your approval.':'This conversation stays on your computer.';
   if(preview)$('conversation-privacy').textContent='Preview conversation lasts for this visit. Use the desktop edition to keep memories.';
+  if(hosted){$('conversation-privacy').textContent='This rule-based conversation is saved to your signed-in private online house. It requires an internet connection and sends no GPT inference request.';if(hostedSettingsNote)hostedSettingsNote.textContent='ChatGPT-plan conversations run in the local house through its separate OpenAI sign-in. This hosted house uses the rule-based guide and private saved history. No paid API connection is used here.';}
+  if(archiveExport)archiveExport.disabled=exporting||isSaving();
   $('resident-pace').value=resident.preferences.pace;
  }
  function show(){
@@ -68,10 +77,10 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
  async function onLoad(){
   const before=getHouse(),resident=validateResident(before.resident,before);
   if(!before.resident)await saveHouse({...before,resident});
-  if(local){try{refreshConfig(await gptConfig());}catch(error){note.textContent=error.message;}}
+  if(local||hosted){try{refreshConfig(await gptConfig());}catch(error){note.textContent=error.message;}}
   render();
  }
- function refreshConfig(config){if(config?.gpt)gptReady=Boolean(config.gpt.ready);if(config?.chatgpt){chatgptReady=Boolean(config.chatgpt.ready);chatgptAccount=config.chatgpt.account?.label||'';}if((dialogueMode==='gpt'&&!gptReady)||(dialogueMode==='chatgpt'&&!chatgptReady))dialogueMode='offline';render();}
+ function refreshConfig(config){if(config?.gpt)gptReady=!hosted&&Boolean(config.gpt.ready);if(config?.chatgpt){chatgptReady=!hosted&&Boolean(config.chatgpt.ready);chatgptAccount=config.chatgpt.account?.label||'';}if((dialogueMode==='gpt'&&!gptReady)||(dialogueMode==='chatgpt'&&!chatgptReady))dialogueMode='offline';render();}
  $('resident-talk').onclick=show;
  $('socrates-tab').onclick=show;
  $('resident-close').onclick=close;
@@ -82,16 +91,16 @@ export function initResidentUI({$,document,window,scene,getHouse,getSelected,isL
   const draft=$('resident-input').value,text=draft.trim();if(!text)return;
   busy=true;note.textContent=['gpt','chatgpt'].includes(dialogueMode)?'Socrates is thinking with '+(dialogueMode==='chatgpt'?'ChatGPT…':'GPT…'):'Socrates is considering your question…';render();
   try{
-   if(['gpt','chatgpt'].includes(dialogueMode)){if(dialogueMode==='gpt'&&!gptReady)throw Error('Configure the GPT API key first, or choose Offline.');if(dialogueMode==='chatgpt'&&!chatgptReady)throw Error('Continue with ChatGPT in local settings first, or choose Offline.');await gptChat(text,roomId(),dialogueMode);}
+   if(['gpt','chatgpt'].includes(dialogueMode)){if(hosted)throw Error('ChatGPT-plan conversations run in the local house. Your question is kept.');if(dialogueMode==='gpt'&&!gptReady)throw Error('Configure the GPT API key first, or choose Offline.');if(dialogueMode==='chatgpt'&&!chatgptReady)throw Error('Continue with ChatGPT in local settings first, or choose Offline.');await gptChat(text,roomId(),dialogueMode);}
    else await saveHouse(converse(getHouse(),roomId(),text));
    if($('resident-input').value===draft)$('resident-input').value='';note.textContent='';
   }catch(error){note.textContent=error.message;}
   finally{busy=false;render();}
  };
  $('conversation-mode').onchange=()=>{const next=$('conversation-mode').value;if((next==='gpt'&&!gptReady)||(next==='chatgpt'&&!chatgptReady)){$('conversation-mode').value=dialogueMode;$('gpt-settings').onclick();return;}dialogueMode=['offline','gpt','chatgpt'].includes(next)?next:'offline';render();};
- $('gpt-settings').onclick=()=>{if(!local){note.textContent='Optional online GPT is available in the offline desktop edition. Your browser preview has local guided dialogue.';return;}$('gpt-settings-message').textContent='';$('gpt-dialog').showModal();};
- $('gpt-form').onsubmit=async event=>{event.preventDefault();$('gpt-settings-message').textContent='';try{const result=await gptConnect($('gpt-key').value,$('gpt-model').value);refreshConfig(result);$('gpt-key').value='';$('gpt-dialog').close();note.textContent='GPT API key configured for this session. Choose GPT when you want an online answer.';render();}catch(error){$('gpt-settings-message').textContent=error.message;}};
- $('gpt-disconnect').onclick=async()=>{try{const result=await gptDisconnect();refreshConfig(result);gptReady=false;if(dialogueMode==='gpt')dialogueMode='offline';$('gpt-key').value='';$('gpt-dialog').close();render();}catch(error){$('gpt-settings-message').textContent=error.message;}};
+ $('gpt-settings').onclick=async()=>{if(hosted){$('gpt-dialog').showModal();render();return;}if(!local){note.textContent='Optional online GPT is available in the offline desktop edition. Your browser preview has local guided dialogue.';return;}$('gpt-settings-message').textContent='';$('gpt-dialog').showModal();};
+ $('gpt-form').onsubmit=async event=>{event.preventDefault();$('gpt-settings-message').textContent='';try{if(!local)throw Error('Use the local house for ChatGPT-plan conversations; no browser key is submitted here.');const result=await gptConnect($('gpt-key').value,$('gpt-model').value);refreshConfig(result);$('gpt-key').value='';$('gpt-dialog').close();note.textContent='GPT API key configured for this session. Choose GPT when you want an online answer.';render();}catch(error){$('gpt-settings-message').textContent=error.message;}};
+ $('gpt-disconnect').onclick=async()=>{try{if(!local)throw Error('Manage your ChatGPT-plan connection in the local house.');const result=await gptDisconnect();refreshConfig(result);gptReady=false;if(dialogueMode==='gpt')dialogueMode='offline';$('gpt-key').value='';$('gpt-dialog').close();render();}catch(error){$('gpt-settings-message').textContent=error.message;}};
  $('resident-pace').onchange=()=>change(house=>setResidentPreferences(house,{pace:$('resident-pace').value}), 'Socrates will remember your preferred pace.');
  $('resident-export').onclick=()=>{
   const blob=new Blob([buildHandoff(getHouse())],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='house-of-ideas-game-brief.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);note.textContent='Game improvement brief exported. You can give it to GPT or Codex.';

@@ -116,7 +116,7 @@ let context;
 try{
   running=await startServer({dataDir,webDir:path.join(root,'web'),port:0,maxPort:0,env:{},
     fetchImpl:async()=>{providerCalls++;throw Error('No unrequested provider request is allowed.');}});
-  context=vm.createContext({...model,...neighborhood,...residenceData,initialCityNetwork,validateCityNetwork,CITIES,saveCityNote,initMathCityUI,
+  context=vm.createContext({...model,...neighborhood,...residenceData,initialCityNetwork,validateCityNetwork,CITIES,saveCityNote,initMathCityUI,initConversationUI:optionalPanel,
     initHomeUI,pragueDate,recordReflection,initCityTravelUI,formatCityDiscussion,
     initLearning:()=>({render(){},hideCritic(){},noteVisit(){},onHomeChange(){},async onLoad(){},includeVisits:house=>house}),
     initResidentUI:options=>initResidentUI({...options,schedule(callback,delay){timers.set('resident:'+delay,callback);return delay;},cancel(){}}),

@@ -395,7 +395,8 @@
     "conversation_transfer": "Explicit JSON selection and import; no automatic local/cloud synchronization. Original source-place labels retained; exact hash duplicates skipped; house data and approval authority never imported from conversation files.",
     "inference": "Rule-based hosted residents. Hosted ChatGPT sign-in provides identity only. Eligible-plan inference is available through the explicitly connected localhost house; separately billed hosted APIs are disabled by owner preference.",
     "limits": "10,000 messages and 1,000 briefs; 1.3 MB mutation bodies; full file selection up to 192 MiB, then bounded sequential imports. Full export materializes the archive in memory. GLB imports remain offline-only; no unattended GPT or repository editing.",
-    "verification": "Real SQLite identity/isolation/CAS/rollback/import/retention/quota races/brief approval and restart tests passed. Temporary browser verified draft, separate approval, approved-file export, reload and repeat-import deduplication. Production publication and identity checks recorded separately.",
-    "publication": "Source provenance and production deployment recorded separately in release notes."
+    "verification": "Real SQLite identity/isolation/CAS/rollback/import/retention/quota races/brief approval and restart tests passed. Temporary browser verified draft, separate approval, approved-file export, reload and repeat-import deduplication. Production publication and identity checks recorded separately. Hosted gallery build script execution, exact reconstruction and188 assets below25MiB passed.",
+    "publication": "Source provenance and production deployment recorded separately in release notes.",
+    "gallery_delivery": "Online-only build extracts sixty identical raster artworks into small SHA-addressed assets; hosted HTML is848,402 bytes. Exact-byte reconstruction preserves all source content, scripts and credits. Frozen source/offline/Pages HTML remains unchanged."
   }
 }

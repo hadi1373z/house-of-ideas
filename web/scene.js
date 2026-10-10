@@ -13,6 +13,7 @@ import {createDesignLayer} from './design-scene.js';
 import {initXR} from './xr.js';
 import {buildArtistCityEditions} from './artist-city-editions.js';
 import {buildArtCity} from './art-city-scene.js';
+import {addDaliHouse} from './dali-house-scene.js';
 import {findCityPath} from './art-city-navigation.js';
 import {buildMakersCity} from './makers-city-scene.js';
 import {buildMathCity} from './math-city-scene.js';
@@ -309,7 +310,7 @@ export function createScene(container,onPick){
  function setCityNetwork(network){const key=JSON.stringify(network);if(key===JSON.stringify(cityNetwork))return;const editionsChanged=JSON.stringify(cityNetwork?.artistHomes?.editions??[])!==JSON.stringify(network?.artistHomes?.editions??[]);cityNetwork=network;if(editionsChanged&&artCity)refreshArtistEditions();for(const id of cityLayers.keys())refreshCargo(id);if(playerPath.some(p=>!canStand(p.x,p.z))){playerPath=[];landmarkLookAt=null;seatTarget=null;}if(artCityMode&&path.some(p=>!canStand(p.x,p.z))){path=[];pause=2;}if(artCityMode&&!canStand(visitor.position.x,visitor.position.z)){const p=remoteWorld().guideAnchor||remoteWorld().spawn;visitor.position.set(p.x,floorHeight(),p.z);path=[];pause=2;}if(artCityMode&&!canStand(playerPoint().x,playerPoint().z))placeCityPlayer(remoteWorld().spawn);}
  function prepareCity(id){
   if(!['home','artists','makers','mathematics'].includes(id))throw Error('Choose a connected city.');if(!house)throw Error('Open the saved house first.');
-  if(id==='artists'&&!artCity){if(!artCityArtists.length)throw Error('The artists’ city is still opening.');artCityBase=buildArtCity(THREE,artCityArtists,{artworkUrl:(_,work)=>work.imageUrl});scene.add(artCityBase.group);artCityBase.group.visible=false;refreshArtistEditions();const facilities=buildCityFacilities(THREE,{cityId:'artists',origin:{x:25,z:0}});scene.add(facilities.group);cityLayers.set('artists',{facilities});refreshCargo('artists');}
+  if(id==='artists'&&!artCity){if(!artCityArtists.length)throw Error('The artists’ city is still opening.');artCityBase=addDaliHouse(THREE,buildArtCity(THREE,artCityArtists.filter(a=>a.id!=='dali'),{artworkUrl:(_,work)=>work.imageUrl}));scene.add(artCityBase.group);artCityBase.group.visible=false;refreshArtistEditions();const facilities=buildCityFacilities(THREE,{cityId:'artists',origin:{x:25,z:0}});scene.add(facilities.group);cityLayers.set('artists',{facilities});refreshCargo('artists');}
   if(id==='makers'&&!makersCity){makersCity=buildMakersCity(THREE);scene.add(makersCity.group);makersCity.group.visible=false;const facilities=buildCityFacilities(THREE,{cityId:'makers',anchors:makersCity.anchors});scene.add(facilities.group);cityLayers.set('makers',{facilities});refreshCargo('makers');}
   if(id==='mathematics'&&!mathCity)rebuildMathCity(0);
   return true;

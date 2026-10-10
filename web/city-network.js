@@ -1,6 +1,6 @@
 import {CUES, IDEA_ACTIONS, defaultIdeaAction} from './model.js';
 import {BOOKS} from './books.js';
-import {ARTISTS} from './art-city-data.js';
+import {ARTISTS} from './artist-catalog.js';
 import {validateArtistHomes} from './artist-home-data.js';
 
 export const CITY_LIMITS = Object.freeze({cargo:64, placements:128, placementsPerAnchor:8,
@@ -11,7 +11,7 @@ export const CITY_ANCHORS = Object.freeze({home:Object.freeze(['library','table'
 const labels={library:'Library',table:'Learning table',plaza:'Plaza',workshop:'Workshop'};
 export const CITIES = Object.freeze([
   {id:'home',name:'Home neighbourhood',description:'Return to your preserved homes, read in the library and bring a thought to the learning table.'},
-  {id:'artists',name:'Artists’ City',description:'Explore ten artist houses, read, discuss their works and keep observations in the city journal.'},
+  {id:'artists',name:'Artists’ City',description:'Explore eleven artist houses, read, discuss their works and keep observations in the city journal.'},
   {id:'makers',name:'Makers’ City',description:'Visit workshops, try a small experiment and bring useful ideas back to another city.'},
   {id:'mathematics',name:'Mathematics City',description:'Enter an eight-floor mathematical house, explore ideas and open the offline Atlas of Ideas on its screens.'},
 ].map(city=>Object.freeze({...city,anchors:Object.freeze(CITY_ANCHORS[city.id].map(id=>Object.freeze({id,label:labels[id]})))})));

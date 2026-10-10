@@ -1,0 +1,17 @@
+# Dalí’s dream residence and the World guide
+
+Open **World guide · M**, choose **Artists’ City**, then search **Dali** or select his courtyard marker. Choose **Visit this place** to enter. Dalí is an embodied interpretive resident with a distinctive moustache, a safe patrol, saved offline dialogue and the existing owner-reviewed study-house procedure. He is a fictional interpretation, not the historical artist speaking.
+
+The original ten lots stay in their original positions. A new courtyard contains a roof with egg sculptures, a long-backed dream chair, a drawer library, a soft-clock desk, a sphere viewpoint and an egg-shaped window. Select an object in the world or in the guide to read its exercise, discuss it with Dalí and explicitly save an observation in the city journal. The chair also provides a seated viewpoint. Reading drawers open a learning panel; they do not yet animate individually.
+
+Four frames identify **The Persistence of Memory** (1931), **Galatea of the Spheres / Gala Placidia** (1952), **Leda Atomica** (1947–49) and **Face of the Great Masturbator** (1929). The bundled images are original labelled study diagrams, not reproductions. **Inspect painting & museum source** opens the existing artwork inspector, where **View source** leads to the real painting. No painting reproduction is silently downloaded, copied into the offline package or presented as public domain.
+
+The guide replaces the scattered destination controls with one entry. It lists current-home rooms and instantiated functional objects, Socrates, eleven artist residences/residents, paintings, gallery study places, approved artist editions, mathematics floors/stations and placed collection objects. Room objects are grouped on their room marker; gallery works are grouped on their house marker. Dalí’s activity markers have their physical positions. The Mathematics view is a vertical floor index. Makers’ City and detailed collection/room assignment tools remain reachable through **House tools**. This is an interactive location guide, not a complete structural-model or every-floor furniture survey.
+
+## Sources and design interpretation
+
+- [Portlligat House-Museum](https://www.salvador-dali.org/en/visit/salvador-dali-house-museum/) and the [Dalinian Triangle](https://www.salvador-dali.org/en/visit/the-dalinian-triangle/) inform the distinction between a living space, studio, library and courtyard. This new building is an original design hypothesis, not a reconstruction.
+- [MoMA’s painting record](https://www.moma.org/collection/works/79018?locale=en) and Foundation catalogue records [P672](https://catalogues.salvador-dali.org/catalogues/en/heritageobject/54/), [P642](https://catalogues.salvador-dali.org/catalogues/en/heritageobject/51/) and [P235](https://catalogues.salvador-dali.org/catalogues/en/heritageobject/22-5103/) identify the paintings.
+- The Foundation’s [credits](https://www.salvador-dali.org/en/credits/) and [rights procedure](https://www.salvador-dali.org/en/dali-foundation/services/rights-and-image/) do not grant a general reproduction licence. Licensed image files could replace these study cards in a later update.
+
+Existing houses, approval decisions and conversations are retained. Hosted dialogue remains rule-based. This change does not enable billed inference, sign-in-based hosted GPT inference or automatic publication from a resident’s suggestions. Physical headset operation remains unverified.

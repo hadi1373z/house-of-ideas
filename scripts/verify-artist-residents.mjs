@@ -102,5 +102,5 @@ for(const house of city.houses)for(const anchor of house.approaches){
 const paused=hosts.states();hosts.update(NaN);hosts.update(-1);assert.deepEqual(hosts.states(),paused,'Invalid timing cannot move residents.');
 let geometryDisposals=0,materialDisposals=0;for(const g of geometry)g.addEventListener('dispose',()=>geometryDisposals++);for(const m of materials)m.addEventListener('dispose',()=>materialDisposals++);
 hosts.dispose();hosts.dispose();assert.equal(hosts.group.children.length,0);assert.deepEqual(hosts.states(),[]);assert.equal(geometryDisposals,geometry.size);assert.equal(materialDisposals,materials.size);assert.equal(hosts.greet('monet'),false,'Disposal cannot revive a departed resident layer.');
-city.dispose();assert.throws(()=>buildArtistResidents(THREE,[],city),/one to ten/);assert.throws(()=>buildArtistResidents(THREE,[ARTISTS[0],ARTISTS[0]],city),/unique known/);
+city.dispose();assert.throws(()=>buildArtistResidents(THREE,[],city),/one to eleven/);assert.throws(()=>buildArtistResidents(THREE,[ARTISTS[0],ARTISTS[0]],city),/unique known/);
 console.log(`Artist residents passed: ten distinct visible hosts, safe in-house patrols and greeting paths, conversation presence, ${meshes} shared-geometry meshes.`);

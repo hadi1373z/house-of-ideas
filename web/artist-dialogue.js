@@ -1,4 +1,4 @@
-import {ARTISTS} from './art-city-data.js';
+import {ARTISTS} from './artist-catalog.js';
 import {CITY_LIMITS,validateCityNetwork} from './city-network.js';
 
 export const ARTIST_RESIDENT_NOTE='An interpretive artist resident, with offline conversations inspired by the works in this gallery.';
@@ -7,6 +7,8 @@ export const ARTIST_DIALOGUE_LIMITS=Object.freeze({messages:CITY_LIMITS.artistMe
 // These are original learning prompts for fictional residents. They are not
 // historical quotations or claims that the artists actually spoke these words.
 const practices=Object.freeze({
+ dali:{welcome:'An ordinary thing can become strange when its scale or setting changes.',focus:'unexpected associations, suspended forms and the difference between observation and invention',question:'Which detail do you actually see, and which association have you invented?',exercise:'Draw an ordinary object twice. Change its scale or setting in the second drawing, then describe what remains recognizable.',room:'Test a surprising chair, a reading drawer or a new viewpoint. Keep a clear walking route and compare whether the change supports your own activity.',reply:'Let us look precisely before we invent.'},
+ dali:{welcome:'An ordinary thing can become strange when its scale or setting changes.',focus:'unexpected associations, suspended forms and the difference between observation and invention',question:'Which detail do you actually see, and which association have you invented?',exercise:'Draw an ordinary object twice. Change its scale or setting in the second drawing, then describe what remains recognizable.',room:'Test a surprising chair, a reading drawer or a new viewpoint. Keep a clear walking route and compare whether the change supports your own activity.',reply:'Let us look precisely before we invent.'},
   monet:{welcome:'Stay with a view long enough to notice what changes.',focus:'light, reflections and the edges that seem to dissolve',
     question:'Where does a reflection stop being sky and start being water?',exercise:'Choose one view through a window. Make three tiny colour studies at different times, keeping the viewpoint fixed.',
     room:'Choose a quiet seat beside a window and leave one clear surface for comparing studies. Observe its light before deciding where an artwork belongs.',reply:'Let us slow the looking down.'},

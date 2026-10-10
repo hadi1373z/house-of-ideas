@@ -1,6 +1,6 @@
 // Shared data-only format for explicit private conversation transfers.
 // A file carries dialogue, never credentials, houses or approval authority.
-import {ARTISTS} from './art-city-data.js';
+import {ARTISTS} from './artist-catalog.js';
 
 export const CONVERSATION_ARCHIVE_LIMIT = 10000;
 export const CONVERSATION_FILE_FORMAT = 'house-of-ideas-private-conversations';

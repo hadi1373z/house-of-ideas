@@ -3,6 +3,8 @@ import {findCityPath} from './art-city-navigation.js';
 // Fictional resident interpretations give every gallery its own human host.
 // Historical clothing and tools distinguish them without changing the houses.
 const LOOKS={
+ dali:{coat:'#403b42',shirt:'#eee0c4',trousers:'#534743',skin:'#d2aa86',hair:'#38332f',hairStyle:'neat',mustache:true,tie:'#b59a52',tool:'palette'},
+ dali:{coat:'#403b42',shirt:'#eee0c4',trousers:'#534743',skin:'#d2aa86',hair:'#38332f',hairStyle:'neat',mustache:true,tie:'#b59a52',tool:'palette'},
  monet:{coat:'#bec4a9',shirt:'#687784',trousers:'#59625d',skin:'#d6af8e',hair:'#dddcd0',beard:'long',hat:'beret',hatColor:'#566377',tool:'palette'},
  kandinsky:{coat:'#75564f',shirt:'#e8dec6',trousers:'#474a50',skin:'#d3ac8c',hair:'#4b4541',hairStyle:'receding',glasses:true,tie:'#b08b56',tool:'geometry'},
  'van-gogh':{coat:'#47718a',shirt:'#c6b87e',trousers:'#4e5960',skin:'#d4a17f',hair:'#ab653d',beard:'short',hat:'straw',hatColor:'#c9ab67',tool:'palette'},
@@ -16,7 +18,7 @@ const LOOKS={
 };
 
 export function buildArtistResidents(THREE,artists,city){
- if(!THREE?.Group||!Array.isArray(artists)||artists.length<1||artists.length>10||!city?.canStand||!Array.isArray(city.houses))throw Error('Artist residents need one to ten artists and a walkable city.');
+ if(!THREE?.Group||!Array.isArray(artists)||artists.length<1||artists.length>11||!city?.canStand||!Array.isArray(city.houses))throw Error('Artist residents need one to eleven artists and a walkable city.');
  const ids=new Set();for(const artist of artists){if(!artist?.id||ids.has(artist.id)||!LOOKS[artist.id]||!city.houses.some(h=>h.artistId===artist.id))throw Error('Each resident needs a unique known artist and their own gallery house.');ids.add(artist.id);}
  const group=new THREE.Group();group.name='Artist residents';
  const geometries=new Map(),materials=new Map(),textures=new Set(),residents=new Map();let disposed=false,lastPlayerHouse=null;
@@ -86,6 +88,8 @@ export function buildArtistResidents(THREE,artists,city){
   if(look.hairStyle==='bun')sphere(head,.089,0,.06,-.145,look.hair);
   if(look.hairStyle==='bob')for(const x of [-.135,.135])sphere(head,.089,x,-.055,-.035,look.hair,[.6,1.5,1]);
   if(look.hairStyle==='curls')for(const x of [-.13,0,.13])sphere(head,.079,x,.105,-.028,look.hair,[1,1,.9]);
+  if(look.mustache)for(const side of [-1,1]){const whisker=sphere(head,.08,side*.095,-.045,.145,look.hair,[1.8,.16,.2]);whisker.rotation.z=side*.48;}
+  if(look.mustache)for(const side of [-1,1]){const whisker=sphere(head,.08,side*.095,-.045,.145,look.hair,[1.8,.16,.2]);whisker.rotation.z=side*.48;}
   if(look.beard){const beard=sphere(head,look.beard==='long'?.118:.097,0,look.beard==='long'?-.155:-.1,.105,look.hair,[1,look.beard==='long'?1.55:look.beard==='point'?1.15:.82,.7]);beard.rotation.x=-.12;}
   if(look.glasses){for(const x of [-.061,.061])ring(head,.039,x,.035,.165,'#484947');box(head,.044,.01,.011,0,.035,.167,'#484947');}
   if(look.hat==='beret'){sphere(head,.192,0,.181,0,look.hatColor,[1.13,.31,1]);sphere(head,.017,0,.246,0,look.hatColor);}

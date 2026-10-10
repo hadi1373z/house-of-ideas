@@ -1,4 +1,4 @@
-import {ARTISTS} from './art-city-data.js';
+import {ARTISTS} from './artist-catalog.js';
 import {artistHomeArchive, proposeArtistHome, decideArtistHome, artistImprovementBrief} from './artist-homes.js';
 import {ARTIST_HOME_FEATURES, ARTIST_HOME_ATMOSPHERES} from './artist-home-data.js';
 

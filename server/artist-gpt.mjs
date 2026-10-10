@@ -1,4 +1,4 @@
-import {ARTISTS} from '../web/art-city-data.js';
+import {ARTISTS} from '../web/artist-catalog.js';
 import {artistPersona,appendArtistReply} from '../web/artist-dialogue.js';
 import {validateCityNetwork,CITY_LIMITS} from '../web/city-network.js';
 import {GptError,cleanModel,DEFAULT_MODEL} from './gpt.mjs';

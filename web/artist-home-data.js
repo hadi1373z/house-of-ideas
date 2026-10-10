@@ -1,4 +1,4 @@
-import {ARTISTS} from './art-city-data.js';
+import {ARTISTS} from './artist-catalog.js';
 
 export const ARTIST_HOME_FEATURES = Object.freeze(['observation-alcove','composition-wall','material-table']);
 export const ARTIST_HOME_ATMOSPHERES = Object.freeze(['garden','contrast','quiet']);

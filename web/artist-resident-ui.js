@@ -1,4 +1,4 @@
-import {ARTISTS} from './art-city-data.js';
+import {ARTISTS} from './artist-catalog.js';
 import {artistConversation, converseWithArtist, appendArtistReply, artistOpening, artistQuestions, ARTIST_RESIDENT_NOTE, ARTIST_DIALOGUE_LIMITS} from './artist-dialogue.js';
 
 export function initArtistResidentUI({$, document, window, scene, getNetwork, saveNetwork,

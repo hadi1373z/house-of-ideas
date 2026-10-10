@@ -398,5 +398,13 @@
     "verification": "Real SQLite identity/isolation/CAS/rollback/import/retention/quota races/brief approval and restart tests passed. Temporary browser verified draft, separate approval, approved-file export, reload and repeat-import deduplication. Production publication and identity checks recorded separately. Hosted gallery build script execution, exact reconstruction and188 assets below25MiB passed.",
     "publication": "Source provenance and production deployment recorded separately in release notes.",
     "gallery_delivery": "Online-only build extracts sixty identical raster artworks into small SHA-addressed assets; hosted HTML is848,402 bytes. Exact-byte reconstruction preserves all source content, scripts and credits. Frozen source/offline/Pages HTML remains unchanged."
+  },
+  "dali_world_guide": {
+    "date": "2026-10-10",
+    "residence": "Independent original surreal courtyard; existing ten artist lots remain unchanged. Interpretive embodied Dalí, five functional study objects, saved dialogue and owner-approved study annexes.",
+    "navigation": "One World guide button with searchable room/artist/painting/activity/floor inventory, interactive room/city markers, vertical mathematics index and links to all existing tools.",
+    "paintings": "Four authenticated museum records; bundled labelled original study diagrams. Actual Dalí painting reproductions are not packaged.",
+    "limitations": "Rule-based dialogue; drawers open study panels rather than animated drawers. Room objects and paintings are grouped by room/house on the map. Makers detail stays in Travel & collection. VR and live GPT remain unverified.",
+    "verification": "59 regression suites, including added Dalí routes, safe patrol, preserved lots, dialogue/approval and inventory checks; real browser activity/journal/conversation/map checks. Publication recorded separately."
   }
 }

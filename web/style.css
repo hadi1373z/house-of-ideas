@@ -75,3 +75,21 @@ body.art-city-mode .view-tools{display:none}
 .conversation-import{margin:16px 0 22px;padding:18px;border:1px solid var(--line);border-radius:10px;background:#f0f2e5}.conversation-import h3{margin-top:0}.conversation-import label{display:block;margin:16px 0}.conversation-import input[type=file]{display:block;max-width:100%;margin-top:8px}.conversation-import a{display:inline-block}.conversation-import p{line-height:1.55}
 /* Keep the daily decision visible while its evidence and practice scroll. */
 #daily-dialog[open]{display:flex;flex-direction:column;overflow:hidden}#daily-dialog .dialog-head{flex-shrink:0;margin-bottom:12px}#daily-dialog .daily-review-body{overflow:auto;min-height:0;padding-right:6px}#daily-dialog .review-room{margin:0 0 8px}#daily-dialog #review-title{margin:8px 0 12px}#daily-dialog .review-summary{margin:0 0 12px;padding:10px 12px;background:#eee1b9;border-radius:7px;font-size:14px;line-height:1.45}#daily-dialog .review-furnishing{margin:12px 0;padding:12px 14px}#daily-dialog .daily-review-footer{flex-shrink:0;padding-top:12px;border-top:1px solid var(--line);background:#faf8f0}#daily-dialog .daily-review-footer .dialog-actions{margin-top:0}#daily-dialog #review-message:empty{display:none}#daily-dialog #review-message{margin:0 0 10px}
+/* A single guide replaces scattered destination controls. Their existing
+   actions remain available through the guide's House tools. */
+#residence-open,#residence-map-open,.world-controls #neighborhood-toggle,.world-controls #city-travel-open,.world-controls #art-city-open,.world-controls #math-city-open,.world-controls #math-city-guide-open,.world-controls #journal-toggle,.world-controls #conversations-open,.world-controls #design-open{display:none!important}
+header nav #plan-tab,header nav #conversations-tab{display:none}
+#world-guide-dialog{width:min(1100px,94vw);max-height:90vh;padding:24px;background:#f3eddf;color:#283c37}
+.world-guide-filters,.world-guide-tools{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.world-guide-filters input{flex:1;min-width:190px}
+.world-guide-layout{display:grid;grid-template-columns:minmax(260px,1fr) minmax(250px,1fr);gap:18px}
+.world-guide-map{background:#243c3b;border-radius:12px;padding:14px;color:#f1e6cb;min-height:250px}
+.world-guide-map svg{display:block;width:100%;height:340px}
+.world-guide-map g{cursor:pointer}.world-guide-map g:focus circle{stroke:#f5ae41;stroke-width:.35}
+.world-guide-map>button{display:block;width:100%;margin:6px 0;text-align:left}
+.world-guide-list{max-height:380px;overflow:auto;display:flex;flex-direction:column;gap:7px}
+.world-guide-list>button{text-align:left;display:block;padding:12px;background:#fffaf0;color:#283c37;border:1px solid #d4c9b7;border-radius:8px}
+.world-guide-list small{display:block;font-weight:400;margin-top:5px;color:#5d695f}
+.world-guide-detail{margin:18px 0;padding:16px;border-left:4px solid #ba965d;background:#e8e0d0}.world-guide-detail:empty{display:none}
+.world-guide-detail button{margin-right:10px;margin-top:8px}
+@media(max-width:700px){.world-guide-layout{grid-template-columns:1fr}.world-guide-map svg{height:260px}.world-guide-list{max-height:250px}}

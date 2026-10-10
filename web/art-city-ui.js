@@ -139,7 +139,8 @@ export function initArtCityUI({$, document, window, scene, artists, getHouse, ge
     artistDescription.textContent = artist.description || '';
     approach.textContent = typeof artist.approach === 'string' ? artist.approach : '';
     approach.hidden = !approach.textContent;
-    localWebsite.href = './artists-websites.html#' + encodeURIComponent(artist.id);
+    localWebsite.href = artist.id==='dali'?artist.websiteUrl:'./artists-websites.html#' + encodeURIComponent(artist.id);
+    localWebsite.textContent=artist.id==='dali'?'Explore the real Portlligat house ↗':'Explore the artist website';
     setLink(originalWebsite, externalUrl(artist.websiteUrl));
     workSelect.replaceChildren(...(artist.works || []).map(work => {
       const option = node('option', null, work.title); option.value = work.id; return option;

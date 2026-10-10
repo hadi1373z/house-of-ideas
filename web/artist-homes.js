@@ -1,9 +1,9 @@
-import {ARTISTS} from './art-city-data.js';
+import {ARTISTS} from './artist-catalog.js';
 import {artistPersona} from './artist-dialogue.js';
 import {validateCityNetwork} from './city-network.js';
 import {validateArtistDesign,validateArtistHomes,ARTIST_HOME_LIMITS} from './artist-home-data.js';
 
-const defaults={monet:['observation-alcove','garden'],kandinsky:['composition-wall','contrast'],'van-gogh':['observation-alcove','contrast'],hokusai:['composition-wall','quiet'],rodin:['material-table','quiet'],'hilma-af-klint':['composition-wall','garden'],mondrian:['composition-wall','contrast'],lange:['observation-alcove','quiet'],morris:['material-table','garden'],klee:['material-table','contrast']};
+const defaults={dali:['composition-wall','contrast'],monet:['observation-alcove','garden'],kandinsky:['composition-wall','contrast'],'van-gogh':['observation-alcove','contrast'],hokusai:['composition-wall','quiet'],rodin:['material-table','quiet'],'hilma-af-klint':['composition-wall','garden'],mondrian:['composition-wall','contrast'],lange:['observation-alcove','quiet'],morris:['material-table','garden'],klee:['material-table','contrast']};
 const fresh=(prefix,records)=>{let n=records.length+1;while(records.some(r=>r.id===prefix+'-'+n))n++;return prefix+'-'+n;};
 const artist=id=>{const found=ARTISTS.find(a=>a.id===id);if(!found)throw Error('Choose a known artist resident.');return found;};
 export const artistHomeArchive=network=>validateCityNetwork(network).artistHomes??{version:1,proposals:[],editions:[]};

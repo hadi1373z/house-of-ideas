@@ -1,5 +1,5 @@
 // Private online dialogue becomes reviewable development work only by owner decision.
-import {ARTISTS} from './art-city-data.js';
+import {ARTISTS} from './artist-catalog.js';
 import {initConversationImport} from './conversation-import.js';
 export function initConversationUI({document,window,request,hosted,getHouse,getNeighborhood,getRevision,notify}) {
  const $=id=>document.getElementById(id),pageSize=30;

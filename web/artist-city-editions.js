@@ -31,7 +31,7 @@ export function buildArtistCityEditions(THREE,artists,baseCity,editions=[]){
   group.traverse(mesh=>{if(!mesh.isMesh||!mesh.userData.workId||mesh.geometry.type!=='PlaneGeometry'||mesh.material.map!==texture)return;const ratio=Number(texture.image.width)/Number(texture.image.height);if(!Number.isFinite(ratio)||ratio<=0)return;mesh.userData.imageStatus='ready';if(1.4/1.06>ratio)mesh.scale.set(1.06*ratio,1.06,1);else mesh.scale.set(1.4,1.4/ratio,1);});
  }
  const factoryThree={...THREE,TextureLoader:class{load(url,onLoad,progress,onError){return new THREE.TextureLoader().load(url,texture=>{onLoad(texture);fitCopies(texture);},progress,error=>{onError(error);if(!disposed)group.traverse(mesh=>{if(mesh.userData.imageUrl===url)mesh.userData.imageStatus='unavailable';});});}}};
- function template(artist){if(!templates.has(artist.id)){const city=buildArtCity(factoryThree,[artist],{artworkUrl:(_,work)=>work.imageUrl});templates.set(artist.id,{city,house:city.houses[0]});}return templates.get(artist.id);}
+ function template(artist){if(!templates.has(artist.id)){const city=buildArtCity(factoryThree,[artist],{artworkUrl:(_,work)=>work.imageUrl});if(artist.id==='dali'){const dream=city.houses[0].group;for(const x of [-2,0,2])sphere(dream,.36,x,3.7,0,'#eee6d6',{artistId:'dali'},[.85,1.5,.85]);for(const x of [-.82,.82])box(dream,.07,1.8,.07,x,1.35,.27,'#c29d58',{artistId:'dali'});sphere(dream,.45,0,2.24,.27,'#b85b4b',{artistId:'dali'},[1,.5,.16]);}templates.set(artist.id,{city,house:city.houses[0]});}return templates.get(artist.id);}
  function atmosphere(house,design,data){
   const parent=house.group;
   if(design.atmosphere==='garden')for(const x of [-3.94,3.94]){

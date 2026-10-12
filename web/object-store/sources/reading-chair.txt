@@ -1,0 +1,16 @@
+{
+  "id": "stock-reading-chair",
+  "title": "Reading chair",
+  "category": "Home furniture",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/d7498a1c6fee2e3f602ab1107b79a4cf1f24753c/web/residence-interior-v1.js",
+  "sourceRecord": "./object-store/sources/reading-chair.txt",
+  "sourceType": "project",
+  "revision": "d7498a1c6fee2e3f602ab1107b79a4cf1f24753c",
+  "assetId": "12f76c0f4e055168d3e58a6575712fd18b9f4ee4cac331dce728ec091d694646",
+  "bytes": 17944,
+  "scale": 1.1,
+  "description": "A reusable static model from the existing house. Add your own idea or learning activity; this copy does not inherit sitting, resting or resident interactions.",
+  "modifications": "Mesh shapes copied from the retained game renderer; textures simplified to material colours and exported as a static GLB."
+}

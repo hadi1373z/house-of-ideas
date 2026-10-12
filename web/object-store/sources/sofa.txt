@@ -1,0 +1,16 @@
+{
+  "id": "stock-sofa",
+  "title": "Living-room sofa",
+  "category": "Home furniture",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/d7498a1c6fee2e3f602ab1107b79a4cf1f24753c/web/residence-interior-v1.js",
+  "sourceRecord": "./object-store/sources/sofa.txt",
+  "sourceType": "project",
+  "revision": "d7498a1c6fee2e3f602ab1107b79a4cf1f24753c",
+  "assetId": "a3eb8795b05139e59bf4f92a8438055bf257d56ded483682b16a7076d48c4e25",
+  "bytes": 84064,
+  "scale": 1.4,
+  "description": "A reusable static model from the existing house. Add your own idea or learning activity; this copy does not inherit sitting, resting or resident interactions.",
+  "modifications": "Mesh shapes copied from the retained game renderer; textures simplified to material colours and exported as a static GLB."
+}

@@ -1,0 +1,16 @@
+{
+  "id": "stock-dream-spheres",
+  "title": "Floating sphere study",
+  "category": "Surreal objects",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/d7498a1c6fee2e3f602ab1107b79a4cf1f24753c/web/dali-house-scene.js",
+  "sourceRecord": "./object-store/sources/dream-spheres.txt",
+  "sourceType": "project",
+  "revision": "d7498a1c6fee2e3f602ab1107b79a4cf1f24753c",
+  "assetId": "9f99da064b9f2b9255ac42481505242840a73a2f3b984e3cc76ec68a1a65fcaa",
+  "bytes": 233948,
+  "scale": 1.1,
+  "description": "A reusable static model from the existing house. Add your own idea or learning activity; this copy does not inherit sitting, resting or resident interactions.",
+  "modifications": "Mesh shapes copied from the retained game renderer; textures simplified to material colours and exported as a static GLB."
+}

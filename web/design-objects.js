@@ -23,7 +23,7 @@ export function validateDesignObjects(input,rooms){
  });
 }
 
-const ALLOWED_EXTENSIONS=new Set(['KHR_materials_unlit','KHR_materials_clearcoat','KHR_materials_ior','KHR_materials_specular','KHR_materials_transmission','KHR_materials_volume','KHR_materials_sheen','KHR_materials_iridescence','KHR_materials_anisotropy','KHR_materials_emissive_strength','KHR_texture_transform','KHR_materials_pbrSpecularGlossiness','EXT_texture_webp','KHR_lights_punctual']);
+const ALLOWED_EXTENSIONS=new Set(['KHR_materials_variants','KHR_materials_unlit','KHR_materials_clearcoat','KHR_materials_ior','KHR_materials_specular','KHR_materials_transmission','KHR_materials_volume','KHR_materials_sheen','KHR_materials_iridescence','KHR_materials_anisotropy','KHR_materials_emissive_strength','KHR_texture_transform','KHR_materials_pbrSpecularGlossiness','EXT_texture_webp','KHR_lights_punctual']);
 const object=value=>value&&typeof value==='object'&&!Array.isArray(value);
 function list(value,name,limit){if(value===undefined)return [];if(!Array.isArray(value)||value.length>limit)throw Error(`The GLB has too many or invalid ${name}.`);return value;}
 function integer(value,min,max,message){if(!Number.isSafeInteger(value)||value<min||value>max)throw Error(message);return value;}

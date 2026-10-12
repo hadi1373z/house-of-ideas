@@ -1,4 +1,5 @@
 import {validateHouse} from '../web/model.js';
+import {BUNDLED_MODELS} from '../web/object-store/models.js';
 import {saveEdition, selectEdition, createEdition} from '../web/neighborhood.js';
 import {initialCityNetwork, validateCityNetwork} from '../web/city-network.js';
 import {DEFAULT_MODEL, SOCRATES_PROMPT_VERSION} from '../server/gpt.mjs';
@@ -46,7 +47,7 @@ function checked(operation) {
 }
 function noNewAssets(before, house) {
   const known = new Set(before.neighborhood.homes.flatMap(home => (home.house.designObjects ?? []).map(object => object.assetId)));
-  if ((house.designObjects ?? []).some(object => !known.has(object.assetId))) throw new OnlineError('GLB file imports are available in the offline installation. This online house has not uploaded that design.');
+  if ((house.designObjects ?? []).some(object => !known.has(object.assetId)&&!BUNDLED_MODELS.some(m=>m.assetId===object.assetId))) throw new OnlineError('GLB file imports are available in the offline installation. This online house has not uploaded that design.');
 }
 async function createImprovement(db, user, input, sourceVersion) {
   plain(input, ['problem', 'proposal', 'criteria', 'evidenceIds'], 'development proposal');

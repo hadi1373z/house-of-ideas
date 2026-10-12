@@ -22,6 +22,7 @@ import {initConversationUI} from './conversation-ui.js';
 import {initWorldGuide} from './world-guide.js';
 import {initLearningTrail} from './learning-trail-ui.js';
 import {initHomeOrientation} from './home-orientation.js';
+import {initConstruction} from './construction-ui.js';
 const $=id=>document.getElementById(id),symbols={crystal:'◇',ring:'◎',sphere:'●',book:'▤'};
 let house=starter(),revision=0,selected=house.rooms[0].id,loaded=false,saving=false,plan=null,planSelected=null,planLevel=0,drawing=false,drag=null,ideaEditing=null;
 const preview=document.body.dataset?.mode==='preview';
@@ -170,6 +171,7 @@ chatgptUI.onLoad?.().catch(error=>status(error.message,true));
 if(typeof initLearningTrail==='function')learningTrailUI=initLearningTrail({document,scene,getHouse:()=>house,getNetwork:getCityNetwork,saveNetwork:saveCityNetwork,buildHouse:buildResidence,getNeighborhood:()=>neighborhood,visitHome,visitRoom:id=>{setView(true);selectRoom(id);},notify:status});
 if(typeof initWorldGuide==='function')worldGuide=initWorldGuide({document,window,scene,getHouse:()=>house,getNetwork:getCityNetwork,openLearning:()=>learningTrailUI?.show(),visitRoom:id=>{setView(true);selectRoom(id);},inspectWork:(id,work)=>artCityUI?.showArtist(id,work),inspectConcept:id=>mathCityUI?.showConcept(id),meetResident:meetSocrates,saveObservation:(title,text)=>saveCityNetwork(saveCityNote(getCityNetwork(),'artists',title+'\n'+text)),discussArtist:(id,question)=>showArtistResident(id,undefined,question),inspectHomeObject:item=>item.homeAction==='painting'?residenceUI?.inspectPainting(item.workId,item.roomId):item.ideaId?(item.ideaId.startsWith('trail-')?learningTrailUI?.show(item.ideaId.slice(6)):homeUI?.inspectIdea(item.ideaId)):item.designId?designerUI?.inspect(item.designId):homeUI?.interact(item),notify:status});
 if(typeof initHomeOrientation==='function')initHomeOrientation({document,window,scene,getHouse:()=>house,getTitle:()=>neighborhood?.homes.find(h=>h.id===neighborhood.activeId)?.title,visitRoom:id=>{setView(true);selectRoom(id);},returnEntrance:()=>{scene?.leaveArtCity?.();scene?.returnDesign?.();scene?.startOutside?.();$('enter-house').hidden=false;$('house-welcome').hidden=false;render();},openObjects:id=>worldGuide?.showRoom?.(id),meetResident:meetSocrates});
+if(typeof initConstruction==='function')initConstruction({document,getHouse:()=>house,getKey:()=>neighborhood?.activeId||'current',isReady:()=>loaded&&!saving,buildHouse:buildResidence});
 render();load();
 function openChatGPTFromLink(){if(local&&window.location?.hash==='#chatgpt'){$('gpt-dialog').showModal();$('chatgpt-settings').scrollIntoView?.({block:'start'});$('chatgpt-connect').focus?.();}}
 openChatGPTFromLink();window.addEventListener('hashchange',openChatGPTFromLink);

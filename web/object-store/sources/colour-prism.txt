@@ -1,0 +1,18 @@
+{
+  "id": "explore-colour-prism",
+  "title": "Prism of possible colours",
+  "scale": 1.3,
+  "description": "A triangular prism stands beside a fan of coloured rays. Mix red, green and blue light in a digital swatch. Activity: predict which two channels make yellow. This models additive screen colour, not paint mixing or a physical optical simulation.",
+  "action": "experiment",
+  "experimentId": "colour-prism",
+  "category": "Exploration objects",
+  "creator": "House of Ideas project",
+  "license": "Original project geometry; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/exploration-objects.js",
+  "sourceRecord": "./object-store/sources/colour-prism.txt",
+  "sourceType": "project",
+  "revision": "Exploration collection v1",
+  "assetId": "2e77690a27f185f1e412838a0c224060dfddc4244b568b9ccae27a36c928b564",
+  "bytes": 13456,
+  "modifications": "Original static 3D sculpture with an offline interactive experiment panel. No external models, images or textures used."
+}

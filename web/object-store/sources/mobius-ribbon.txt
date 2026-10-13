@@ -1,0 +1,18 @@
+{
+  "id": "explore-mobius-ribbon",
+  "title": "Möbius ribbon",
+  "scale": 1.3,
+  "description": "A continuous band with a half twist. Trace its centre line and watch the orientation reverse after one lap. Activity: explain why two laps are needed to return to the original orientation.",
+  "action": "experiment",
+  "experimentId": "mobius-ribbon",
+  "category": "Exploration objects",
+  "creator": "House of Ideas project",
+  "license": "Original project geometry; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/exploration-objects.js",
+  "sourceRecord": "./object-store/sources/mobius-ribbon.txt",
+  "sourceType": "project",
+  "revision": "Exploration collection v1",
+  "assetId": "14c5166166d74f3cc8a0f8bdba969046570eb45a4c582b9b30136664ab9756a3",
+  "bytes": 114404,
+  "modifications": "Original static 3D sculpture with an offline interactive experiment panel. No external models, images or textures used."
+}

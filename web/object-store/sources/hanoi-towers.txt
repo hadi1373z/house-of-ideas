@@ -1,0 +1,18 @@
+{
+  "id": "explore-hanoi-towers",
+  "title": "Towers of Hanoi",
+  "scale": 1.5,
+  "description": "Three pegs and three rings make a puzzle of planning. Move one top ring at a time; a larger ring cannot sit on a smaller one. Activity: transfer all three rings to the right peg and explain your strategy.",
+  "action": "experiment",
+  "experimentId": "hanoi-towers",
+  "category": "Exploration objects",
+  "creator": "House of Ideas project",
+  "license": "Original project geometry; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/exploration-objects.js",
+  "sourceRecord": "./object-store/sources/hanoi-towers.txt",
+  "sourceType": "project",
+  "revision": "Exploration collection v1",
+  "assetId": "65a8131dea3011d5f3300a379bc881c07c4cb8e97d6ae70d74a3563e25565dd4",
+  "bytes": 124580,
+  "modifications": "Original static 3D sculpture with an offline interactive experiment panel. No external models, images or textures used."
+}

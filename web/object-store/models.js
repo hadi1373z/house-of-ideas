@@ -1,3 +1,4 @@
+import {EXPLORATION_MODELS} from './exploration-models.js';
 import {MUSIC_MODELS} from './music-models.js';
 import {IDEA_MODELS} from './idea-models.js';
 import {PROJECT_MODELS} from './project-models.js';
@@ -106,4 +107,4 @@ export const ONLINE_MODELS=[
   }
 ];
 
-export const BUNDLED_MODELS=[...ONLINE_MODELS,...PROJECT_MODELS,...IDEA_MODELS,...MUSIC_MODELS];
+export const BUNDLED_MODELS=[...ONLINE_MODELS,...PROJECT_MODELS,...IDEA_MODELS,...MUSIC_MODELS,...EXPLORATION_MODELS];

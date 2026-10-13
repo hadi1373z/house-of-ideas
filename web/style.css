@@ -115,3 +115,5 @@ header nav #plan-tab,header nav #conversations-tab{display:none}
 .object-store-music-card{display:flex;flex-direction:column;gap:6px}.object-store-music-card .object-store-card{flex:1;width:100%}.object-store-music-card>button:last-child{background:#315b50;color:#fff;padding:10px;text-align:center}
 
 #object-store-dialog.music-catalogue>p:first-of-type{display:none}.music-catalogue .object-store-card img{height:64px}.music-catalogue .object-store-card span{height:32px;padding:6px}
+
+.exploration-activity{padding:12px;background:#f7f2df;border:1px solid #b7a783;border-radius:10px}.exploration-activity label{display:block;margin:8px 0}.exploration-activity input[type=number]{width:100px!important}.colour-experiment-swatch{height:65px;border:2px solid #fff;border-radius:6px}.exploration-activity small{display:block;color:#586452}

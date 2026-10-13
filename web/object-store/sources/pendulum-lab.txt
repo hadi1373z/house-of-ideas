@@ -1,0 +1,18 @@
+{
+  "id": "explore-pendulum-lab",
+  "title": "Pendulum laboratory",
+  "scale": 1.5,
+  "description": "Three suspended bobs invite a study of time. Change length and gravity to calculate an ideal small-angle period. Activity: predict which change doubles the period. The sculpture is static; the calculation is an ideal model.",
+  "action": "experiment",
+  "experimentId": "pendulum-lab",
+  "category": "Exploration objects",
+  "creator": "House of Ideas project",
+  "license": "Original project geometry; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/exploration-objects.js",
+  "sourceRecord": "./object-store/sources/pendulum-lab.txt",
+  "sourceType": "project",
+  "revision": "Exploration collection v1",
+  "assetId": "39f614f683a400b92b73c7f679141da8322c024fe200fab03af31b5f7a263197",
+  "bytes": 74584,
+  "modifications": "Original static 3D sculpture with an offline interactive experiment panel. No external models, images or textures used."
+}

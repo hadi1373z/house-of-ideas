@@ -1,0 +1,18 @@
+{
+  "id": "explore-chance-die",
+  "title": "Probability die",
+  "scale": 1.2,
+  "description": "A giant spotted die on a circular stage. Roll it and compare a small sample with a larger one. Activity: predict which face will appear most often, then test your prediction.",
+  "action": "experiment",
+  "experimentId": "chance-die",
+  "category": "Exploration objects",
+  "creator": "House of Ideas project",
+  "license": "Original project geometry; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/exploration-objects.js",
+  "sourceRecord": "./object-store/sources/chance-die.txt",
+  "sourceType": "project",
+  "revision": "Exploration collection v1",
+  "assetId": "5fc80c6c71fc20e9f3c81db5065adf08ba1a561862ddc71a7326d53c456f423f",
+  "bytes": 203740,
+  "modifications": "Original static 3D sculpture with an offline interactive experiment panel. No external models, images or textures used."
+}

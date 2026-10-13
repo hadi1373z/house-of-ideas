@@ -10,12 +10,12 @@ export const MARKET_STALLS = Object.freeze(STORE_OBJECTS.map(item=>{
 
 export function buildObjectMarket(THREE,{loadPreview=storePreview}={}){
  const group=new THREE.Group(),colliders=[],materials=new Map(),geometries=new Map(),textures=[],displays=new Map();
- const bounds={minX:-48,maxX:27,minZ:-42,maxZ:39},spawn={x:0,z:34.5,yaw:0},guideAnchor={x:5.5,z:32};
+ const bounds={minX:-48,maxX:27,minZ:-48,maxZ:39},spawn={x:0,z:34.5,yaw:0},guideAnchor={x:5.5,z:32};
  let disposed=false,active=false,queue=[],loading=0;
  const material=color=>{if(!materials.has(color))materials.set(color,new THREE.MeshStandardMaterial({color,roughness:.85}));return materials.get(color);};
  const box=(w,h,d,x,y,z,color,data)=>{const key=[w,h,d].join(':');if(!geometries.has(key))geometries.set(key,new THREE.BoxGeometry(w,h,d));const mesh=new THREE.Mesh(geometries.get(key),material(color));mesh.position.set(x,y,z);if(data)mesh.userData=data;group.add(mesh);return mesh;};
  function sign(text,x,y,z,width,data){box(width,.4,.1,x,y,z,'#eadfc5',data);if(typeof document==='undefined')return;const canvas=document.createElement('canvas');canvas.width=512;canvas.height=64;const ctx=canvas.getContext('2d');if(!ctx)return;ctx.fillStyle='#eadfc5';ctx.fillRect(0,0,512,64);ctx.fillStyle='#243d36';ctx.font='600 26px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,256,32,490);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;textures.push(texture);const plane=new THREE.PlaneGeometry(width-.03,.38),mat=new THREE.MeshBasicMaterial({map:texture});const face=new THREE.Mesh(plane,mat);face.position.set(x,y,z+.056);if(data)face.userData=data;group.add(face);}
- box(75,.12,81,-10.5,-.08,-1.5,'#9cae86');box(45,.035,72,0,.005,-4,'#d6c6a5');
+ box(75,.12,87,-10.5,-.08,-4.5,'#9cae86');box(45,.035,78,0,.005,-7,'#d6c6a5');
  for(let row=0;row<Math.ceil(normalObjects.length/8);row++)box(45,.015,2.4,0,.03,26-row*6,'#eadfc5');
  box(2.2,.025,78,0,.045,-1.5,'#e7d7b6');box(20,.035,36,-36,.005,10,'#d6c6a5');box(69,.035,2.4,-10,.04,30,'#eadfc5');sign('LISTENING GARDEN · 10 original songs',-36,3.1,26,9);for(const x of [-40.6,-31.4])box(.18,3.2,.18,x,1.6,26,'#665844');
  sign('OBJECT MARKET · Open-air collection',0,3.6,29,8);

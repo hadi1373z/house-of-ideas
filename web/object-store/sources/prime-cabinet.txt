@@ -1,0 +1,18 @@
+{
+  "id": "explore-prime-cabinet",
+  "title": "Cabinet of indivisible numbers",
+  "scale": 1.4,
+  "description": "Compartments hold groups of two, three, five and seven beads. Test whole numbers and discover a factor when they are composite. Activity: explain why one is not prime and what evidence proves a number is composite.",
+  "action": "experiment",
+  "experimentId": "prime-cabinet",
+  "category": "Exploration objects",
+  "creator": "House of Ideas project",
+  "license": "Original project geometry; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/exploration-objects.js",
+  "sourceRecord": "./object-store/sources/prime-cabinet.txt",
+  "sourceType": "project",
+  "revision": "Exploration collection v1",
+  "assetId": "610bba43a8c90a8b7e7d1d394056c77ddbb3118c7379c76dd7380cc414f1de58",
+  "bytes": 373636,
+  "modifications": "Original static 3D sculpture with an offline interactive experiment panel. No external models, images or textures used."
+}

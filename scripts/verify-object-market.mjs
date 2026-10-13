@@ -7,6 +7,7 @@ import {buildCityFacilities} from '../web/city-facilities.js';
 import {canOccupy} from '../web/navigation.js';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import {STORE_OBJECTS} from '../web/object-store.js';
 
 const old=initialCityNetwork();assert.ok(!Object.hasOwn(old.visits,'objects'));
 assert.deepEqual(validateCityNetwork(old),old,'Opening older city records creates no market history.');
@@ -17,7 +18,7 @@ const facilities=buildCityFacilities(THREE,{cityId:'objects',origin:{x:23,z:34}}
 const world={...market,colliders:[...market.colliders,...facilities.obstacles],collisionRadius:.22,canStand:(x,z)=>market.canStand(x,z)&&canOccupy(facilities.obstacles,x,z,.22)};
 assert.equal(MARKET_STALLS.length,98);assert.ok(world.canStand(market.spawn.x,market.spawn.z));
 const source=await readFile(new URL('../web/scene.js',import.meta.url),'utf8'),start=source.indexOf(' function focusedTarget('),end=source.indexOf('\n function ',start+1);
-const context=vm.createContext({walk:true,built:{},cityId:'objects',objectMarket:{stalls:MARKET_STALLS},yaw:0,playerPoint:()=>context.point});
+const context=vm.createContext({STORE_OBJECTS,walk:true,built:{},cityId:'objects',objectMarket:{stalls:MARKET_STALLS},yaw:0,playerPoint:()=>context.point});
 vm.runInContext(source.slice(start,end),context);
 for(const stall of MARKET_STALLS){context.point=stall.approach;assert.equal(vm.runInContext('focusedTarget().storeObjectId',context),stall.id,'E identifies the display in front of its inspection position, even before loading.');}
 for(const stall of MARKET_STALLS){assert.ok(world.canStand(stall.approach.x,stall.approach.z),stall.title+' has a clear inspection position');const path=findCityPath(world,market.spawn,stall.approach);assert.ok(path.length,stall.title+' is reachable from the entrance');let previous=market.spawn;for(const point of path){const count=Math.ceil(Math.hypot(point.x-previous.x,point.z-previous.z)/.1);for(let i=0;i<=count;i++)assert.ok(world.canStand(previous.x+(point.x-previous.x)*i/count,previous.z+(point.z-previous.z)*i/count),stall.title+' route is clear');previous=point;}}

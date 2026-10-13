@@ -28,7 +28,7 @@ export function buildObjectMarket(THREE,{loadPreview=storePreview}={}){
  sign('Furniture & curiosities',-12,3.1,25.7,7);
  sign('Paintings beyond · follow the avenue',12,3.1,25.7,8);
  for(const stall of MARKET_STALLS){
-  const item=STORE_OBJECTS.find(i=>i.id===stall.id),data={cityAction:'store-object',storeObjectId:item.id,label:'Inspect '+item.title};
+  const item=STORE_OBJECTS.find(i=>i.id===stall.id),data={cityAction:'store-object',storeObjectId:item.id,label:(item.audioUrl?'Play ':'Inspect ')+item.title};
   const display=new THREE.Group();display.position.set(stall.x,0,stall.z);display.userData=data;group.add(display);
   const width=item.type==='painting'?2.4:2.7,depth=item.type==='painting'?.6:2.3;
   box(width,.2,depth,stall.x,.1,stall.z,'#a48762',data);
@@ -49,7 +49,7 @@ export function buildObjectMarket(THREE,{loadPreview=storePreview}={}){
  function pump(){while(!disposed&&active&&loading<2&&queue.length){const entry=queue.shift();if(entry.pending||entry.model||!entry.wanted||entry.error)continue;entry.pending=true;loading++;Promise.resolve().then(()=>loadPreview(entry.item)).then(model=>{
    if(disposed||!active||!entry.wanted){model.dispose();model.release?.();return;}
    const holder=new THREE.Group(),size=model.size||new THREE.Box3().setFromObject(model.group).getSize(new THREE.Vector3()),factor=entry.item.type==='painting'?1.35:(entry.item.type==='model'?entry.item.scale:entry.item.type==='idea'?.6:2.2)/Math.max(size.x,size.y,size.z);
-   holder.add(model.group);holder.scale.setScalar(factor);holder.updateMatrixWorld(true);const bottom=new THREE.Box3().setFromObject(holder).min.y;holder.position.y=.22-bottom;holder.userData={cityAction:'store-object',storeObjectId:entry.item.id,label:'Inspect '+entry.item.title};entry.display.add(holder);entry.model={...model,group:holder};
+   holder.add(model.group);holder.scale.setScalar(factor);holder.updateMatrixWorld(true);const bottom=new THREE.Box3().setFromObject(holder).min.y;holder.position.y=.22-bottom;holder.userData={cityAction:'store-object',storeObjectId:entry.item.id,label:(entry.item.audioUrl?'Play ':'Inspect ')+entry.item.title};entry.display.add(holder);entry.model={...model,group:holder};
   }).catch(()=>{entry.error=true;}).finally(()=>{entry.pending=false;loading--;pump();});}}
  function update(point){if(disposed)return;active=true;const nearby=[...displays.values()].map(entry=>({entry,d:Math.hypot(point.x-entry.stall.x,point.z-entry.stall.z)})).filter(v=>v.d<15).sort((a,b)=>a.d-b.d).slice(0,10);const ids=new Set(nearby.map(v=>v.entry.item.id));for(const entry of displays.values()){entry.wanted=ids.has(entry.item.id);if(!entry.wanted)release(entry);}queue=nearby.map(v=>v.entry);pump();}
  function suspend(){active=false;queue=[];for(const entry of displays.values()){entry.wanted=false;entry.error=false;release(entry);}}

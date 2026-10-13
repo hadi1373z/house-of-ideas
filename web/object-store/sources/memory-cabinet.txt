@@ -1,0 +1,17 @@
+{
+  "id": "artifact-memory-cabinet",
+  "title": "Cabinet of earlier selves",
+  "action": "reflect",
+  "scale": 1.5,
+  "description": "An open cabinet keeps several small house editions side by side. Activity: describe what an earlier home taught you. What should the next edition preserve, and what should it challenge?",
+  "category": "Thinking artifacts",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/idea-artifacts.js",
+  "sourceRecord": "./object-store/sources/memory-cabinet.txt",
+  "sourceType": "project",
+  "revision": "Idea artifacts v1",
+  "assetId": "24f8346a20d35d96b033f000a7a1805d9b31846582a734b474ad6bbacec83e49",
+  "bytes": 81972,
+  "modifications": "Original procedural geometry created for House of Ideas. Static sculpture with an explicit learning activity; no external model or texture used."
+}

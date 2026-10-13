@@ -1,0 +1,21 @@
+{
+  "id": "music-perspective-windows",
+  "title": "Perspective windows",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-perspective-windows.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "9c9ba21fd343f28fb2a1c4830a1395555ff33fe59a4c418350249026105ad04b",
+  "bytes": 88596,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/perspective-windows.wav",
+  "audioSha256": "f215f957d1cfaffa87977b090e1e2b8596907006ff8a5c919cee7aee0c7c274a",
+  "audioBytes": 1096244,
+  "duration": 24.857142857142858,
+  "description": "An original 25-second instrumental miniature with a physical musical poster. Listen once for the melody and once for the bass. How does your interpretation change?",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

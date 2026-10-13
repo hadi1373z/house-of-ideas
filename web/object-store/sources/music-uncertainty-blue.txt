@@ -1,0 +1,21 @@
+{
+  "id": "music-uncertainty-blue",
+  "title": "Uncertainty blue",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-uncertainty-blue.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "ecb8e47c97bf4510a86c2d15a877ca949fb666918ed81f3852c9289e1a9e473d",
+  "bytes": 88600,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/uncertainty-blue.wav",
+  "audioSha256": "48ba8bac1d155f75e8fdc587039e4833ed663fa633fa0c13a5bdbf98f1349c44",
+  "audioBytes": 1146644,
+  "duration": 26,
+  "description": "An original 26-second instrumental miniature with a physical musical poster. Separate a feeling produced by the music from a claim about the music itself.",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

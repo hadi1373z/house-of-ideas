@@ -1,0 +1,17 @@
+{
+  "id": "artifact-perspective-window",
+  "title": "Window of other perspectives",
+  "action": "question",
+  "scale": 1.4,
+  "description": "Rotated frames reveal the same sphere through different openings. Activity: interpret one painting from two viewpoints. Which visible detail supports each reading? These frames are a sculpture, not a portal.",
+  "category": "Thinking artifacts",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/idea-artifacts.js",
+  "sourceRecord": "./object-store/sources/perspective-window.txt",
+  "sourceType": "project",
+  "revision": "Idea artifacts v1",
+  "assetId": "1d19c3d21d09deb094feecc140cb803a3c116a9b99cd67dcc030af69d9faf464",
+  "bytes": 40812,
+  "modifications": "Original procedural geometry created for House of Ideas. Static sculpture with an explicit learning activity; no external model or texture used."
+}

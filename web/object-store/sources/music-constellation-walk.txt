@@ -1,0 +1,21 @@
+{
+  "id": "music-constellation-walk",
+  "title": "Constellation walk",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-constellation-walk.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "b2f94b37b6bda4f939337581cdc4c7a10c1e2f120d8eb917e6dcbdb796cef512",
+  "bytes": 88596,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/constellation-walk.wav",
+  "audioSha256": "9ad358586cd9f2eba2e2ddd7c538cb59e9fcddd72f1f8b4696decb6018833efa",
+  "audioBytes": 934964,
+  "duration": 21.2,
+  "description": "An original 21-second instrumental miniature with a physical musical poster. Imagine each note as an idea. Which musical relationships resemble connections between ideas?",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

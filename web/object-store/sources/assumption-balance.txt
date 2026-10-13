@@ -1,0 +1,17 @@
+{
+  "id": "artifact-assumption-balance",
+  "title": "Balance of assumptions",
+  "action": "question",
+  "scale": 1.3,
+  "description": "A balance holds a smooth claim and an angular counterexample. Activity: name one belief, give evidence for it, then offer a case that could overturn it. What would make the two sides fair?",
+  "category": "Thinking artifacts",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/idea-artifacts.js",
+  "sourceRecord": "./object-store/sources/assumption-balance.txt",
+  "sourceType": "project",
+  "revision": "Idea artifacts v1",
+  "assetId": "c06c81e7a7f346bd52acd991ef7bdb8e777c7ea8e5e8c2c5db5e40800449c31b",
+  "bytes": 92732,
+  "modifications": "Original procedural geometry created for House of Ideas. Static sculpture with an explicit learning activity; no external model or texture used."
+}

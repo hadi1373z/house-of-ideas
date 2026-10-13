@@ -1,0 +1,17 @@
+{
+  "id": "artifact-uncertainty-lantern",
+  "title": "Lantern of uncertainty",
+  "action": "question",
+  "scale": 1.2,
+  "description": "An open cage surrounds an unresolved blue thought. Activity: separate what you know, what you infer and what you cannot yet decide. Name one observation that would reduce uncertainty. This sculpture does not change room lighting.",
+  "category": "Thinking artifacts",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/idea-artifacts.js",
+  "sourceRecord": "./object-store/sources/uncertainty-lantern.txt",
+  "sourceType": "project",
+  "revision": "Idea artifacts v1",
+  "assetId": "dfeae78875a4ad8378904e35aecc799ebdf4d96c6aa25e4f31eecb4f35aa26d9",
+  "bytes": 123824,
+  "modifications": "Original procedural geometry created for House of Ideas. Static sculpture with an explicit learning activity; no external model or texture used."
+}

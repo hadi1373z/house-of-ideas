@@ -1,0 +1,21 @@
+{
+  "id": "music-return-home",
+  "title": "Return home",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-return-home.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "a6e3b38d79627100e0b664ebb9980b7798c4bae50c9b2da5784bf86466b73dc9",
+  "bytes": 88596,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/return-home.wav",
+  "audioSha256": "691b702484b8bcc225105f8ff762c74618fb8819cadd9c48568ae6f5369a7428",
+  "audioBytes": 1173784,
+  "duration": 26.615384615384617,
+  "description": "An original 27-second instrumental miniature with a physical musical poster. Compare the opening and ending. What does returning home mean after exploring?",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

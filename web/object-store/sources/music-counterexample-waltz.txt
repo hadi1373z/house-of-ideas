@@ -1,0 +1,21 @@
+{
+  "id": "music-counterexample-waltz",
+  "title": "Counterexample waltz",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-counterexample-waltz.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "a7f2897ce0598f7a6aee3074fa446ddd03868e351e630abaf23eb7beaeb7781e",
+  "bytes": 88600,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/counterexample-waltz.wav",
+  "audioSha256": "2e75f3d41a82d20fe109be9e28265d5767ca72b2b7e49988293faeecba8b3588",
+  "audioBytes": 970244,
+  "duration": 22,
+  "description": "An original 22-second instrumental miniature with a physical musical poster. Where does the melody resist your expectation? Describe the counterexample.",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

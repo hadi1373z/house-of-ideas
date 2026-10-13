@@ -1,0 +1,21 @@
+{
+  "id": "music-memory-rooms",
+  "title": "Memory rooms",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-memory-rooms.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "1ef30e90fd045e370d30de4d232fa995f1ba67ca7ed4d401784a07f7c58791c1",
+  "bytes": 88596,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/memory-rooms.wav",
+  "audioSha256": "7c8a4c9927637aab68e3c2e19944dbf06a6720b9121ca65bd479e2032f440988",
+  "audioBytes": 1202350,
+  "duration": 27.263157894736842,
+  "description": "An original 27-second instrumental miniature with a physical musical poster. Name a room or memory this piece suggests and explain which sound prompted it.",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

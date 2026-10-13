@@ -3,20 +3,19 @@ import {CUES, IDEA_ACTIONS, defaultIdeaAction} from './model.js';
 import {BOOKS} from './books.js';
 import {ARTISTS} from './artist-catalog.js';
 import {validateArtistHomes} from './artist-home-data.js';
-
 export const CITY_LIMITS = Object.freeze({cargo:64, placements:128, placementsPerAnchor:8,
   notes:120, cargoText:6000, noteText:2000, visits:1000000, travelPackBytes:2*1024*1024,
   artistMessages:80, artistMessageText:2000, artistConversationBytes:512*1024});
 export const CITY_ANCHORS = Object.freeze({home:Object.freeze(['library','table','plaza']),
-  artists:Object.freeze(['library','table','plaza']), makers:Object.freeze(['library','workshop','plaza']), mathematics:Object.freeze(['library','table','plaza'])});
+  artists:Object.freeze(['library','table','plaza']), makers:Object.freeze(['library','workshop','plaza']), mathematics:Object.freeze(['library','table','plaza']),objects:Object.freeze(['library','table','plaza'])});
 const labels={library:'Library',table:'Learning table',plaza:'Plaza',workshop:'Workshop'};
 export const CITIES = Object.freeze([
   {id:'home',name:'Home neighbourhood',description:'Return to your preserved homes, read in the library and bring a thought to the learning table.'},
   {id:'artists',name:'Artists’ City',description:'Explore eleven artist houses, read, discuss their works and keep observations in the city journal.'},
   {id:'makers',name:'Makers’ City',description:'Visit workshops, try a small experiment and bring useful ideas back to another city.'},
   {id:'mathematics',name:'Mathematics City',description:'Enter an eight-floor mathematical house, explore ideas and open the offline Atlas of Ideas on its screens.'},
+  {id:'objects',name:'Object Market',description:'Walk through an open-air collection of furniture, learning objects and paintings. Inspect each display for its source and choose objects for a house draft.'},
 ].map(city=>Object.freeze({...city,anchors:Object.freeze(CITY_ANCHORS[city.id].map(id=>Object.freeze({id,label:labels[id]})))})));
-
 const cityIds=CITIES.map(city=>city.id), validId=value=>typeof value==='string'&&/^[a-zA-Z0-9_-]{1,60}$/.test(value);
 const keys=(input,allowed,label)=>{
   if(!input||typeof input!=='object'||Array.isArray(input)||![Object.prototype,null].includes(Object.getPrototypeOf(input)))throw Error(`Use a plain ${label} record.`);
@@ -40,11 +39,9 @@ const unique=(value,seen,label)=>{if(!validId(value)||seen.has(value))throw Erro
 const freshId=(prefix,records,reserved=new Set())=>{const ids=new Set(records.map(record=>record.id));let index=records.length+1;while(ids.has(`${prefix}-${index}`)||reserved.has(`${prefix}-${index}`))index++;return `${prefix}-${index}`;};
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const withoutId=record=>{const {id,...value}=record;return value;};
-
 export function initialCityNetwork(){
   return {version:1,cargo:[],placements:[],notes:[],visits:{home:0,artists:0,makers:0,mathematics:0},lastVisits:{home:null,artists:null,makers:null,mathematics:null}};
 }
-
 export function validateCityNetwork(input){
   if(input===undefined)return initialCityNetwork();
   keys(input,['version','cargo','placements','notes','visits','lastVisits','artistConversations','artistHomes','learningTrail'],'city network');
@@ -81,7 +78,7 @@ export function validateCityNetwork(input){
   for(const id of cityIds){
     // Older networks stay byte-equivalent in content until the owner actually
     // visits the new city. Do not manufacture a saved mathematics visit.
-    if(id==='mathematics'&&!Object.hasOwn(input.visits,id)&&!Object.hasOwn(input.lastVisits??{},id))continue;
+    if(['mathematics','objects'].includes(id)&&!Object.hasOwn(input.visits,id)&&!Object.hasOwn(input.lastVisits??{},id))continue;
     const count=input.visits[id];if(!Number.isInteger(count)||count<0||count>CITY_LIMITS.visits)throw Error(`City visit counts must be between 0 and ${CITY_LIMITS.visits}.`);
     visits[id]=count;lastVisits[id]=input.lastVisits?.[id]==null?null:timestamp(input.lastVisits[id]);
   }
@@ -114,7 +111,6 @@ export function validateCityNetwork(input){
   if(Object.hasOwn(input,'learningTrail'))result.learningTrail=validateTrail(input.learningTrail);
   return result;
 }
-
 export function packIdea(network,idea){
   const result=validateCityNetwork(network);
   if(!idea||typeof idea!=='object')throw Error('Choose an idea to copy into your travel bag.');
@@ -123,7 +119,6 @@ export function packIdea(network,idea){
     ...(idea.id===undefined?{}:{sourceIdeaId:idea.id})});
   return validateCityNetwork(result);
 }
-
 export function packBook(network,input){
   const result=validateCityNetwork(network),id=typeof input==='string'?input:input?.bookId??input?.id;
   const book=BOOKS.find(item=>item.id===id);if(!book)throw Error('Choose a known offline learning book.');
@@ -131,7 +126,6 @@ export function packBook(network,input){
     cue:'book',action:'read',sourceHomeTitle:input?.sourceHomeTitle??'',sourceRoomName:input?.sourceRoomName??''});
   return validateCityNetwork(result);
 }
-
 export function placeCargo(network,cargoId,cityId,anchorId){
   const result=validateCityNetwork(network);result.placements.push({id:freshId('placement',result.placements),cargoId,cityId,anchorId});return validateCityNetwork(result);
 }
@@ -145,7 +139,6 @@ export function recordCityVisit(network,cityId,options={}){
 export function saveCityNote(network,cityId,value,options={}){
   const result=validateCityNetwork(network);result.notes.push({id:freshId('note',result.notes),cityId:city(cityId),date:now(options),text:value});return validateCityNetwork(result);
 }
-
 export function exportTravelPack(network){
   const validated=validateCityNetwork(network),{artistConversations,artistHomes,learningTrail,...collection}=validated;
   // A portable learning collection does not publish private conversations.
@@ -153,7 +146,6 @@ export function exportTravelPack(network){
   if(new TextEncoder().encode(JSON.stringify(pack)).byteLength>CITY_LIMITS.travelPackBytes)throw Error('This collection exceeds the portable travel pack budget. Nothing was removed.');
   return pack;
 }
-
 export function importTravelPack(network,input){
   const result=validateCityNetwork(network);
   if(typeof input==='string'){

@@ -1,0 +1,21 @@
+{
+  "id": "music-city-of-tomorrow",
+  "title": "City of tomorrow",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-city-of-tomorrow.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "ed9be7469af7ffb3dd18b1e923813bc9a1025a14e82699f22e05fe716db9787e",
+  "bytes": 88592,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/city-of-tomorrow.wav",
+  "audioSha256": "c7de72ee144d2b17ba2e47a273f39929a51cccca8f4ed085daa5919cd66d5940",
+  "audioBytes": 902398,
+  "duration": 20.46153846153846,
+  "description": "An original 20-second instrumental miniature with a physical musical poster. Imagine a city this music could accompany. Name one activity that belongs there.",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

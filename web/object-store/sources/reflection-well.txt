@@ -1,0 +1,17 @@
+{
+  "id": "artifact-reflection-well",
+  "title": "Well of reflection",
+  "action": "reflect",
+  "scale": 1.2,
+  "description": "Concentric steps lead to a quiet blue centre. Activity: before exploring, write what you expect to learn. Afterwards, name what changed and one question still open. The blue surface is symbolic, not a live mirror.",
+  "category": "Thinking artifacts",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/idea-artifacts.js",
+  "sourceRecord": "./object-store/sources/reflection-well.txt",
+  "sourceType": "project",
+  "revision": "Idea artifacts v1",
+  "assetId": "d79d5c03f675bdd4eefd259e45e3b06abd3f6bd100dd7187dea858e383f3f03d",
+  "bytes": 113912,
+  "modifications": "Original procedural geometry created for House of Ideas. Static sculpture with an explicit learning activity; no external model or texture used."
+}

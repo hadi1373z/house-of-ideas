@@ -6,8 +6,8 @@ import {CITIES,CITY_ANCHORS,CITY_LIMITS,initialCityNetwork,validateCityNetwork,p
   exportCollection,importCollection} from '../web/city-network.js';
 
 const before=value=>JSON.stringify(value),date='2026-10-08T09:30:00.000Z';
-assert.deepEqual(CITIES.map(city=>city.id),['home','artists','makers','mathematics']);
-assert.deepEqual(CITY_ANCHORS,{home:['library','table','plaza'],artists:['library','table','plaza'],makers:['library','workshop','plaza'],mathematics:['library','table','plaza']});
+assert.deepEqual(CITIES.map(city=>city.id),['home','artists','makers','mathematics','objects']);
+assert.deepEqual(CITY_ANCHORS,{home:['library','table','plaza'],artists:['library','table','plaza'],makers:['library','workshop','plaza'],mathematics:['library','table','plaza'],objects:['library','table','plaza']});
 for(const city of CITIES){assert.ok(city.name&&city.description);assert.deepEqual(city.anchors.map(anchor=>anchor.id),CITY_ANCHORS[city.id]);assert.ok(city.anchors.every(anchor=>anchor.label));}
 assert.equal(CITY_LIMITS.travelPackBytes,2*1024*1024);
 let network=initialCityNetwork();

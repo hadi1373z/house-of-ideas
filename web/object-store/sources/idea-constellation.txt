@@ -1,0 +1,17 @@
+{
+  "id": "artifact-idea-constellation",
+  "title": "Constellation of ideas",
+  "action": "experiment",
+  "scale": 1.4,
+  "description": "Different coloured ideas remain connected across an open frame. Activity: name four ideas and label their connections supports, contradicts, depends on or illustrates. Which connection needs evidence?",
+  "category": "Thinking artifacts",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/idea-artifacts.js",
+  "sourceRecord": "./object-store/sources/idea-constellation.txt",
+  "sourceType": "project",
+  "revision": "Idea artifacts v1",
+  "assetId": "673be6b2e55171872ed2841a90236ed57ea90de76ae4c162ba0af52e79e5c546",
+  "bytes": 157212,
+  "modifications": "Original procedural geometry created for House of Ideas. Static sculpture with an explicit learning activity; no external model or texture used."
+}

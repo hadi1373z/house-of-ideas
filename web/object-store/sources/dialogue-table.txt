@@ -1,0 +1,17 @@
+{
+  "id": "artifact-dialogue-table",
+  "title": "Table for an unfinished dialogue",
+  "action": "question",
+  "scale": 1.5,
+  "description": "Two seats face an open ring with space for a third view. Activity: write a claim in your own words, give the fairest opposing argument, then revise the claim. The seats are part of a static sculpture.",
+  "category": "Thinking artifacts",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/idea-artifacts.js",
+  "sourceRecord": "./object-store/sources/dialogue-table.txt",
+  "sourceType": "project",
+  "revision": "Idea artifacts v1",
+  "assetId": "6d60c902bf8d8455c066d8e4036324e113e9f6bdcc7e6b7b8c4c49a56c6f189d",
+  "bytes": 84992,
+  "modifications": "Original procedural geometry created for House of Ideas. Static sculpture with an explicit learning activity; no external model or texture used."
+}

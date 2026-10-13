@@ -1,0 +1,21 @@
+{
+  "id": "music-dialogues-at-dawn",
+  "title": "Dialogues at dawn",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-dialogues-at-dawn.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "7d342bd5e0f4b2d19dfa42566d73ada2df4c04be98485fd990ee18c831d66323",
+  "bytes": 88596,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/dialogues-at-dawn.wav",
+  "audioSha256": "0c83f36563b28800b51f39276f4edc76591cbfe3d5b9f0879d30b59257023fdf",
+  "audioBytes": 1050426,
+  "duration": 23.818181818181817,
+  "description": "An original 24-second instrumental miniature with a physical musical poster. Listen for the phrase that returns. What changes when it returns?",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

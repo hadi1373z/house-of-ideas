@@ -1,0 +1,21 @@
+{
+  "id": "music-quiet-well",
+  "title": "Quiet well",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-quiet-well.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "e7e2810d299b6a5b473283b64b216bcd41e65aad6d977beb161d4befb28a4959",
+  "bytes": 88596,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/quiet-well.wav",
+  "audioSha256": "a9f6db59fc9358074eccde9c648bece467a5a6dd295e5da00db2b8adc0f349c2",
+  "audioBytes": 1264244,
+  "duration": 28.666666666666668,
+  "description": "An original 29-second instrumental miniature with a physical musical poster. Notice a pause. What could a quiet place in your house make possible?",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

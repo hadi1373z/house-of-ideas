@@ -1,0 +1,21 @@
+{
+  "id": "music-garden-of-branches",
+  "title": "Garden of branches",
+  "category": "Music posters",
+  "creator": "House of Ideas project · procedural instrumental composition",
+  "license": "Original project composition and poster; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/scripts/build-market-music.mjs",
+  "sourceRecord": "./object-store/sources/music-garden-of-branches.txt",
+  "sourceType": "project",
+  "revision": "Listening garden v1",
+  "assetId": "2b0e8a78defb2e875026a4a2ebc72facc13768b3842a3b62912728c1f8882fa7",
+  "bytes": 88592,
+  "scale": 1.6,
+  "action": "reflect",
+  "audioUrl": "./object-store/audio/garden-of-branches.wav",
+  "audioSha256": "0a2a34741ba19b8be62e32828c94527054db674cb8907a5d7af43a60fe2f782a",
+  "audioBytes": 1008592,
+  "duration": 22.869565217391305,
+  "description": "An original 23-second instrumental miniature with a physical musical poster. Predict the next phrase before it arrives. Compare the prediction with what you hear.",
+  "modifications": "Original melody, additive synthesis and geometric 3D poster created for this project. No external recording, artist image or audio sample used."
+}

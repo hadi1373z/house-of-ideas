@@ -1,0 +1,17 @@
+{
+  "id": "artifact-forked-path",
+  "title": "Garden of possible paths",
+  "action": "experiment",
+  "scale": 1.4,
+  "description": "A miniature path branches toward contrasting destinations. Activity: choose two possible house improvements, predict their effects, and choose one small reversible experiment before committing to either.",
+  "category": "Thinking artifacts",
+  "creator": "House of Ideas project",
+  "license": "Project-created model; see project source",
+  "sourceUrl": "https://github.com/hadi1373z/house-of-ideas/blob/main/web/idea-artifacts.js",
+  "sourceRecord": "./object-store/sources/forked-path.txt",
+  "sourceType": "project",
+  "revision": "Idea artifacts v1",
+  "assetId": "6554f81b0166ba207096d08981bcd02505fb0a0449856793a7ce75ed787c5d42",
+  "bytes": 61556,
+  "modifications": "Original procedural geometry created for House of Ideas. Static sculpture with an explicit learning activity; no external model or texture used."
+}
